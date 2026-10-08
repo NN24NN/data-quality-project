@@ -45,7 +45,7 @@
 
 **Phát hiện:** tên cột Beijing thực tế khác tài liệu thiết kế (`wd` thay cho `cbwd`; `WSPM`, `RAIN` thay cho `Iws`, `Is`, `Ir`; có thêm `PM10, SO2, NO2, CO, O3`, `year/month/day/hour`, `No`; cột `station` đã có sẵn). Đã sửa `thiet-ke-thi-nghiem-chi-tiet.md` mục 1.1.
 
-### Nhóm D — Gộp Beijing và tạo bản sạch (code đã viết, **chưa chạy** → chưa tick)
+### Nhóm D — Gộp Beijing và tạo bản sạch (xong, đã chạy trên Colab và kiểm tra, tick trong checklist)
 
 **Đã làm:** thêm mục 8 vào notebook Colab (cell 8.1 và 8.2), khi bạn chạy sẽ ghi các file `data/processed/*.parquet` trên Drive.
 
@@ -61,4 +61,19 @@
 
 **Làm như thế nào:** `pd.concat` 12 file → in số ô thiếu theo cột và số dòng bị bỏ → `dropna` → `drop(['No','year'])` → `get_dummies` → lưu parquet → đọc lại in shape, số NaN, số dòng trùng.
 
-**Việc cần làm tiếp:** chạy cell 8.1 và 8.2 trên Colab, gửi kết quả in ra để kiểm tra, sau đó tick 4 mục (gộp Beijing + 3 bản sạch).
+**Kết quả kiểm chứng (từ PDF Colab):**
+
+| File | Shape | Ghi chú |
+|---|---|---|
+| `beijing_clean.parquet` | 382.168 × 42 | Gộp ra 420.768 × 18; bỏ 38.600 dòng (9,2%); NaN = 0; dòng trùng = 0 |
+| `higgs_sample_clean.parquet` | 1.000.000 × 29 | Không missing; **2.281 dòng trùng (0,23%)** |
+| `covertype_clean.parquet` | 581.012 × 55 | Không missing; dòng trùng = 0 |
+
+Số ô thiếu gốc của Beijing nhiều nhất ở `CO` (20.701), `O3` (13.277), `NO2` (12.116), `SO2` (9.021), `PM2.5` (8.739).
+
+**Lưu ý cho các giai đoạn sau:**
+- Beijing sau làm sạch còn 382.168 dòng, thấp hơn "~420K" trong `thiet-ke-thi-nghiem-chi-tiet.md`; số dòng thật phải theo `beijing_clean.parquet`.
+- HIGGS mẫu có 0,23% dòng trùng nên Uniqueness của baseline hơi nhỏ hơn 1 (gần 1). Giữ nguyên, không xóa, để bản sạch phản ánh đúng dữ liệu gốc; khi viết profiler và đo ΔPerformance cần tính theo baseline thật chứ không giả định bằng 1.
+- Beijing bỏ dòng missing có thể lệch phân phối nhẹ (ví dụ mùa nhiều missing); chấp nhận được vì mọi mức ô nhiễm đều xuất phát từ cùng bản sạch này.
+
+**Kết luận Giai đoạn 1:** các mục dữ liệu và config đã xong. Còn lại HIGGS full (làm sau, trước Giai đoạn 8) và cài `requirements.txt` ở local (bỏ qua được).

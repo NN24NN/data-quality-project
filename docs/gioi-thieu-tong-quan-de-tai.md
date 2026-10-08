@@ -48,7 +48,7 @@ Chi tiết đầy đủ: [`pipeline-thi-nghiem.md`](./pipeline-thi-nghiem.md), [
 
 ## 5. Trạng thái hiện tại
 
-Giai đoạn 0 (thiết kế) đã hoàn tất — xem tiến độ chi tiết và các bước tiếp theo tại [`checklist-trien-khai.md`](./checklist-trien-khai.md).
+Giai đoạn 0 (thiết kế) đã hoàn tất. Giai đoạn 1 (dữ liệu & môi trường) gần xong: 3 dataset đã tải, 3 bản sạch đã tạo trên Google Drive, config đã có; còn HIGGS full (làm sau). Xem tiến độ chi tiết và các bước tiếp theo tại [`checklist-trien-khai.md`](./checklist-trien-khai.md).
 
 ## 6. Cấu trúc thư mục & quy tắc làm việc
 

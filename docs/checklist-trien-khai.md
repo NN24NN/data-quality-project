@@ -4,9 +4,9 @@
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
-**Trạng thái tổng quan:** Giai đoạn 0 (thiết kế) đã xong. Đang ở Giai đoạn 1 (chuẩn bị dữ liệu/môi trường): nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Còn lại: HIGGS full (làm sau), gộp Beijing + tạo 3 bản sạch (nhóm D), cài `requirements.txt` ở local (nếu cần).
+**Trạng thái tổng quan:** Giai đoạn 0 (thiết kế) đã xong. Đang ở Giai đoạn 1 (chuẩn bị dữ liệu/môi trường): nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
-**Lưu ý lệch tài liệu thiết kế (phát hiện khi tải Beijing):** tên cột thực tế là `wd` (không phải `cbwd`), `RAIN`/`WSPM` (không phải `Ir`/`Is`/`Iws`), có thêm `PM10, SO2, NO2, CO, O3` và các cột thời gian `year, month, day, hour`, `No`. Đã sửa `thiet-ke-thi-nghiem-chi-tiet.md` mục 1.1. Nhóm D: code đã viết vào mục 8 notebook Colab, **chờ chạy**. Chi tiết cách làm: `cach-trien-khai-chi-tiet-tung-giai-doan.md`.
+**Lưu ý lệch tài liệu thiết kế (phát hiện khi tải Beijing):** tên cột thực tế là `wd` (không phải `cbwd`), `RAIN`/`WSPM` (không phải `Ir`/`Is`/`Iws`), có thêm `PM10, SO2, NO2, CO, O3` và các cột thời gian `year, month, day, hour`, `No`. Đã sửa `thiet-ke-thi-nghiem-chi-tiet.md` mục 1.1. Chi tiết cách làm: `cach-trien-khai-chi-tiet-tung-giai-doan.md`.
 
 ---
 
@@ -29,10 +29,10 @@
 - [x] Xác nhận và tải mẫu HIGGS (~500K-1M dòng) vào `data/raw/higgs_sample/` — *`higgs_sample_raw.parquet`, 1.000.000 × 29, target 1: 52,99% / 0: 47,01% (seed 42)*
 - [x] Xác nhận và tải Covertype full (581K dòng) vào `data/raw/covertype/` — *`covertype_raw.parquet`, 581.012 × 55, 7 lớp (lớp 4 chỉ 2.747 dòng)*
 - [ ] (Có thể làm sau) Tải HIGGS full (11M dòng, ~2.8GB) vào `data/raw/higgs_full/` — chỉ cần trước khi làm Giai đoạn 6
-- [ ] Gộp 12 file trạm Beijing thành 1 bảng, thêm cột `station`
-- [ ] Tạo bản "baseline" sạch cho Beijing (xử lý missing tự nhiên, one-hot `wd`/`station`) → `data/processed/beijing_clean.parquet`
-- [ ] Tạo bản sạch cho HIGGS sample (lấy mẫu stratified theo target) → `data/processed/higgs_sample_clean.parquet`
-- [ ] Tạo bản sạch cho Covertype (dùng trực tiếp, không cần gộp) → `data/processed/covertype_clean.parquet`
+- [x] Gộp 12 file trạm Beijing thành 1 bảng, thêm cột `station` — *420.768 × 18 (cột `station` đã có sẵn trong từng file)*
+- [x] Tạo bản "baseline" sạch cho Beijing (xử lý missing tự nhiên, one-hot `wd`/`station`) → `data/processed/beijing_clean.parquet` — *382.168 × 42 (bỏ 38.600 dòng missing = 9,2%), NaN = 0, trùng = 0*
+- [x] Tạo bản sạch cho HIGGS sample (lấy mẫu stratified theo target) → `data/processed/higgs_sample_clean.parquet` — *1.000.000 × 29; có 2.281 dòng trùng (0,23%), giữ nguyên*
+- [x] Tạo bản sạch cho Covertype (dùng trực tiếp, không cần gộp) → `data/processed/covertype_clean.parquet` — *581.012 × 55, trùng = 0*
 - [ ] Cập nhật `requirements.txt`: bỏ comment `pyspark`, `shap`, `xgboost`; cài đặt (`pip install -r requirements.txt`) — *đã sửa file (thêm cả `pyyaml`, `pyarrow`); **chưa cài đặt** (cần xác nhận, nên cài trên Colab)*
 - [x] Tạo `configs/seeds.yaml` (seed cố định 42, 43, 44)
 - [x] Tạo `configs/pollution_levels.yaml` ([0.0, 0.2, 0.5, 0.8])
