@@ -4,6 +4,21 @@
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
+> ## ⏸ VIỆC ĐANG DỞ — làm đầu tiên ở phiên sau (ghi ngày 2026-10-08)
+>
+> Giai đoạn 3 đã viết xong code và đã push (commit `bbd1721`) nhưng **chưa chạy test**. Người dùng cần chạy trên Colab:
+>
+> 1. Đóng tab Colab cũ, mở lại notebook từ **File → Open notebook → GitHub** (để có mục 10).
+> 2. Chạy mục 1 và 2, rồi 9.1 — dòng cuối của 9.1 phải hiện commit `bbd1721` hoặc mới hơn.
+> 3. Chạy 10.1 (kỳ vọng `43 passed`) rồi 10.2 (bảng 52 dòng).
+> 4. Gửi kết quả 10.1 và 10.2 cho Claude (xuất PDF như các lần trước).
+>
+> Không lưu notebook từ Colab lên GitHub (sẽ ghi đè bản trên repo).
+>
+> **Sau khi có kết quả, Claude cần:** kiểm tra số liệu, tick 7 mục Giai đoạn 3, cập nhật file nhật ký và `khac-biet-so-voi-bai-goc.md`; rồi hỏi người dùng quyết định **có giữ Class Balance cho clustering (Covertype) không** — dự đoán điểm Balance đi ngược (tăng khi λ tăng), nếu bỏ thì số lượt chạy từ 312 xuống 288. Xóa khung này khi xong.
+>
+> Commit ghi chú này có thể chưa push — kiểm tra `git status` đầu phiên.
+
 **Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau) và 2 (module Profiling) đã xong. Tiếp theo: Giai đoạn 3 (module Pollution).
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
