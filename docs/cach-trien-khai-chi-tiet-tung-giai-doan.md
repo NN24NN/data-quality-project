@@ -98,7 +98,7 @@ Máy Windows không có Python, nên toàn bộ test chạy trên Colab (cell 9.
 | `src/profiling/common.py` | 5 công thức quy đổi thống kê thô → điểm, dùng chung cho hai engine |
 | `src/profiling/pandas_profiler.py` | `compute_profile(...)` bản pandas |
 | `src/profiling/spark_profiler.py` | `compute_profile(...)` bản PySpark |
-| `tests/test_profiling.py`, `tests/conftest.py` | 11 test: công thức thuần, ví dụ có đáp án tính tay, đối chiếu pandas/PySpark |
+| `tests/test_profiling.py`, `tests/conftest.py` | 12 test: công thức thuần, ví dụ có đáp án tính tay, đối chiếu pandas/PySpark |
 | Notebook mục 9 | 9.1 kéo code từ GitHub, 9.2 chạy pytest, 9.3 profile dữ liệu thật |
 
 **Làm như thế nào:**
