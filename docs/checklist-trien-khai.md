@@ -4,7 +4,9 @@
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
-**Trạng thái tổng quan:** Giai đoạn 0 (thiết kế) đã xong. Đang ở Giai đoạn 1 (chuẩn bị dữ liệu/môi trường): nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau) và 2 (module Profiling) đã xong. Tiếp theo: Giai đoạn 3 (module Pollution).
+
+**Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
 **Lưu ý lệch tài liệu thiết kế (phát hiện khi tải Beijing):** tên cột thực tế là `wd` (không phải `cbwd`), `RAIN`/`WSPM` (không phải `Ir`/`Is`/`Iws`), có thêm `PM10, SO2, NO2, CO, O3` và các cột thời gian `year, month, day, hour`, `No`. Đã sửa `thiet-ke-thi-nghiem-chi-tiet.md` mục 1.1. Chi tiết cách làm: `cach-trien-khai-chi-tiet-tung-giai-doan.md`.
 
@@ -42,12 +44,12 @@
 
 ## Giai đoạn 2 — Module Profiling (`src/profiling/`)
 
-*Trạng thái: code và test đã viết (`common.py`, `pandas_profiler.py`, `spark_profiler.py`, `tests/test_profiling.py`), **chưa chạy** — chờ kết quả cell 9.2 và 9.3 trên Colab rồi mới tick.*
+*Trạng thái: xong. Đã chạy trên Colab (pytest 12/12 passed; pandas và PySpark khớp trên mẫu 50.000 dòng của cả 3 dataset).*
 
-- [ ] Viết `pandas_profiler.py`: công thức Completeness, Feature Accuracy, Target Accuracy, Uniqueness, (Target Class Balance)
-- [ ] Viết test tay (`tests/test_profiling.py`): kiểm tra công thức đúng trên ví dụ nhỏ có đáp án tay
-- [ ] Viết `spark_profiler.py`: cùng công thức, bản PySpark — chạy thử trên mẫu nhỏ trước khi dùng cho Giai đoạn 6
-- [ ] Đối chiếu kết quả `pandas_profiler.py` và `spark_profiler.py` trên cùng 1 dataset nhỏ để đảm bảo khớp
+- [x] Viết `pandas_profiler.py`: công thức Completeness, Feature Accuracy, Target Accuracy, Uniqueness, (Target Class Balance) — *công thức nằm ở `common.py`, dùng chung hai engine*
+- [x] Viết test tay (`tests/test_profiling.py`): kiểm tra công thức đúng trên ví dụ nhỏ có đáp án tay — *12 passed*
+- [x] Viết `spark_profiler.py`: cùng công thức, bản PySpark — chạy thử trên mẫu nhỏ trước khi dùng cho Giai đoạn 6 — *chạy trên mẫu 50.000 dòng × 3 dataset*
+- [x] Đối chiếu kết quả `pandas_profiler.py` và `spark_profiler.py` trên cùng 1 dataset nhỏ để đảm bảo khớp — *khớp tới sai số tương đối 1e-9*
 
 ## Giai đoạn 3 — Module Pollution (`src/pollution/`)
 

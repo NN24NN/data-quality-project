@@ -86,7 +86,7 @@ Số ô thiếu gốc của Beijing nhiều nhất ở `CO` (20.701), `O3` (13.2
 
 ---
 
-## Giai đoạn 2 — Module Profiling (code đã viết, **chưa chạy test** → chưa tick)
+## Giai đoạn 2 — Module Profiling (xong, đã chạy trên Colab và kiểm tra, tick trong checklist)
 
 Máy Windows không có Python, nên toàn bộ test chạy trên Colab (cell 9.2, 9.3).
 
@@ -119,4 +119,26 @@ Máy Windows không có Python, nên toàn bộ test chạy trên Colab (cell 9.
 
 **Hệ quả cho Giai đoạn 3 (polluter):** nhiễu numeric phải nhân với `mean(|gt|)` (không phải `mean_gt`); completeness polluter chèn NaN / đặt cả nhóm one-hot về 0; polluter nhân bản phải giữ index của dòng gốc.
 
-**Chưa kiểm chứng:** code mới được rà bằng tay, chưa chạy. Cần chạy cell 9.2 (pytest) và 9.3 (dữ liệu thật) trên Colab rồi mới tick 4 mục của Giai đoạn 2.
+**Kết quả kiểm chứng (từ PDF Colab, code tại commit `43c6ba3`):**
+
+- Cell 9.2: `12 passed in 45.12s`.
+- Cell 9.3: pandas và PySpark khớp trên mẫu 50.000 dòng của cả 3 dataset (sai số tương đối ≤ 1e-9).
+
+Profile của bản sạch, tính trên toàn bộ dữ liệu bằng pandas (đây là điểm baseline):
+
+| Dataset | n | Completeness | Feature Acc. | Target Acc. | Uniqueness | Class Balance |
+|---|---|---|---|---|---|---|
+| Beijing | 382.168 | 1 | 1 | 1 | 1 | NaN (regression) |
+| HIGGS mẫu | 1.000.000 | 1 | 1 | 1 | 0,997719 | 0,887077 |
+| Covertype | 581.012 | 1 | 1 | 1 | 1 | 0,255949 |
+
+Ba con số khác 1 đã được đối chiếu tay với số liệu Giai đoạn 1:
+- Uniqueness HIGGS: 2.281 dòng trùng → 997.719 dòng phân biệt → (997.719 − 1) / 999.999 = 0,997719.
+- Class Balance HIGGS: 2 lớp nên bằng n_min / n_max = 0,47008 / 0,52992 = 0,8871.
+- Class Balance Covertype: tổng chênh lệch cặp của 7 lớp = 2.529.486; ε = 4 × 3 × 283.301 = 3.399.612 → 1 − 0,74405 = 0,25595.
+
+**Sự cố:** cell 9.3 lần đầu báo `UNABLE_TO_INFER_SCHEMA` vì file tạm đặt tên bắt đầu bằng `_` (Spark coi là file ẩn). Lỗi nằm ở cell notebook, không ở module; đã đổi tên file.
+
+**Giới hạn của phép kiểm chứng:** trên dữ liệu thật mới so bản sạch với chính nó, nên Feature/Target Accuracy hiển nhiên bằng 1. Hai công thức accuracy khi dữ liệu thật sự bị bẩn mới chỉ được kiểm bằng ví dụ tính tay và dữ liệu ngẫu nhiên trong test; sẽ kiểm lại trên dữ liệu thật khi có polluter ở Giai đoạn 3.
+
+**Lưu ý cho giai đoạn sau:** Class Balance baseline của Covertype chỉ 0,256 (mất cân bằng tự nhiên), nên polluter Class Balance trên Covertype có ít dư địa để làm xấu thêm.

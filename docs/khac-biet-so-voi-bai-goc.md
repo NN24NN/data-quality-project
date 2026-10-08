@@ -60,7 +60,7 @@
 
 **Chưa kiểm chứng:** nhận định "cột nào trung bình gần 0" dựa trên hiểu biết về hai bộ dữ liệu, chưa đo trên bản sạch. Cần in `mean` và `mean(|·|)` từng cột để có số liệu thật cho slide.
 
-*Trạng thái: Đã viết (`src/profiling/common.py`, hàm `numeric_accuracy`).*
+*Trạng thái: Đã cài (`src/profiling/common.py`, hàm `numeric_accuracy`; test 12/12 passed).*
 
 ### 3.2 Class Balance — diễn giải `n_cmax`
 
@@ -68,7 +68,9 @@ Công thức giữ nguyên bài gốc: `Balance = 1 − ImBalance / ε`, `ImBala
 
 Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có" mà không nêu cách tính. Đề tài lấy **kích thước lớp lớn nhất quan sát được** trong dataset đang đo. Với 2 lớp: `Balance = n_min / n_max`.
 
-*Trạng thái: Đã viết (`common.class_balance`).*
+Điểm baseline đo được: HIGGS mẫu 0,887; Covertype 0,256 (mất cân bằng tự nhiên).
+
+*Trạng thái: Đã cài (`common.class_balance`).*
 
 ### 3.3 Các quy ước bổ sung (bài gốc không nêu, đề tài phải tự chốt)
 
@@ -78,7 +80,7 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 | Ô đang **thiếu** không tính vào accuracy | Một lỗi không bị đếm ở cả Completeness lẫn Accuracy; các dimension độc lập với nhau |
 | Dimension **không áp dụng** trả `NaN`, không gán 1.0 | Class Balance không có nghĩa với regression; không bịa điểm |
 
-*Trạng thái: Đã viết.*
+*Trạng thái: Đã cài.*
 
 ### 3.4 Những gì giữ nguyên bài gốc
 
@@ -124,7 +126,9 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 | Engine profiling | Một bản (Python) | Hai bản pandas và PySpark, dùng chung một file công thức (`common.py`) |
 | Kiểm chứng | — | Test có đáp án tính tay + đối chiếu kết quả pandas với PySpark |
 
-*Trạng thái: Đã viết, chưa chạy test.*
+Kết quả: 12/12 test passed; pandas và PySpark khớp trên mẫu 50.000 dòng của cả 3 dataset.
+
+*Trạng thái: Đã cài.*
 
 ---
 
