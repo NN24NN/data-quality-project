@@ -72,7 +72,7 @@ cFAcc(c) = 1 - mismatches(c) / n
 - Dòng dữ liệu bẩn được ghép với dòng sạch gốc qua index (pandas) hoặc cột id (PySpark).
 
 **Polluter:**
-- Numeric: cộng nhiễu Gaussian `noise(c) = X × mean_gt(c)`, X ~ N(0, λ²)
+- Numeric: cộng nhiễu Gaussian `noise(c) = X × mean(|gt|)`, X ~ N(0, σ² = λ) — phương sai bằng λ như bài gốc (đã chốt ở Giai đoạn 3; bản trước ghi nhầm λ²)
 - Categorical: đổi ngẫu nhiên sang giá trị khác trong domain, tỷ lệ λ số dòng bị đổi
 
 **Lưu ý theo dataset:**
@@ -92,7 +92,7 @@ Giống công thức Feature Accuracy nhưng áp dụng riêng cho cột target 
 ```
 Uniqueness(d) = (unique_samples(d) - 1) / (n - 1)
 ```
-**Polluter:** nhân bản ngẫu nhiên các dòng theo hệ số ρ, phân phối số lần nhân bản theo normal (mean=1, std=5, cắt ở ρ=5 để giữ thời gian chạy hợp lý, đúng như bài gốc).
+**Polluter:** nhân bản ngẫu nhiên các dòng theo hệ số `ρ = 1 / (1 − λ)` (nên Uniqueness ≈ 1 − λ; λ = 0,8 cho ρ = 5), số lần nhân bản của mỗi dòng được chọn theo normal (mean=1, std=5), tối thiểu 1. Với target phân loại, mỗi lớp nhân bản cùng hệ số để tỷ lệ lớp không đổi. Bản sao giữ index của dòng gốc.
 
 **Lưu ý theo dataset:** áp dụng giống nhau cho cả 3 dataset, không có khác biệt đặc thù.
 
@@ -103,7 +103,7 @@ Balance(d) = 1 - ImBalance(d) / ε
 ```
 trong đó `ImBalance(d) = Σ_{i<j} |n_i − n_j|` (tổng chênh lệch kích thước trên mọi cặp lớp), `ε = ⌈m/2⌉ × ⌊m/2⌋ × n_cmax` (trường hợp xấu nhất: một nửa số lớp có `n_cmax` dòng, nửa còn lại 0), `m` là số lớp, `n_cmax` là kích thước lớp lớn nhất quan sát được. Với 2 lớp: `Balance = n_min / n_max`.
 
-**Polluter:** loại bớt dòng ở lớp thiểu số theo tỷ lệ λ để tạo mất cân bằng có kiểm soát, giữ thứ tự lớp cố định để tái lập được.
+**Polluter:** giữ nguyên lớp lớn nhất, xóa tỷ lệ λ số dòng của mọi lớp còn lại, giữ thứ tự lớp cố định để tái lập được.
 
 **Lưu ý:** HIGGS là nhị phân nên dễ áp dụng. Covertype 7 lớp — cần chọn trước 1-2 lớp nhỏ nhất để giảm, tránh làm sập toàn bộ kích thước dataset khi λ cao.
 

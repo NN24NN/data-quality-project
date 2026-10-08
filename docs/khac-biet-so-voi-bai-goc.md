@@ -93,15 +93,21 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 
 ## 4. Khác biệt về cách làm bẩn dữ liệu (polluter)
 
-*Toàn bộ mục này ở trạng thái **Thiết kế** — module pollution thuộc Giai đoạn 3, chưa có code. Cần rà lại mục này khi viết xong.*
+*Trạng thái cả mục: **Đã viết** (`src/pollution/`), chưa chạy test.*
 
-| Thành phần | Bài gốc | Đề tài (dự kiến) | Lý do |
+| Thành phần | Bài gốc | Đề tài | Lý do |
 |---|---|---|---|
 | Thang nhiễu cho cột số | `noise = X × mean_gt(c)` | `noise = X × mean(\|gt\|)` | Cùng lý do mục 3.1: cột trung bình ≈ 0 thì nhiễu ≈ 0, "làm bẩn" mà dữ liệu không đổi |
-| Độ lớn nhiễu | `X ~ N(0, σ²)` với `σ² = λ` | Tài liệu thiết kế ghi `X ~ N(0, λ²)` | **Chưa chốt** — hai cách khác nhau, cần quyết định ở Giai đoạn 3 |
+| Độ lớn nhiễu | `X ~ N(0, σ²)` với `σ² = λ` | **Giữ đúng bài gốc** (`σ² = λ`) | Đã chốt; tài liệu thiết kế ban đầu ghi nhầm `N(0, λ²)`. Độ lệch chuẩn ở λ = 0,2 / 0,5 / 0,8 là 0,45 / 0,71 / 0,89 |
 | Biểu diễn ô thiếu | Placeholder ngoài miền giá trị (vd −1, "empty") | NaN / đặt cả nhóm one-hot về 0; module downstream tự điền trước khi huấn luyện | Profiler nhận diện ô thiếu thống nhất trên cả pandas và Spark |
 | Bản ghi trùng có sẵn | Xóa hết trước khi làm bẩn Uniqueness | Giữ nguyên | Bản sạch phản ánh đúng dữ liệu gốc; xem mục 5 |
-| Phân phối số lần nhân bản | Uniform / normal / Zipf | Chỉ normal | Thu gọn |
+| Hệ số nhân bản | Tham số `ρ`, Uniqueness = 1/ρ | `ρ = 1 / (1 − λ)`, tức Uniqueness ≈ 1 − λ; λ = 0,8 cho ρ = 5 | Để cả 5 dimension dùng chung thang λ; dữ liệu lớn gấp 5 lần ở mức cao nhất |
+| Phân phối số lần nhân bản | Uniform / normal / Zipf | Chỉ normal (mean 1, std 5), tối thiểu 1 bản sao | Thu gọn |
+| Class Balance | Xếp kích thước lớp thành bậc thang đều (chênh nhau hằng số Δ), bớt ở lớp nhỏ và thêm vào lớp lớn; λ = 0 là cân bằng hoàn toàn | Giữ nguyên lớp lớn nhất, xóa tỷ lệ λ số dòng của mọi lớp còn lại; λ = 0 là dữ liệu gốc | Cách của bài gốc đòi cân bằng lại dữ liệu ngay ở λ = 0, làm mất baseline thật; với Covertype sẽ phải bỏ phần lớn dữ liệu |
+
+**Hiện tượng cần biết khi trình bày kết quả (không phải lỗi):**
+- **Nhãn nhị phân đổi 80%** (Target Accuracy, HIGGS, λ = 0,8): nhãn gần như bị đảo ngược chứ không phải nhiễu hơn. Vì train và test bẩn cùng mức (Scenario 3), mô hình học được quan hệ đảo và F1 có thể **tăng trở lại** so với λ = 0,5 (mức nhiễu tối đa với 2 lớp).
+- **Class Balance trên dữ liệu nhiều lớp**: với công thức `ε` của bài gốc, điểm Balance không nhất thiết giảm khi xóa bớt các lớp nhỏ (xem số đo thật ở cell 10.2 trước khi kết luận cho Covertype).
 
 ---
 

@@ -53,6 +53,8 @@
 
 ## Giai đoạn 3 — Module Pollution (`src/pollution/`)
 
+*Trạng thái: 5 polluter và `tests/test_pollution.py` đã viết, **chưa chạy** — chờ kết quả cell 10.1 và 10.2 trên Colab rồi mới tick.*
+
 - [ ] Viết `completeness.py` (MCAR missing value theo mức độ)
 - [ ] Viết `feature_accuracy.py` (nhiễu Gaussian/đổi giá trị ngẫu nhiên)
 - [ ] Viết `target_accuracy.py`

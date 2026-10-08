@@ -142,3 +142,43 @@ Ba con số khác 1 đã được đối chiếu tay với số liệu Giai đo�
 **Giới hạn của phép kiểm chứng:** trên dữ liệu thật mới so bản sạch với chính nó, nên Feature/Target Accuracy hiển nhiên bằng 1. Hai công thức accuracy khi dữ liệu thật sự bị bẩn mới chỉ được kiểm bằng ví dụ tính tay và dữ liệu ngẫu nhiên trong test; sẽ kiểm lại trên dữ liệu thật khi có polluter ở Giai đoạn 3.
 
 **Lưu ý cho giai đoạn sau:** Class Balance baseline của Covertype chỉ 0,256 (mất cân bằng tự nhiên), nên polluter Class Balance trên Covertype có ít dư địa để làm xấu thêm.
+
+---
+
+## Giai đoạn 3 — Module Pollution (code đã viết, **chưa chạy test** → chưa tick)
+
+**Đã làm:**
+
+| File | Nội dung |
+|---|---|
+| `src/pollution/completeness.py` | MCAR: mỗi feature chọn độc lập tỷ lệ λ số dòng để làm thiếu |
+| `src/pollution/feature_accuracy.py` | Nhiễu Gaussian cho feature số; đổi giá trị cho feature one-hot |
+| `src/pollution/target_accuracy.py` | Nhiễu Gaussian (target số) hoặc đổi nhãn (target phân loại) |
+| `src/pollution/uniqueness.py` | Nhân bản dòng theo hệ số `ρ = 1 / (1 − λ)` |
+| `src/pollution/class_balance.py` | Giữ lớp lớn nhất, xóa tỷ lệ λ số dòng của các lớp còn lại |
+| `src/pollution/_helpers.py`, `__init__.py` | Hàm dùng chung; bảng `POLLUTERS` tra theo tên dimension |
+| `tests/test_pollution.py` | 31 test (cùng 12 test profiling là 43) |
+| Notebook mục 10 | 10.1 chạy toàn bộ test, 10.2 làm bẩn dữ liệu thật rồi đo lại bằng profiler |
+
+**Làm như thế nào:**
+- Mọi polluter cùng chữ ký `pollute(df, level, seed, target, target_type, onehot_prefixes)`, nên Experiment Runner chỉ cần tra `POLLUTERS[tên]`. Seed là tham số, nơi gọi đọc từ `configs/seeds.yaml`.
+- Ba ràng buộc do Giai đoạn 2 đặt ra đều được giữ: nhiễu số nhân với `mean(|gt|)`; ô thiếu là NaN hoặc cả nhóm one-hot về 0; bản sao giữ index của dòng gốc.
+- Đổi nhãn / đổi giá trị one-hot dùng phép cộng vòng `(vị trí cũ + số ngẫu nhiên từ 1 đến m−1) mod m`, bảo đảm giá trị mới luôn khác giá trị cũ, nên tỷ lệ sai đúng bằng λ.
+- Uniqueness: với target phân loại, nhân bản riêng trong từng lớp với cùng hệ số, để dimension này không vô tình đổi Class Balance.
+- **Dùng profiler của Giai đoạn 2 làm thước đo trong test**: làm bẩn ở mức λ rồi kiểm tra điểm đo được khớp giá trị lý thuyết (Completeness = 1 − λ; Target Accuracy phân loại = 1 − λ; accuracy số ≈ 1 − √λ · √(2/π); Uniqueness ≈ 1 − λ). Cách này kiểm tra luôn hai công thức accuracy trên dữ liệu bị bẩn thật — phần còn thiếu của Giai đoạn 2.
+
+**Quyết định thiết kế:**
+
+| Quyết định | Lý do |
+|---|---|
+| Phương sai nhiễu `σ² = λ` | Bạn chọn phương án A, giữ đúng bài gốc |
+| `ρ = 1 / (1 − λ)` | Để Uniqueness ≈ 1 − λ, cùng thang λ với các dimension khác; khớp ghi chú "cắt ở ρ = 5" của thiết kế (λ = 0,8) |
+| Class Balance: giữ lớp lớn nhất, xóa ở các lớp còn lại | Theo thiết kế ("loại bớt dòng ở lớp thiểu số"); λ = 0 giữ nguyên dữ liệu gốc. Khác cách "bậc thang" của bài gốc — đã ghi vào `khac-biet-so-voi-bai-goc.md` |
+| Tham số phân phối nhân bản (mean 1, std 5) là đối số có giá trị mặc định | Là hằng số định nghĩa polluter, không phải tham số thí nghiệm |
+
+**Điều cần theo dõi khi có kết quả:**
+- Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5 (HIGGS train 800K → 4 triệu dòng): thời gian huấn luyện ở Giai đoạn 5 sẽ dài hơn ước tính trong tài liệu thiết kế.
+- Đổi 80% nhãn nhị phân của HIGGS là đảo nhãn, F1 có thể tăng lại so với mức 0,5.
+- Class Balance trên Covertype: theo tính tay, điểm Balance **tăng** từ 0,256 lên khoảng 0,31 / 0,38 / 0,45 khi λ = 0,2 / 0,5 / 0,8, vì công thức `ε` coi "một nửa số lớp đầy, một nửa rỗng" là xấu nhất, còn polluter đẩy dữ liệu về "một lớp lớn, các lớp còn lại nhỏ đều". Cần xem số thật ở cell 10.2 rồi quyết định có giữ dimension này cho clustering không.
+
+**Chưa kiểm chứng:** code mới được rà bằng tay. Cần chạy cell 10.1 và 10.2 trên Colab.
