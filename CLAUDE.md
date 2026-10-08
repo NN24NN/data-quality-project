@@ -50,6 +50,7 @@ Giao tiếp bằng **tiếng Việt** trong mọi trao đổi, trừ khi đượ
 - **Mỗi khi hoàn thành một giai đoạn hoặc một mục checklist cụ thể, phải cập nhật lại TẤT CẢ các file `.md` liên quan**, đặc biệt là `docs/checklist-trien-khai.md` (tick `[x]` và cập nhật dòng "Trạng thái tổng quan"). Các file khác cần rà soát và cập nhật nếu bị ảnh hưởng: `docs/gioi-thieu-tong-quan-de-tai.md` (mục "Trạng thái hiện tại"), `README.md` gốc, và các `README.md` trong thư mục con liên quan (vd `data/raw/*/README.md`, `src/*/README.md`, `configs/README.md`, `results/README.md`), cùng các file thiết kế trong `docs/` nếu nội dung thực tế khác với thiết kế ban đầu.
 
 - **Mỗi khi xong một giai đoạn hoặc một mục checklist, phải tường thuật lại cho người dùng ngay trong chat: đã làm gì và làm như thế nào** (các bước, quyết định thiết kế và lý do, kết quả kiểm chứng, sự cố nếu có, việc chưa làm). Đồng thời ghi lại đầy đủ vào `docs/cach-trien-khai-chi-tiet-tung-giai-doan.md` (thêm/cập nhật đúng mục của giai đoạn đó, ghi rõ phần nào chưa chạy/kiểm chứng).
+- **Mỗi khi phát sinh điểm khác biệt so với hai bài báo gốc** (đổi công thức, đổi cách làm bẩn, đổi phạm vi, tự chốt một quy ước bài gốc không nêu), phải ghi vào `docs/khac-biet-so-voi-bai-goc.md` kèm lý do và trạng thái — file này là cơ sở làm slide giữa kỳ/cuối kỳ. Điểm lệch về công thức toán phải hỏi người dùng trước khi áp dụng, không tự quyết.
 - Khi sắp sang bước cần model/mức khác (vd Sonnet Low → Medium → Opus/High), nhắc người dùng đổi trước khi làm.
 
 ## Tài liệu tham chiếu đầy đủ
@@ -63,4 +64,5 @@ Giao tiếp bằng **tiếng Việt** trong mọi trao đổi, trừ khi đượ
 | `docs/kien-truc-mo-hinh-va-ky-thuat.md` | Kiến trúc kỹ thuật từng module, thư viện, siêu tham số |
 | `docs/cau-truc-thu-muc-project.md` | Cấu trúc thư mục đầy đủ + lý do thiết kế |
 | `docs/checklist-trien-khai.md` | Checklist tiến độ theo từng giai đoạn |
+| `docs/khac-biet-so-voi-bai-goc.md` | Mọi thay đổi/khác biệt so với 2 bài báo gốc, kèm lý do — cơ sở làm slide |
 | `docs/cach-trien-khai-chi-tiet-tung-giai-doan.md` | Nhật ký: đã làm gì và làm như thế nào cho từng mục checklist |
