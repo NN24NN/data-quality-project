@@ -42,6 +42,8 @@
 
 ## Giai đoạn 2 — Module Profiling (`src/profiling/`)
 
+*Trạng thái: code và test đã viết (`common.py`, `pandas_profiler.py`, `spark_profiler.py`, `tests/test_profiling.py`), **chưa chạy** — chờ kết quả cell 9.2 và 9.3 trên Colab rồi mới tick.*
+
 - [ ] Viết `pandas_profiler.py`: công thức Completeness, Feature Accuracy, Target Accuracy, Uniqueness, (Target Class Balance)
 - [ ] Viết test tay (`tests/test_profiling.py`): kiểm tra công thức đúng trên ví dụ nhỏ có đáp án tay
 - [ ] Viết `spark_profiler.py`: cùng công thức, bản PySpark — chạy thử trên mẫu nhỏ trước khi dùng cho Giai đoạn 6

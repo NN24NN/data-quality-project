@@ -45,7 +45,7 @@ Tái sử dụng định nghĩa toán học từ Mohammed et al. (2025). Dưới
 ```
 Completeness(d) = 1 - (1/f) × Σ missing(c_i)
 ```
-trong đó `missing(c_i)` là tỷ lệ giá trị thiếu trên feature `c_i`, `f` là số feature (không tính target).
+trong đó `missing(c_i)` là tỷ lệ giá trị thiếu trên feature `c_i`, `f` là số feature (không tính target). Profiler nhận diện ô thiếu là null/NaN; với feature one-hot là "cả nhóm bằng 0".
 
 **Polluter:** chèn missing value kiểu MCAR (Missing Completely At Random) theo tỷ lệ λ, dùng placeholder nằm ngoài domain của feature (ví dụ -1 cho cột tuổi/elevation dương, "unknown" cho categorical).
 
@@ -63,6 +63,13 @@ nFAcc(c) = 1 - avg_dist(c) / mean_gt(c)
 ```
 cFAcc(c) = 1 - mismatches(c) / n
 ```
+
+**Chi tiết cài đặt (đã chốt ở Giai đoạn 2, xem `src/profiling/common.py`):**
+- Mẫu số của `nFAcc` là `mean(|gt|)` thay cho `mean_gt`, và kết quả cắt dưới tại 0. Lý do: nhiều cột có trung bình ≈ 0 hoặc âm (các cột eta/phi của HIGGS, `DEWP` của Beijing) làm công thức gốc chia cho ≈ 0. Với cột dương hai cách trùng nhau. **Polluter numeric ở Giai đoạn 3 phải dùng cùng thang `mean(|gt|)`.**
+- Điểm của dataset = trung bình của (trung bình `nFAcc` các feature numeric) và (trung bình `cFAcc` các feature categorical), đúng cách bài gốc tổng hợp.
+- Mỗi nhóm cột one-hot (`wd_*`, `station_*`, `Wilderness_Area_*`, `Soil_Type_*`) được tính là **1 feature categorical**; danh sách tiền tố nằm trong `configs/datasets.yaml`.
+- Ô đang bị thiếu thì không tính vào accuracy (để Completeness và Accuracy không đếm trùng một lỗi).
+- Dòng dữ liệu bẩn được ghép với dòng sạch gốc qua index (pandas) hoặc cột id (PySpark).
 
 **Polluter:**
 - Numeric: cộng nhiễu Gaussian `noise(c) = X × mean_gt(c)`, X ~ N(0, λ²)
@@ -94,6 +101,8 @@ Uniqueness(d) = (unique_samples(d) - 1) / (n - 1)
 ```
 Balance(d) = 1 - ImBalance(d) / ε
 ```
+trong đó `ImBalance(d) = Σ_{i<j} |n_i − n_j|` (tổng chênh lệch kích thước trên mọi cặp lớp), `ε = ⌈m/2⌉ × ⌊m/2⌋ × n_cmax` (trường hợp xấu nhất: một nửa số lớp có `n_cmax` dòng, nửa còn lại 0), `m` là số lớp, `n_cmax` là kích thước lớp lớn nhất quan sát được. Với 2 lớp: `Balance = n_min / n_max`.
+
 **Polluter:** loại bớt dòng ở lớp thiểu số theo tỷ lệ λ để tạo mất cân bằng có kiểm soát, giữ thứ tự lớp cố định để tái lập được.
 
 **Lưu ý:** HIGGS là nhị phân nên dễ áp dụng. Covertype 7 lớp — cần chọn trước 1-2 lớp nhỏ nhất để giảm, tránh làm sập toàn bộ kích thước dataset khi λ cao.

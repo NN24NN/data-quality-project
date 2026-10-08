@@ -1,0 +1,19 @@
+# Mô tả cột của từng bản sạch trong data/processed/ — dùng chung cho profiling, pollution, downstream
+# target_type: numeric (regression) | categorical (classification / clustering)
+# onehot_prefixes: mỗi tiền tố là 1 feature categorical đã one-hot (nhóm cột 0/1, mỗi dòng đúng 1 bit = 1)
+datasets:
+  beijing_air_quality:
+    file: beijing_clean.parquet
+    target: PM2.5
+    target_type: numeric
+    onehot_prefixes: [wd_, station_]
+  higgs_sample:
+    file: higgs_sample_clean.parquet
+    target: target
+    target_type: categorical
+    onehot_prefixes: []
+  covertype:
+    file: covertype_clean.parquet
+    target: Cover_Type
+    target_type: categorical
+    onehot_prefixes: [Wilderness_Area_, Soil_Type_]
