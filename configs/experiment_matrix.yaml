@@ -1,0 +1,22 @@
+# Ma trận thí nghiệm — theo docs/thiet-ke-thi-nghiem-chi-tiet.md mục 3
+# 120 (classification) + 96 (regression) + 96 (clustering) = 312 lượt
+# Tên dimension dùng làm giá trị cột `dimension` trong experiment_results.parquet
+tasks:
+  classification:
+    dataset: higgs_sample
+    metric: f1_macro
+    dimensions: [completeness, feature_accuracy, target_accuracy, uniqueness, class_balance]
+    algorithms: [logistic_regression, random_forest]
+    split: {type: stratified, test_size: 0.2}
+  regression:
+    dataset: beijing_air_quality
+    metric: r2
+    dimensions: [completeness, feature_accuracy, target_accuracy, uniqueness]
+    algorithms: [ridge, gradient_boosting]
+    split: {type: stratified, test_size: 0.2}   # stratify theo target đã rời rạc hóa
+  clustering:
+    dataset: covertype
+    metric: ami
+    dimensions: [completeness, feature_accuracy, uniqueness, class_balance]
+    algorithms: [kmeans, gmm]
+    split: null   # không tách train/test, làm bẩn toàn bộ dataset; target giữ sạch khi tính AMI

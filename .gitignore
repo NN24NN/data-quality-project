@@ -1,0 +1,15 @@
+# Dữ liệu nằm trên Google Drive, không đưa lên GitHub (giữ lại các README mô tả)
+data/raw/*/*
+!data/raw/*/README.md
+data/processed/*
+!data/processed/README.md
+
+# Kết quả nặng
+results/*.parquet
+results/*.pkl
+
+# File sinh tự động
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.claude/

@@ -1,0 +1,112 @@
+# Checklist triển khai đề tài
+
+**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh, gắn với hiệu năng mô hình downstream
+
+**Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
+
+**Trạng thái tổng quan:** Giai đoạn 0 (thiết kế) đã xong. Đang ở Giai đoạn 1 (chuẩn bị dữ liệu/môi trường): nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Còn lại: HIGGS full (làm sau), gộp Beijing + tạo 3 bản sạch (nhóm D), cài `requirements.txt` ở local (nếu cần).
+
+**Lưu ý lệch tài liệu thiết kế (phát hiện khi tải Beijing):** tên cột thực tế là `wd` (không phải `cbwd`), `RAIN`/`WSPM` (không phải `Ir`/`Is`/`Iws`), có thêm `PM10, SO2, NO2, CO, O3` và các cột thời gian `year, month, day, hour`, `No`. Đã sửa `thiet-ke-thi-nghiem-chi-tiet.md` mục 1.1. Nhóm D: code đã viết vào mục 8 notebook Colab, **chờ chạy**. Chi tiết cách làm: `cach-trien-khai-chi-tiet-tung-giai-doan.md`.
+
+---
+
+## Giai đoạn 0 — Thiết kế (đã hoàn tất)
+
+- [x] Review ý tưởng gốc, xác định base paper + research gap
+- [x] Đặt tên đề tài
+- [x] Tổng quan 2 bài báo gốc (`tong-quan-bai-goc.md`)
+- [x] Thu gọn phạm vi thí nghiệm (4-5 dimension, 4 mức ô nhiễm, 2 thuật toán/tác vụ, Scenario 3)
+- [x] Viết pipeline tổng thể (`pipeline-thi-nghiem.md`)
+- [x] Viết thiết kế thí nghiệm chi tiết — ma trận 312 lượt chạy (`thiet-ke-thi-nghiem-chi-tiet.md`)
+- [x] Viết kiến trúc mô hình & kỹ thuật (`kien-truc-mo-hinh-va-ky-thuat.md`)
+- [x] Thiết kế cấu trúc thư mục + tạo khung thư mục trống thật trên máy (`cau-truc-thu-muc-project.md`)
+
+---
+
+## Giai đoạn 1 — Chuẩn bị dữ liệu & môi trường
+
+- [x] Xác nhận và tải Beijing Multi-Site Air Quality (12 trạm, UCI) vào `data/raw/beijing_air_quality/` — *12 file CSV `PRSA_Data_*.csv`, mỗi file 35.064 dòng × 18 cột (đã có sẵn cột `station`)*
+- [x] Xác nhận và tải mẫu HIGGS (~500K-1M dòng) vào `data/raw/higgs_sample/` — *`higgs_sample_raw.parquet`, 1.000.000 × 29, target 1: 52,99% / 0: 47,01% (seed 42)*
+- [x] Xác nhận và tải Covertype full (581K dòng) vào `data/raw/covertype/` — *`covertype_raw.parquet`, 581.012 × 55, 7 lớp (lớp 4 chỉ 2.747 dòng)*
+- [ ] (Có thể làm sau) Tải HIGGS full (11M dòng, ~2.8GB) vào `data/raw/higgs_full/` — chỉ cần trước khi làm Giai đoạn 6
+- [ ] Gộp 12 file trạm Beijing thành 1 bảng, thêm cột `station`
+- [ ] Tạo bản "baseline" sạch cho Beijing (xử lý missing tự nhiên, one-hot `wd`/`station`) → `data/processed/beijing_clean.parquet`
+- [ ] Tạo bản sạch cho HIGGS sample (lấy mẫu stratified theo target) → `data/processed/higgs_sample_clean.parquet`
+- [ ] Tạo bản sạch cho Covertype (dùng trực tiếp, không cần gộp) → `data/processed/covertype_clean.parquet`
+- [ ] Cập nhật `requirements.txt`: bỏ comment `pyspark`, `shap`, `xgboost`; cài đặt (`pip install -r requirements.txt`) — *đã sửa file (thêm cả `pyyaml`, `pyarrow`); **chưa cài đặt** (cần xác nhận, nên cài trên Colab)*
+- [x] Tạo `configs/seeds.yaml` (seed cố định 42, 43, 44)
+- [x] Tạo `configs/pollution_levels.yaml` ([0.0, 0.2, 0.5, 0.8])
+- [x] Tạo `configs/experiment_matrix.yaml` (ma trận dataset × dimension × thuật toán, theo `thiet-ke-thi-nghiem-chi-tiet.md` mục 3)
+
+---
+
+## Giai đoạn 2 — Module Profiling (`src/profiling/`)
+
+- [ ] Viết `pandas_profiler.py`: công thức Completeness, Feature Accuracy, Target Accuracy, Uniqueness, (Target Class Balance)
+- [ ] Viết test tay (`tests/test_profiling.py`): kiểm tra công thức đúng trên ví dụ nhỏ có đáp án tay
+- [ ] Viết `spark_profiler.py`: cùng công thức, bản PySpark — chạy thử trên mẫu nhỏ trước khi dùng cho Giai đoạn 6
+- [ ] Đối chiếu kết quả `pandas_profiler.py` và `spark_profiler.py` trên cùng 1 dataset nhỏ để đảm bảo khớp
+
+## Giai đoạn 3 — Module Pollution (`src/pollution/`)
+
+- [ ] Viết `completeness.py` (MCAR missing value theo mức độ)
+- [ ] Viết `feature_accuracy.py` (nhiễu Gaussian/đổi giá trị ngẫu nhiên)
+- [ ] Viết `target_accuracy.py`
+- [ ] Viết `uniqueness.py` (nhân bản có kiểm soát)
+- [ ] Viết `class_balance.py`
+- [ ] Viết test (`tests/test_pollution.py`): dữ liệu polluted ở mức λ=0 phải ≈ dataset gốc
+- [ ] Kiểm tra mọi polluter đều dùng seed từ `configs/seeds.yaml` → tái lập được chính xác
+
+## Giai đoạn 4 — Module ML downstream (`src/downstream/`)
+
+- [ ] Viết `classification.py` (Logistic Regression + Random Forest, đo F1-macro) cho HIGGS
+- [ ] Viết `regression.py` (Ridge + Gradient Boosting, đo R²) cho Beijing
+- [ ] Viết `clustering.py` (k-Means + Gaussian Mixture, đo AMI) cho Covertype
+- [ ] Chạy baseline sạch (không ô nhiễm) cho mỗi (dataset, thuật toán) để có mốc so sánh
+
+## Giai đoạn 5 — Experiment Runner (`src/experiment_runner/`)
+
+- [ ] Viết `run_experiment.py`: vòng lặp task → dataset → dimension → level → run (ghép module 2+3+4)
+- [ ] Chạy thử ở quy mô nhỏ (1 dataset, 1 dimension, vài mức) để kiểm tra pipeline không lỗi
+- [ ] Chạy full 312 lượt, ghi ra `results/experiment_results.parquet` theo đúng schema đã định
+- [ ] Kiểm tra sơ bộ dữ liệu output: không có dòng lỗi/NaN bất thường, số dòng đúng 312
+
+## Giai đoạn 6 — Meta-model & Baselines
+
+- [ ] Viết `metamodel/train_metamodel.py` (Gradient Boosting Regressor dự đoán ΔPerformance)
+- [ ] Viết `metamodel/explain_shap.py` (tính SHAP, xuất bảng trọng số theo task) → `results/shap_importance.csv`
+- [ ] Viết `baselines/rule_based.py`
+- [ ] Viết `baselines/weighted_score.py`
+- [ ] Viết `baselines/dqsops_pca.py` (baseline quan trọng nhất — PCA composite theo đúng cách DQSOps)
+- [ ] Lưu mô hình đã huấn luyện → `results/metamodel.pkl`
+
+## Giai đoạn 7 — Đánh giá & So sánh
+
+- [ ] Tính MAE, R² cho meta-model và từng baseline
+- [ ] Tính hệ số tương quan Spearman
+- [ ] Phân tích theo từng tác vụ riêng (baseline nào thắng ở tác vụ nào)
+- [ ] Tổng hợp bảng so sánh cuối cùng
+
+## Giai đoạn 8 — Scalability study (Spark, có thể làm song song từ Giai đoạn 2)
+
+- [ ] Viết `scalability/spark_scale_study.py`
+- [ ] Chạy `spark_profiler.py` trên các mốc kích thước tăng dần của HIGGS full (1M, 3M, 6M, 11M dòng)
+- [ ] Đo runtime/memory, đối chiếu với bản pandas ở các mốc nhỏ
+- [ ] Lưu kết quả → `results/scalability_benchmark.csv`
+
+## Giai đoạn 9 — Báo cáo & Biểu đồ
+
+- [ ] Vẽ đường cong suy giảm hiệu năng theo mức độ ô nhiễm (theo dimension) → `results/figures/`
+- [ ] Vẽ bảng so sánh meta-model vs 3 baseline
+- [ ] Vẽ biểu đồ trọng số/importance theo tác vụ (SHAP)
+- [ ] Vẽ biểu đồ scalability
+- [ ] Viết báo cáo đồ án hoàn chỉnh, tổng hợp toàn bộ kết quả
+
+---
+
+## Lưu ý khi dùng file này
+
+- Đánh dấu `[x]` khi hoàn thành từng việc, giữ nguyên các mục chưa làm là `[ ]`
+- Giai đoạn 2-4 có thể làm song song bởi các thành viên khác nhau (độc lập về module)
+- Giai đoạn 8 (Spark) độc lập hoàn toàn, có thể bắt đầu ngay sau Giai đoạn 2
+- Mọi việc tải dữ liệu, cài thư viện, hoặc thay đổi thật trên máy vẫn cần xác nhận trước khi Claude thực hiện, theo đúng quy tắc đã thống nhất từ đầu

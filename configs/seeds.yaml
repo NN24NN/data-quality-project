@@ -1,0 +1,6 @@
+# Seed cố định cho mọi thí nghiệm — không hardcode seed ở nơi khác trong code
+base_seed: 42          # dùng cho stratified split và baseline sạch
+runs:                  # run_id -> seed
+  1: 42
+  2: 43
+  3: 44
