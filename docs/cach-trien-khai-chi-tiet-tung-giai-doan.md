@@ -329,4 +329,18 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Quyết định (người dùng chốt ngày 2026-10-09):** GMM dùng `covariance_type: diag`, `n_init: 10` (sửa trong `configs/algorithms.yaml`). Lý do: nhiễu theo seed giảm từ khoảng 0,045 xuống 0,010 (còn khoảng 5% so với ΔAMI tối đa ~0,19); `diag` không làm AMI trên dữ liệu sạch kém đi mà nhanh gấp 4, bù cho 10 lần khởi tạo. Cái giá: mỗi lượt GMM 117 giây thay vì 72–77 giây, GMM ở Giai đoạn 5 từ ~1,3 giờ lên ~2 giờ (phiên clustering ~2,6 giờ, cả Giai đoạn 5 khoảng 8–8,5 giờ). Phương án không chọn: `diag`, `n_init: 5` (nhanh hơn, nhiễu khoảng 10%). Chưa đo: `diag` và `full` phản ứng với dữ liệu bẩn có khác nhau không.
 
-**Việc còn lại:** chạy lại cell 11.3 để file `results/baseline_performance.csv` trên Drive có baseline GMM theo cấu hình mới (file hiện tại vẫn là số của `full`, `n_init=1`). Giá trị kỳ vọng đã biết từ cell 11.5: AMI 0,2016 / 0,1894 / 0,1974 cho run 1 / 2 / 3. Test cũng chưa chạy lại sau khi đổi config.
+**Baseline cuối cùng (Colab, commit `87d3f20`, ngày 2026-10-09) — đây là bản đang lưu ở `results/baseline_performance.csv` trên Drive:**
+- Cell 11.1 chạy lại: `93 passed in 53.75s`.
+- Cell 11.3 chạy lại với cấu hình cuối (Random Forest `max_samples: 0.1`; GMM `diag`, `n_init: 10`):
+
+| Dataset | Thuật toán | Điểm từng seed (run 1 / 2 / 3) | Trung bình ± độ lệch chuẩn | Thời gian mỗi lượt |
+|---|---|---|---|---|
+| HIGGS mẫu | Logistic Regression | F1 0,6347 / 0,6347 / 0,6347 | 0,6347 ± 0 | 7,7 giây |
+| HIGGS mẫu | Random Forest | F1 0,7250 / 0,7246 / 0,7249 | 0,7249 ± 0,0002 | 122 giây |
+| Beijing | Ridge | R² 0,8580 / 0,8580 / 0,8580 | 0,8580 ± 0 | 2,5 giây |
+| Beijing | Gradient Boosting | R² 0,9157 / 0,9157 / 0,9157 | 0,9157 ± 0 | 112 giây |
+| Covertype | k-Means | AMI 0,1846 / 0,1529 / 0,1794 | 0,1723 ± 0,0170 | 36 giây |
+| Covertype | GMM | AMI 0,2016 / 0,1894 / 0,1974 | 0,1961 ± 0,0062 | 121 giây |
+
+- GMM ra đúng ba giá trị đã đo ở cell 11.5; năm thuật toán còn lại giữ nguyên số của lần chạy trước — kết quả tái lập được giữa các phiên Colab.
+- Sau thay đổi, k-Means (± 0,017) là thuật toán dao động theo seed nhiều nhất. Chưa xử lý; nếu cần có thể tăng `n_init` của k-Means.
