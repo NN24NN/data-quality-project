@@ -120,6 +120,7 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 | Chuẩn hóa feature | Chưa đối chiếu với bài gốc | z-score (học trên tập train) cho cả 6 thuật toán | Mô hình tuyến tính, k-Means, GMM nhạy với thang đo; mô hình cây không bị ảnh hưởng |
 | Siêu tham số | Chưa đối chiếu với bài gốc | Mặc định của scikit-learn, trừ `max_iter=1000` (LogR), `n_init=10` (k-Means); liệt kê trong `configs/algorithms.yaml` | Có thể phải chỉnh theo thời gian chạy — sẽ cập nhật nếu đổi |
 | Random Forest | Chưa đối chiếu với bài gốc | `max_samples = 0.1`: mỗi cây học trên 10% số dòng (bootstrap), 100 cây | Bản mặc định mất ~13 phút/lượt trên 800.000 dòng HIGGS (ngoại suy từ 66 giây trên 80.000 dòng), tức ~16 giờ cho Giai đoạn 5. Người dùng chốt ngày 2026-10-09 |
+| Gaussian Mixture | Chưa đối chiếu với bài gốc | `covariance_type = diag`, `n_init = 10` (mặc định của scikit-learn là `full`, 1 lần khởi tạo) | Với 1 lần khởi tạo, AMI trên Covertype sạch dao động 0,10–0,21 theo seed, gần bằng ΔAMI tối đa (~0,19) nên nhãn ΔAMI rất nhiễu. 10 lần khởi tạo giảm độ lệch chuẩn từ 0,045 xuống 0,010. `diag` cho AMI trên dữ liệu sạch gần như trùng `full` (đo ở cell 11.5) mà nhanh gấp 4. Người dùng chốt ngày 2026-10-09 |
 | Số cụm (clustering) | — | Bằng số lớp thật của target | Theo tài liệu thiết kế |
 
 **Điểm cần nói rõ khi trình bày:** vì ô thiếu được điền bằng trung vị thay vì placeholder, ảnh hưởng của Completeness lên mô hình có thể khác bài gốc (placeholder ngoài miền giá trị cho mô hình cây một tín hiệu "ô này thiếu", trung vị thì không).
@@ -129,6 +130,11 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 - Baseline thấp hơn bản mặc định một chút. **Đã đo (cell 11.4, HIGGS sạch, 1 seed): F1 = 0,7250 so với 0,7328 của bản mặc định — chênh 0,0078; thời gian 129 giây so với 851 giây (nhanh gấp 6,6 lần).**
 - Năm thuật toán còn lại học trên toàn bộ dữ liệu; riêng Random Forest mỗi cây thấy 10% (cả rừng 100 cây vẫn thấy gần như mọi dòng).
 - Giá trị 0,1 chọn theo thời gian chạy, không phải kết quả tinh chỉnh.
+
+**Giới hạn của phần clustering (cần nêu trong báo cáo):**
+- AMI baseline trên Covertype thấp (k-Means 0,17; GMM 0,20), nên ΔAMI nhỏ hơn nhiều so với ΔF1 và ΔR².
+- `diag` giả định các feature độc lập trong mỗi cụm. Mới so với `full` trên dữ liệu sạch; trên dữ liệu bẩn hai cấu hình có thể phản ứng khác nhau. *Chưa đo.*
+- `full` và `diag` (1 lần khởi tạo) cho AMI gần như trùng nhau, gợi ý rằng trên dữ liệu này GMM gần như giữ nguyên cách chia cụm của bước khởi tạo bằng k-Means, tức hai thuật toán clustering có thể hành xử khá giống nhau. *Suy đoán, chưa kiểm chứng.*
 
 ---
 

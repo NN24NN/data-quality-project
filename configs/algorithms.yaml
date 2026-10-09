@@ -9,4 +9,5 @@ algorithms:
   ridge: {alpha: 1.0}
   gradient_boosting: {n_estimators: 100}
   kmeans: {n_init: 10}
-  gmm: {covariance_type: full}
+  # n_init: 10: khởi tạo 1 lần thì AMI dao động mạnh theo seed (0,10–0,21, đo ở cell 11.5); diag để bù thời gian
+  gmm: {covariance_type: diag, n_init: 10}

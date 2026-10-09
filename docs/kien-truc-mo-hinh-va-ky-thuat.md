@@ -112,7 +112,7 @@ Toàn bộ dùng **scikit-learn**, không cần deep learning (khác bài gốc 
 | Clustering | `KMeans` | `sklearn.cluster` | `n_clusters` = số lớp thật của dataset (2 cho HIGGS nếu dùng, 7 cho Covertype), `random_state=seed` |
 | Clustering | `GaussianMixture` | `sklearn.mixture` | `n_components` = số lớp thật, `random_state=seed` |
 
-**Chi tiết cài đặt (Giai đoạn 4, xem `src/downstream/`):** siêu tham số nằm trong `configs/algorithms.yaml`; cả 6 thuật toán đi qua cùng một pipeline học trên tập train — điền ô thiếu bằng trung vị → chuẩn hóa z-score → mô hình. k-Means dùng `n_init=10`, GMM dùng `covariance_type='full'` (mặc định). Random Forest thêm `max_samples=0.1` (mỗi cây học trên 10% số dòng) vì bản mặc định quá chậm trên 800.000 dòng HIGGS.
+**Chi tiết cài đặt (Giai đoạn 4, xem `src/downstream/`):** siêu tham số nằm trong `configs/algorithms.yaml`; cả 6 thuật toán đi qua cùng một pipeline học trên tập train — điền ô thiếu bằng trung vị → chuẩn hóa z-score → mô hình. k-Means dùng `n_init=10`; GMM dùng `covariance_type='diag'`, `n_init=10` (thay cho mặc định `full`, 1 lần khởi tạo — vì AMI dao động mạnh theo seed). Random Forest thêm `max_samples=0.1` (mỗi cây học trên 10% số dòng) vì bản mặc định quá chậm trên 800.000 dòng HIGGS.
 
 **Thước đo:** `f1_score(average='macro')` (classification), `r2_score` (regression), `adjusted_mutual_info_score` (clustering) — đều có sẵn trong `sklearn.metrics`.
 

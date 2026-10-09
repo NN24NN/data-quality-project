@@ -313,3 +313,20 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 **Chưa làm / chưa đo:** ảnh hưởng của `max_samples` lên ΔF1 trên dữ liệu bẩn (mới đo trên dữ liệu sạch).
 
 **Chuẩn bị cho Giai đoạn 5 — cell 11.5 đo độ ổn định của GMM (đã viết, chưa chạy):** chạy GMM trên Covertype sạch (toàn bộ dữ liệu) với 4 cấu hình — `full, n_init=1` (hiện tại), `diag, n_init=1`, `diag, n_init=5`, `diag, n_init=10` — mỗi cấu hình 5 seed (`base_seed` đến `base_seed + 4`), in AMI trung bình / độ lệch chuẩn / nhỏ nhất / lớn nhất và thời gian. Mục đích: chọn cấu hình có AMI ít dao động theo seed với thời gian chấp nhận được. Không đo `full` với nhiều lần khởi tạo vì chi phí tăng tỷ lệ (77 giây × `n_init`), không chạy nổi 48 lượt GMM của Giai đoạn 5. Ba seed đầu của cấu hình hiện tại trùng với baseline, nên cũng là phép kiểm tra tái lập (kỳ vọng 0,2003 / 0,0995 / 0,2082).
+
+**Kết quả cell 11.5 (Colab, ngày 2026-10-09; 5 seed 42–46, Covertype sạch 581.012 dòng):**
+
+| Cấu hình GMM | AMI từng seed | Trung bình | Độ lệch chuẩn | Nhỏ nhất – lớn nhất | Thời gian mỗi lượt |
+|---|---|---|---|---|---|
+| `full`, `n_init=1` (hiện tại) | 0,2003 / 0,0995 / 0,2082 / 0,1948 / 0,1582 | 0,1722 | 0,0449 | 0,0995 – 0,2082 | 72 giây |
+| `diag`, `n_init=1` | 0,2003 / 0,1064 / 0,2082 / 0,1948 / 0,1576 | 0,1735 | 0,0422 | 0,1064 – 0,2082 | 18 giây |
+| `diag`, `n_init=5` | 0,2016 / 0,1601 / 0,1940 / 0,1805 / 0,1576 | 0,1788 | 0,0197 | 0,1576 – 0,2016 | 62 giây |
+| `diag`, `n_init=10` | 0,2016 / 0,1894 / 0,1974 / 0,1805 / 0,2068 | 0,1952 | 0,0104 | 0,1805 – 0,2068 | 117 giây |
+
+- Tái lập: ba seed đầu của cấu hình hiện tại ra đúng 0,2003 / 0,0995 / 0,2082 như baseline.
+- `full` và `diag` với một lần khởi tạo cho AMI gần như trùng nhau (ba seed trùng tới 4 chữ số thập phân), trong khi `diag` nhanh gấp 4. Suy đoán (chưa kiểm chứng): trên dữ liệu này GMM gần như giữ nguyên cách chia cụm của bước khởi tạo bằng k-Means, nên độ dao động của GMM thực chất là độ dao động của một lần khởi tạo k-Means.
+- Khởi tạo nhiều lần làm AMI ổn định hơn rõ rệt (độ lệch chuẩn 0,045 → 0,020 → 0,010) và trung bình cao hơn. Lưu ý: mỗi cấu hình chỉ có 5 seed nên độ lệch chuẩn là ước lượng thô.
+
+**Quyết định (người dùng chốt ngày 2026-10-09):** GMM dùng `covariance_type: diag`, `n_init: 10` (sửa trong `configs/algorithms.yaml`). Lý do: nhiễu theo seed giảm từ khoảng 0,045 xuống 0,010 (còn khoảng 5% so với ΔAMI tối đa ~0,19); `diag` không làm AMI trên dữ liệu sạch kém đi mà nhanh gấp 4, bù cho 10 lần khởi tạo. Cái giá: mỗi lượt GMM 117 giây thay vì 72–77 giây, GMM ở Giai đoạn 5 từ ~1,3 giờ lên ~2 giờ (phiên clustering ~2,6 giờ, cả Giai đoạn 5 khoảng 8–8,5 giờ). Phương án không chọn: `diag`, `n_init: 5` (nhanh hơn, nhiễu khoảng 10%). Chưa đo: `diag` và `full` phản ứng với dữ liệu bẩn có khác nhau không.
+
+**Việc còn lại:** chạy lại cell 11.3 để file `results/baseline_performance.csv` trên Drive có baseline GMM theo cấu hình mới (file hiện tại vẫn là số của `full`, `n_init=1`). Giá trị kỳ vọng đã biết từ cell 11.5: AMI 0,2016 / 0,1894 / 0,1974 cho run 1 / 2 / 3. Test cũng chưa chạy lại sau khi đổi config.
