@@ -4,7 +4,7 @@
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling) và 3 (module Pollution) đã xong. Giai đoạn 4 (module ML downstream): 3 module đã xong và đã kiểm chứng (93/93 test); còn mục baseline toàn bộ dữ liệu — đang chờ kết quả cell 11.3 và 11.4 trên Colab (Random Forest đã thêm `max_samples: 0.1` vì thời gian chạy). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Tiếp theo: Giai đoạn 5 (Experiment Runner) — ước tính 312 lượt mất khoảng 7–8 giờ trên Colab, cần chạy chia phiên; trước khi chạy cần xử lý việc AMI của GMM dao động mạnh theo seed. **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -65,12 +65,12 @@
 
 ## Giai đoạn 4 — Module ML downstream (`src/downstream/`)
 
-*Trạng thái: 3 module đã xong và đã chạy trên Colab ngày 2026-10-09 ở commit `eca41d4` (pytest 93/93 passed; baseline trên mẫu 100.000 dòng cho điểm hợp lý). Còn mục baseline toàn bộ dữ liệu (cell 11.3): Random Forest mất 66 giây trên 80.000 dòng, ngoại suy ra khoảng 13 phút/lượt trên 800.000 dòng — đã chốt thêm `max_samples: 0.1` (mỗi cây học 10% số dòng). Chờ kết quả cell 11.3 và 11.4 (đối chứng Random Forest không lấy mẫu con).*
+*Trạng thái: xong. Đã chạy trên Colab ngày 2026-10-09 ở commit `d097a19` (pytest 93/93 passed; baseline toàn bộ dữ liệu, 3 seed). Random Forest dùng `max_samples: 0.1` (mỗi cây học 10% số dòng): lượt đối chứng cho thấy F1 chỉ thấp hơn bản mặc định 0,008 (0,725 so với 0,733) mà nhanh gấp 6,6 lần (129 giây so với 851 giây). **Vấn đề mở cho Giai đoạn 5:** AMI của GMM dao động mạnh theo seed (0,10 / 0,20 / 0,21) so với mức ΔAMI tối đa khoảng 0,17.*
 
 - [x] Viết `classification.py` (Logistic Regression + Random Forest, đo F1-macro) cho HIGGS — *mẫu 100.000 dòng: F1 0,630 (LogR) / 0,720 (RF)*
 - [x] Viết `regression.py` (Ridge + Gradient Boosting, đo R²) cho Beijing — *mẫu 100.000 dòng: R² 0,848 (Ridge) / 0,909 (GB)*
 - [x] Viết `clustering.py` (k-Means + Gaussian Mixture, đo AMI) cho Covertype — *mẫu 100.000 dòng: AMI 0,160 (k-Means) / 0,174 (GMM) — thấp, ΔAMI có ít dư địa*
-- [ ] Chạy baseline sạch (không ô nhiễm) cho mỗi (dataset, thuật toán) để có mốc so sánh — *mới chạy trên mẫu 100.000 dòng, 1 seed (cell 11.2); bản toàn bộ dữ liệu, 3 seed (cell 11.3) và lượt đối chứng (cell 11.4) chưa chạy*
+- [x] Chạy baseline sạch (không ô nhiễm) cho mỗi (dataset, thuật toán) để có mốc so sánh — *toàn bộ dữ liệu, 3 seed, lưu ở `results/baseline_performance.csv` trên Drive: F1 0,635 (LogR) / 0,725 (RF); R² 0,858 (Ridge) / 0,916 (GB); AMI 0,172 ± 0,017 (k-Means) / 0,169 ± 0,061 (GMM)*
 
 ## Giai đoạn 5 — Experiment Runner (`src/experiment_runner/`)
 

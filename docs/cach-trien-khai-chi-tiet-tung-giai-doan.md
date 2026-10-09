@@ -213,7 +213,7 @@ Hệ quả cho các giai đoạn sau: meta-model nhận cả vector profile làm
 
 ---
 
-## Giai đoạn 4 — Module ML downstream (3 module xong và đã kiểm chứng; baseline toàn bộ dữ liệu chưa chạy)
+## Giai đoạn 4 — Module ML downstream (xong, đã kiểm chứng trên Colab ngày 2026-10-09)
 
 **Đã làm:**
 
@@ -280,4 +280,34 @@ Hệ quả cho các giai đoạn sau: meta-model nhận cả vector profile làm
 Tổng khoảng 20 giờ, trong đó Random Forest chiếm khoảng 16 giờ — không khả thi trên Colab. Dữ liệu bị nhiễu nhãn còn làm cây sâu hơn, nên con số thật có thể cao hơn. 
 **Quyết định (người dùng chốt ngày 2026-10-09):** thêm `max_samples: 0.1` cho Random Forest trong `configs/algorithms.yaml` — mỗi cây học trên 10% số dòng. Ước tính Random Forest giảm từ ~16 giờ xuống ~1,5 giờ, cả Giai đoạn 5 còn khoảng 6–7 giờ (ước lượng, chưa đo; các lượt Uniqueness λ = 0,8 vẫn chậm vì `max_samples` là tỷ lệ). Phương án không chọn: giảm mẫu HIGGS xuống 200.000 dòng (Random Forest vẫn ~3 giờ, mất yếu tố quy mô lớn). Bất lợi đã biết ghi ở `khac-biet-so-voi-bai-goc.md` mục 4.1. Kèm theo: cell 11.4 chạy một lượt Random Forest không lấy mẫu con trên HIGGS sạch để đo chênh lệch F1 của baseline.
 
-**Chưa làm:** cell 11.3 (baseline toàn bộ dữ liệu, 3 seed, lưu `results/baseline_performance.csv`) và cell 11.4 (đối chứng). Test chưa chạy lại sau khi đổi config (test đọc siêu tham số từ `algorithms.yaml`).
+**Kết quả sau khi thêm `max_samples` (Colab, commit `d097a19`, ngày 2026-10-09):**
+- Cell 11.1 chạy lại: `93 passed in 47.29s`.
+- Cell 11.3 — baseline trên toàn bộ dữ liệu, 3 seed (run 1 / 2 / 3), đã lưu `results/baseline_performance.csv` trên Drive:
+
+| Dataset | Thuật toán | Số dòng train | Điểm từng seed | Trung bình ± độ lệch chuẩn | Thời gian mỗi lượt |
+|---|---|---|---|---|---|
+| HIGGS mẫu | Logistic Regression | 800.000 | F1 0,6347 / 0,6347 / 0,6347 | 0,6347 ± 0 | 7,5 giây |
+| HIGGS mẫu | Random Forest | 800.000 | F1 0,7250 / 0,7246 / 0,7249 | 0,7249 ± 0,0002 | 127 giây |
+| Beijing | Ridge | 305.734 | R² 0,8580 / 0,8580 / 0,8580 | 0,8580 ± 0 | 3,0 giây |
+| Beijing | Gradient Boosting | 305.734 | R² 0,9157 / 0,9157 / 0,9157 | 0,9157 ± 0 | 113 giây |
+| Covertype | k-Means | 581.012 | AMI 0,1846 / 0,1529 / 0,1794 | 0,1723 ± 0,0170 | 36 giây |
+| Covertype | GMM | 581.012 | AMI 0,2003 / 0,0995 / 0,2082 | 0,1693 ± 0,0606 | 77 giây (60–98) |
+
+- Cell 11.4 — đối chứng Random Forest trên HIGGS sạch, seed của run 1: mỗi cây học toàn bộ dòng cho F1 = 0,7328 trong 851 giây; `max_samples = 0.1` cho F1 = 0,7250 trong 129 giây. **Chênh lệch F1 là 0,0078, nhanh gấp 6,6 lần.** Ngoại suy "~13 phút/lượt" cho bản mặc định khớp số đo (14,2 phút).
+
+**Nhận xét:**
+- Logistic Regression, Ridge và Gradient Boosting cho điểm giống hệt nhau ở cả 3 seed: với siêu tham số hiện tại chúng không có yếu tố ngẫu nhiên. Ở Giai đoạn 5, ba lượt lặp của chúng chỉ khác nhau do seed của polluter.
+- Random Forest gần như không dao động theo seed (± 0,0002).
+- **Clustering dao động mạnh theo seed, nhất là GMM:** AMI 0,10 / 0,20 / 0,21 — khoảng dao động 0,11 trong khi ΔAMI tối đa chỉ khoảng 0,17. Nhãn ΔAMI của GMM vì vậy sẽ rất nhiễu. k-Means đỡ hơn (± 0,017) nhờ `n_init = 10`. **Chưa xử lý — cần quyết định trước khi chạy Giai đoạn 5** (hướng có thể: tăng `n_init` của GMM, kèm đổi sang `covariance_type: diag` để bù thời gian; phải đo trước mới biết).
+
+**Ước tính lại thời gian Giai đoạn 5 từ số đo thật (vẫn là ước lượng):** nhân thời gian mỗi lượt với số lượt, có tính Uniqueness làm dữ liệu lớn gấp 1,25 / 2 / 5 lần và Class Balance làm dữ liệu nhỏ đi.
+
+| Tác vụ | Thời gian huấn luyện ước tính |
+|---|---|
+| Classification (Random Forest ~2,6 giờ + Logistic Regression ~10 phút) | ~2,8 giờ |
+| Regression (Gradient Boosting ~2 giờ + Ridge ~3 phút) | ~2,1 giờ |
+| Clustering (GMM ~1,3 giờ + k-Means ~40 phút) | ~1,9 giờ |
+
+Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa đo) — nên dự trù 7–8 giờ. Random Forest thực tế chậm hơn tôi ước tính trước đó (127 giây so với ~75 giây mỗi lượt). Chưa tính: dữ liệu bị nhiễu nhãn có thể làm cây sâu hơn và chậm hơn. Experiment Runner cần ghi kết quả dần và chạy tiếp được từ chỗ dừng để chia nhiều phiên Colab.
+
+**Chưa làm / chưa đo:** ảnh hưởng của `max_samples` lên ΔF1 trên dữ liệu bẩn (mới đo trên dữ liệu sạch).

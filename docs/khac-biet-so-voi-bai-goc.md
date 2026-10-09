@@ -112,7 +112,7 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 
 ### 4.1 Xử lý trước khi huấn luyện mô hình downstream
 
-*Trạng thái: **Đã cài** (`src/downstream/common.py`; test 93/93 passed, baseline trên mẫu 100.000 dòng cho điểm hợp lý). `max_samples` của Random Forest mới thêm, chưa chạy lại.*
+*Trạng thái: **Đã cài** (`src/downstream/common.py`; test 93/93 passed, baseline toàn bộ dữ liệu với 3 seed đã chạy — số liệu ở `cach-trien-khai-chi-tiet-tung-giai-doan.md`, Giai đoạn 4).*
 
 | Thành phần | Bài gốc | Đề tài | Lý do |
 |---|---|---|---|
@@ -126,7 +126,7 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 
 **Giới hạn của việc lấy mẫu con cho Random Forest (cần nêu trong báo cáo):**
 - Cây học trên ít dòng hơn thì nông hơn và ít học thuộc nhiễu hơn, nên ΔF1 đo được (nhất là với Target Accuracy) có thể **nhỏ hơn** so với Random Forest mặc định. Kết quả là của "Random Forest có lấy mẫu con". *Chưa đo — đo được thì phải chạy bản mặc định trên dữ liệu bẩn, quay lại bài toán thời gian.*
-- Baseline có thể thấp hơn bản mặc định một chút. *Sẽ có số đo từ cell 11.4 (một lượt đối chứng trên dữ liệu sạch).*
+- Baseline thấp hơn bản mặc định một chút. **Đã đo (cell 11.4, HIGGS sạch, 1 seed): F1 = 0,7250 so với 0,7328 của bản mặc định — chênh 0,0078; thời gian 129 giây so với 851 giây (nhanh gấp 6,6 lần).**
 - Năm thuật toán còn lại học trên toàn bộ dữ liệu; riêng Random Forest mỗi cây thấy 10% (cả rừng 100 cây vẫn thấy gần như mọi dòng).
 - Giá trị 0,1 chọn theo thời gian chạy, không phải kết quả tinh chỉnh.
 
