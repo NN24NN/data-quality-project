@@ -19,7 +19,9 @@ data-quality-project/
 ├── configs/
 │   ├── seeds.yaml                   # seed_table cố định (42, 43, 44) — dùng xuyên suốt mọi module
 │   ├── pollution_levels.yaml        # [0.0, 0.2, 0.5, 0.8]
-│   └── experiment_matrix.yaml       # ma trận dataset × dimension × thuật toán (từ file thiết kế chi tiết)
+│   ├── experiment_matrix.yaml       # ma trận dataset × dimension × thuật toán (từ file thiết kế chi tiết)
+│   ├── datasets.yaml                # cột target, loại target, tiền tố one-hot của từng bản sạch
+│   └── algorithms.yaml              # siêu tham số của 6 thuật toán downstream
 │
 ├── data/
 │   ├── raw/                         # dữ liệu tải về, giữ nguyên bản gốc, KHÔNG sửa trực tiếp
@@ -48,7 +50,8 @@ data-quality-project/
 │   ├── downstream/
 │   │   ├── classification.py        # LogR, RF + evaluate (F1)
 │   │   ├── regression.py            # Ridge, GB + evaluate (R²)
-│   │   └── clustering.py            # k-Means, GMM + evaluate (AMI)
+│   │   ├── clustering.py            # k-Means, GMM + evaluate (AMI)
+│   │   └── common.py                # tiền xử lý dùng chung + chia train/test
 │   │
 │   ├── experiment_runner/
 │   │   └── run_experiment.py        # vòng lặp chính, ghi log theo schema đã định
@@ -71,6 +74,7 @@ data-quality-project/
 │   └── 03_visualize_results.ipynb   # vẽ đường cong suy giảm, biểu đồ scalability
 │
 ├── results/
+│   ├── baseline_performance.csv     # hiệu năng trên dữ liệu sạch (dataset × thuật toán × seed)
 │   ├── experiment_results.parquet   # output chính của Experiment Runner (schema đã định)
 │   ├── metamodel.pkl                # mô hình đã huấn luyện
 │   ├── shap_importance.csv          # bảng trọng số theo task
@@ -79,7 +83,8 @@ data-quality-project/
 │
 ├── tests/
 │   ├── test_profiling.py            # kiểm tra công thức đúng trên ví dụ có đáp án tay
-│   └── test_pollution.py            # kiểm tra polluted ở λ=0 ≈ dataset gốc
+│   ├── test_pollution.py            # kiểm tra polluted ở λ=0 ≈ dataset gốc
+│   └── test_downstream.py           # kiểm tra 6 thuật toán + chia train/test
 │
 └── docs/
     ├── tong-quan-bai-goc.md         # đã có trong project

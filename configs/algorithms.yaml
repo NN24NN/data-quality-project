@@ -1,0 +1,11 @@
+# Siêu tham số của 6 thuật toán downstream — theo docs/kien-truc-mo-hinh-va-ky-thuat.md mục 3
+# Tên thuật toán trùng với configs/experiment_matrix.yaml.
+# Không ghi ở đây: random_state (lấy từ seed của lượt chạy, configs/seeds.yaml)
+# và số cụm của clustering (= số lớp thật của target).
+algorithms:
+  logistic_regression: {max_iter: 1000}
+  random_forest: {n_estimators: 100, n_jobs: -1}
+  ridge: {alpha: 1.0}
+  gradient_boosting: {n_estimators: 100}
+  kmeans: {n_init: 10}
+  gmm: {covariance_type: full}

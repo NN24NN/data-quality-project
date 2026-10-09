@@ -110,6 +110,19 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 - **Class Balance trên dữ liệu nhiều lớp**: với công thức `ε` của bài gốc, điểm Balance không nhất thiết giảm khi xóa bớt các lớp nhỏ. Đo thật trên Covertype (7 lớp): điểm **tăng** 0,254 → 0,303 / 0,377 / 0,451 khi λ = 0,2 / 0,5 / 0,8; trên HIGGS (2 lớp) điểm giảm đúng hướng 0,889 → 0,711 / 0,444 / 0,178. Nguyên nhân: `ε` coi "một nửa số lớp đầy, một nửa rỗng" là xấu nhất, còn polluter đẩy dữ liệu về "một lớp lớn, các lớp còn lại nhỏ đều". *Đã chốt: vẫn chạy Class Balance cho clustering (312 lượt); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.*
 - **Làm bẩn một dimension có thể kéo theo điểm của dimension khác** (đo ở cell 10.2): Completeness ở λ = 0,8 làm Uniqueness giảm (Covertype 0,78; Beijing 0,95; HIGGS 0,996) vì nhiều dòng mất gần hết feature nên trùng nhau; đổi nhãn HIGGS làm Class Balance tăng về phía 1 (0,889 → 0,932 / 0,998 / 0,931). Các cặp còn lại không ảnh hưởng nhau.
 
+### 4.1 Xử lý trước khi huấn luyện mô hình downstream
+
+*Trạng thái: **Đã viết** (`src/downstream/common.py`), chưa chạy test.*
+
+| Thành phần | Bài gốc | Đề tài | Lý do |
+|---|---|---|---|
+| Ô thiếu khi vào mô hình | Mô hình nhận thẳng giá trị placeholder | Điền bằng **trung vị của tập train**; nhóm one-hot thiếu giữ nguyên là "cả nhóm = 0" | Hệ quả của việc biểu diễn ô thiếu bằng NaN (bảng trên); scikit-learn không nhận NaN |
+| Chuẩn hóa feature | Chưa đối chiếu với bài gốc | z-score (học trên tập train) cho cả 6 thuật toán | Mô hình tuyến tính, k-Means, GMM nhạy với thang đo; mô hình cây không bị ảnh hưởng |
+| Siêu tham số | Chưa đối chiếu với bài gốc | Mặc định của scikit-learn, trừ `max_iter=1000` (LogR), `n_init=10` (k-Means); liệt kê trong `configs/algorithms.yaml` | Có thể phải chỉnh theo thời gian chạy — sẽ cập nhật nếu đổi |
+| Số cụm (clustering) | — | Bằng số lớp thật của target | Theo tài liệu thiết kế |
+
+**Điểm cần nói rõ khi trình bày:** vì ô thiếu được điền bằng trung vị thay vì placeholder, ảnh hưởng của Completeness lên mô hình có thể khác bài gốc (placeholder ngoài miền giá trị cho mô hình cây một tín hiệu "ô này thiếu", trung vị thì không).
+
 ---
 
 ## 5. Khác biệt về chuẩn bị dữ liệu

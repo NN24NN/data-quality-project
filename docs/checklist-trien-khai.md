@@ -4,7 +4,7 @@
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling) và 3 (module Pollution) đã xong. Tiếp theo: Giai đoạn 4 (module ML downstream). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling) và 3 (module Pollution) đã xong. Giai đoạn 4 (module ML downstream): code và test đã viết, **chưa chạy** — đang chờ kết quả cell 11.1 và 11.2 trên Colab. **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -64,6 +64,8 @@
 - [x] Kiểm tra mọi polluter đều dùng seed từ `configs/seeds.yaml` → tái lập được chính xác — *seed là tham số của `pollute`, nơi gọi đọc từ `seeds.yaml`; test cùng seed cho cùng kết quả passed cho cả 5 polluter*
 
 ## Giai đoạn 4 — Module ML downstream (`src/downstream/`)
+
+*Trạng thái: 3 file tác vụ, `common.py`, `configs/algorithms.yaml` và `tests/test_downstream.py` đã viết, **chưa chạy** — chờ kết quả cell 11.1 (kỳ vọng `93 passed`) và 11.2 (baseline trên mẫu 100.000 dòng + thời gian chạy) trên Colab rồi mới tick 3 mục đầu. Mục baseline (cell 11.3, toàn bộ dữ liệu) chỉ chạy sau khi xem thời gian ở 11.2 và thống nhất siêu tham số.*
 
 - [ ] Viết `classification.py` (Logistic Regression + Random Forest, đo F1-macro) cho HIGGS
 - [ ] Viết `regression.py` (Ridge + Gradient Boosting, đo R²) cho Beijing

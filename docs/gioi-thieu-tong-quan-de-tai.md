@@ -48,7 +48,7 @@ Chi tiết đầy đủ: [`pipeline-thi-nghiem.md`](./pipeline-thi-nghiem.md), [
 
 ## 5. Trạng thái hiện tại
 
-Giai đoạn 0 (thiết kế) đã hoàn tất. Giai đoạn 1 (dữ liệu & môi trường) gần xong: 3 dataset đã tải, 3 bản sạch đã tạo trên Google Drive, config đã có; còn HIGGS full (làm sau). Giai đoạn 2 (module Profiling, bản pandas và PySpark) đã xong và đã kiểm chứng. Giai đoạn 3 (module Pollution, 5 polluter) đã xong: 43/43 test passed, mức bẩn đo lại bằng profiler khớp lý thuyết trên cả 3 dataset. Tiếp theo là Giai đoạn 4 (module ML downstream). Xem tiến độ chi tiết và các bước tiếp theo tại [`checklist-trien-khai.md`](./checklist-trien-khai.md).
+Giai đoạn 0 (thiết kế) đã hoàn tất. Giai đoạn 1 (dữ liệu & môi trường) gần xong: 3 dataset đã tải, 3 bản sạch đã tạo trên Google Drive, config đã có; còn HIGGS full (làm sau). Giai đoạn 2 (module Profiling, bản pandas và PySpark) đã xong và đã kiểm chứng. Giai đoạn 3 (module Pollution, 5 polluter) đã xong: 43/43 test passed, mức bẩn đo lại bằng profiler khớp lý thuyết trên cả 3 dataset. Giai đoạn 4 (module ML downstream): code và test đã viết, chưa chạy kiểm chứng trên Colab. Xem tiến độ chi tiết và các bước tiếp theo tại [`checklist-trien-khai.md`](./checklist-trien-khai.md).
 
 ## 6. Cấu trúc thư mục & quy tắc làm việc
 

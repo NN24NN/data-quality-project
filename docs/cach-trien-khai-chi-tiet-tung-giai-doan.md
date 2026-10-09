@@ -210,3 +210,45 @@ Hệ quả cho các giai đoạn sau: meta-model nhận cả vector profile làm
 **Điều cần theo dõi ở giai đoạn sau:**
 - Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5 (HIGGS train 800K → 4 triệu dòng): thời gian huấn luyện ở Giai đoạn 5 sẽ dài hơn ước tính trong tài liệu thiết kế.
 - Đổi 80% nhãn nhị phân của HIGGS là đảo nhãn, F1 có thể tăng lại so với mức 0,5.
+
+---
+
+## Giai đoạn 4 — Module ML downstream (code đã viết, **chưa chạy test** → chưa tick)
+
+**Đã làm:**
+
+| File | Nội dung |
+|---|---|
+| `src/downstream/classification.py` | Logistic Regression + Random Forest, trả về F1-macro trên test |
+| `src/downstream/regression.py` | Ridge + Gradient Boosting, trả về R² trên test |
+| `src/downstream/clustering.py` | k-Means + Gaussian Mixture, trả về AMI so với target |
+| `src/downstream/common.py` | Tiền xử lý dùng chung, `fit_and_score`, `split_train_test` |
+| `src/downstream/__init__.py` | Bảng `EVALUATORS` tra theo tên task |
+| `configs/algorithms.yaml` | Siêu tham số của 6 thuật toán |
+| `tests/test_downstream.py` | 50 test (cùng 43 test cũ là 93) |
+| Notebook mục 11 | 11.1 chạy toàn bộ test; 11.2 baseline trên mẫu 100.000 dòng, đo thời gian; 11.3 baseline toàn bộ dữ liệu, 3 seed, lưu `results/baseline_performance.csv` |
+
+**Làm như thế nào:**
+- Ba tác vụ cùng chữ ký `evaluate(algorithm, train, test, target, seed, params)`, nên Experiment Runner chỉ cần tra `EVALUATORS[tên task]` — cùng kiểu với `POLLUTERS` của Giai đoạn 3. Clustering không tách train/test nên bỏ qua tham số `test`.
+- Seed và siêu tham số đều là tham số của hàm; nơi gọi đọc từ `configs/seeds.yaml` và `configs/algorithms.yaml`. `random_state` của mô hình = seed của lượt chạy.
+- X, y lấy ra bằng `to_numpy()`, không dựa vào index — vì polluter Uniqueness giữ index của dòng gốc nên index bị trùng.
+- Mọi thuật toán đi qua cùng một pipeline, học trên tập train: điền ô thiếu bằng trung vị → chuẩn hóa z-score → mô hình. Nhóm one-hot bị làm thiếu (cả nhóm = 0) giữ nguyên.
+- Clustering: số cụm = số lớp thật của target (7 với Covertype); target không vào mô hình, chỉ dùng để tính AMI.
+- Chia train/test: stratified 80/20 bằng `base_seed`; target số (PM2.5) chia thành 10 khoảng phân vị để stratify.
+
+**Quyết định thiết kế (tự chốt, bài gốc và tài liệu thiết kế không nêu — đã ghi vào `khac-biet-so-voi-bai-goc.md` mục 4.1):**
+
+| Quyết định | Lý do |
+|---|---|
+| Điền ô thiếu bằng trung vị của tập train | Polluter Completeness tạo NaN (đã chốt ở Giai đoạn 3) mà scikit-learn không nhận NaN với 5/6 thuật toán; trung vị là cách điền đơn giản, không nhạy với ngoại lệ |
+| Chuẩn hóa z-score cho cả 6 thuật toán | Logistic Regression, Ridge, k-Means, GMM nhạy với thang đo; mô hình cây không bị ảnh hưởng nên dùng chung một pipeline cho gọn |
+| Siêu tham số đặt trong `configs/algorithms.yaml` | Nhiều khả năng phải chỉnh theo thời gian chạy thực tế; theo quy tắc không hardcode tham số thí nghiệm |
+| Baseline chạy với 3 seed của `runs` (18 lượt) | Theo `thiet-ke-thi-nghiem-chi-tiet.md` mục 3; cho biết độ dao động do seed (mức nhiễu nền của ΔPerformance). `pipeline-thi-nghiem.md` ghi "chạy 1 lần" — hai tài liệu thiết kế lệch nhau ở điểm này |
+
+**Test kiểm tra gì:** học được dữ liệu dễ (điểm > 0,9 cho cả 6 thuật toán); target không lọt vào feature (target độc lập với feature thì điểm ở mức ngẫu nhiên); cùng seed cho cùng điểm; chạy được trên dữ liệu bị làm bẩn ở mức cao nhất của mọi dimension trong ma trận (26 tổ hợp); Completeness cao làm điểm giảm; chia train/test đúng tỷ lệ, không trùng dòng, tái lập được; mọi thuật toán trong ma trận đều có code và có siêu tham số.
+
+**Điều cần theo dõi khi có kết quả 11.2:**
+- **Thời gian chạy** là rủi ro chính. Random Forest 100 cây không giới hạn độ sâu trên 800.000 dòng HIGGS, Gradient Boosting của scikit-learn (chạy 1 nhân) trên 305.000 dòng Beijing, và GMM `full` trên 581.000 dòng × 54 cột đều có thể mất nhiều phút mỗi lượt — ước tính 10–40 giây/lượt trong tài liệu thiết kế nhiều khả năng quá lạc quan. Giai đoạn 5 có 312 lượt, riêng Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5. Từ thời gian đo trên mẫu 100.000 dòng sẽ ngoại suy và quyết định có cần giới hạn mô hình (vd `max_depth`, `max_samples`, GMM `diag`) hoặc giảm cỡ mẫu không.
+- **AMI baseline của Covertype** có thể thấp (k-Means/GMM thường không tách tốt 7 loại rừng); nếu thấp thì ΔAMI có ít dư địa.
+
+**Chưa kiểm chứng:** code mới được rà bằng tay, máy local không có Python. Cần chạy cell 11.1 và 11.2 trên Colab.
