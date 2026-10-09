@@ -213,7 +213,7 @@ Hệ quả cho các giai đoạn sau: meta-model nhận cả vector profile làm
 
 ---
 
-## Giai đoạn 4 — Module ML downstream (code đã viết, **chưa chạy test** → chưa tick)
+## Giai đoạn 4 — Module ML downstream (3 module xong và đã kiểm chứng; baseline toàn bộ dữ liệu chưa chạy)
 
 **Đã làm:**
 
@@ -251,4 +251,33 @@ Hệ quả cho các giai đoạn sau: meta-model nhận cả vector profile làm
 - **Thời gian chạy** là rủi ro chính. Random Forest 100 cây không giới hạn độ sâu trên 800.000 dòng HIGGS, Gradient Boosting của scikit-learn (chạy 1 nhân) trên 305.000 dòng Beijing, và GMM `full` trên 581.000 dòng × 54 cột đều có thể mất nhiều phút mỗi lượt — ước tính 10–40 giây/lượt trong tài liệu thiết kế nhiều khả năng quá lạc quan. Giai đoạn 5 có 312 lượt, riêng Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5. Từ thời gian đo trên mẫu 100.000 dòng sẽ ngoại suy và quyết định có cần giới hạn mô hình (vd `max_depth`, `max_samples`, GMM `diag`) hoặc giảm cỡ mẫu không.
 - **AMI baseline của Covertype** có thể thấp (k-Means/GMM thường không tách tốt 7 loại rừng); nếu thấp thì ΔAMI có ít dư địa.
 
-**Chưa kiểm chứng:** code mới được rà bằng tay, máy local không có Python. Cần chạy cell 11.1 và 11.2 trên Colab.
+**Kết quả kiểm chứng (Colab, commit `eca41d4`, ngày 2026-10-09):**
+- Cell 11.1: `93 passed in 52.67s`.
+- Cell 11.2: baseline trên mẫu 100.000 dòng mỗi dataset, 1 seed (run 1):
+
+| Dataset | Thuật toán | Số dòng train | Thước đo | Điểm | Thời gian (giây) |
+|---|---|---|---|---|---|
+| HIGGS mẫu | Logistic Regression | 80.000 | F1-macro | 0,6297 | 0,7 |
+| HIGGS mẫu | Random Forest | 80.000 | F1-macro | 0,7197 | 66,2 |
+| Beijing | Ridge | 80.000 | R² | 0,8475 | 1,0 |
+| Beijing | Gradient Boosting | 80.000 | R² | 0,9090 | 24,4 |
+| Covertype | k-Means | 100.000 | AMI | 0,1604 | 7,6 |
+| Covertype | GMM | 100.000 | AMI | 0,1735 | 18,1 |
+
+- Điểm hợp lý: mô hình cây hơn mô hình tuyến tính ở cả classification và regression; HIGGS vốn là bài toán khó (F1 khoảng 0,63–0,72).
+- **AMI của Covertype thấp (0,16–0,17)** như đã lường: k-Means/GMM không tách tốt 7 loại rừng. ΔAMI tối đa chỉ khoảng 0,17, nhỏ hơn nhiều so với ΔF1 và ΔR² — cần lưu ý khi meta-model học chung ba tác vụ (Giai đoạn 6).
+
+**Ngoại suy thời gian cho Giai đoạn 5 (ước lượng, chưa đo):** giả định thời gian tăng tuyến tính theo số dòng (Random Forest tăng nhanh hơn một chút, ~n·log n), và tính cả việc Uniqueness làm dữ liệu lớn gấp 1,25 / 2 / 5 lần.
+
+| Thuật toán | Một lượt trên toàn bộ dữ liệu | Tổng Giai đoạn 5 |
+|---|---|---|
+| Random Forest (800.000 dòng) | ~13 phút | ~16 giờ |
+| Gradient Boosting (305.000 dòng) | ~1,5 phút | ~1,7 giờ |
+| GMM (581.000 dòng) | ~1,8 phút | ~1,8 giờ |
+| k-Means (581.000 dòng) | ~45 giây | ~45 phút |
+| Logistic Regression, Ridge | vài giây | không đáng kể |
+
+Tổng khoảng 20 giờ, trong đó Random Forest chiếm khoảng 16 giờ — không khả thi trên Colab. Dữ liệu bị nhiễu nhãn còn làm cây sâu hơn, nên con số thật có thể cao hơn. 
+**Quyết định (người dùng chốt ngày 2026-10-09):** thêm `max_samples: 0.1` cho Random Forest trong `configs/algorithms.yaml` — mỗi cây học trên 10% số dòng. Ước tính Random Forest giảm từ ~16 giờ xuống ~1,5 giờ, cả Giai đoạn 5 còn khoảng 6–7 giờ (ước lượng, chưa đo; các lượt Uniqueness λ = 0,8 vẫn chậm vì `max_samples` là tỷ lệ). Phương án không chọn: giảm mẫu HIGGS xuống 200.000 dòng (Random Forest vẫn ~3 giờ, mất yếu tố quy mô lớn). Bất lợi đã biết ghi ở `khac-biet-so-voi-bai-goc.md` mục 4.1. Kèm theo: cell 11.4 chạy một lượt Random Forest không lấy mẫu con trên HIGGS sạch để đo chênh lệch F1 của baseline.
+
+**Chưa làm:** cell 11.3 (baseline toàn bộ dữ liệu, 3 seed, lưu `results/baseline_performance.csv`) và cell 11.4 (đối chứng). Test chưa chạy lại sau khi đổi config (test đọc siêu tham số từ `algorithms.yaml`).

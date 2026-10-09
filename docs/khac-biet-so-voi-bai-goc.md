@@ -112,16 +112,23 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 
 ### 4.1 Xử lý trước khi huấn luyện mô hình downstream
 
-*Trạng thái: **Đã viết** (`src/downstream/common.py`), chưa chạy test.*
+*Trạng thái: **Đã cài** (`src/downstream/common.py`; test 93/93 passed, baseline trên mẫu 100.000 dòng cho điểm hợp lý). `max_samples` của Random Forest mới thêm, chưa chạy lại.*
 
 | Thành phần | Bài gốc | Đề tài | Lý do |
 |---|---|---|---|
 | Ô thiếu khi vào mô hình | Mô hình nhận thẳng giá trị placeholder | Điền bằng **trung vị của tập train**; nhóm one-hot thiếu giữ nguyên là "cả nhóm = 0" | Hệ quả của việc biểu diễn ô thiếu bằng NaN (bảng trên); scikit-learn không nhận NaN |
 | Chuẩn hóa feature | Chưa đối chiếu với bài gốc | z-score (học trên tập train) cho cả 6 thuật toán | Mô hình tuyến tính, k-Means, GMM nhạy với thang đo; mô hình cây không bị ảnh hưởng |
 | Siêu tham số | Chưa đối chiếu với bài gốc | Mặc định của scikit-learn, trừ `max_iter=1000` (LogR), `n_init=10` (k-Means); liệt kê trong `configs/algorithms.yaml` | Có thể phải chỉnh theo thời gian chạy — sẽ cập nhật nếu đổi |
+| Random Forest | Chưa đối chiếu với bài gốc | `max_samples = 0.1`: mỗi cây học trên 10% số dòng (bootstrap), 100 cây | Bản mặc định mất ~13 phút/lượt trên 800.000 dòng HIGGS (ngoại suy từ 66 giây trên 80.000 dòng), tức ~16 giờ cho Giai đoạn 5. Người dùng chốt ngày 2026-10-09 |
 | Số cụm (clustering) | — | Bằng số lớp thật của target | Theo tài liệu thiết kế |
 
 **Điểm cần nói rõ khi trình bày:** vì ô thiếu được điền bằng trung vị thay vì placeholder, ảnh hưởng của Completeness lên mô hình có thể khác bài gốc (placeholder ngoài miền giá trị cho mô hình cây một tín hiệu "ô này thiếu", trung vị thì không).
+
+**Giới hạn của việc lấy mẫu con cho Random Forest (cần nêu trong báo cáo):**
+- Cây học trên ít dòng hơn thì nông hơn và ít học thuộc nhiễu hơn, nên ΔF1 đo được (nhất là với Target Accuracy) có thể **nhỏ hơn** so với Random Forest mặc định. Kết quả là của "Random Forest có lấy mẫu con". *Chưa đo — đo được thì phải chạy bản mặc định trên dữ liệu bẩn, quay lại bài toán thời gian.*
+- Baseline có thể thấp hơn bản mặc định một chút. *Sẽ có số đo từ cell 11.4 (một lượt đối chứng trên dữ liệu sạch).*
+- Năm thuật toán còn lại học trên toàn bộ dữ liệu; riêng Random Forest mỗi cây thấy 10% (cả rừng 100 cây vẫn thấy gần như mọi dòng).
+- Giá trị 0,1 chọn theo thời gian chạy, không phải kết quả tinh chỉnh.
 
 ---
 
