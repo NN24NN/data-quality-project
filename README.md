@@ -6,7 +6,7 @@
 
 ## Trạng thái
 
-Khung thư mục đã được tạo (Giai đoạn 0 — thiết kế — đã hoàn tất). Thí nghiệm chính (Giai đoạn 1 trở đi) dự kiến chạy trên Google Colab — xem `docs/checklist-trien-khai.md`.
+Giai đoạn 0 (thiết kế), 1 (dữ liệu, trừ HIGGS full), 2 (module Profiling) và 3 (module Pollution) đã xong và đã kiểm chứng trên Google Colab. Tiếp theo: Giai đoạn 4 (module ML downstream) — xem `docs/checklist-trien-khai.md`.
 
 ## Cấu trúc thư mục
 

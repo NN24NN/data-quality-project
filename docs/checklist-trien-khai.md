@@ -4,22 +4,7 @@
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
-> ## ⏸ VIỆC ĐANG DỞ — làm đầu tiên ở phiên sau (ghi ngày 2026-10-08)
->
-> Giai đoạn 3 đã viết xong code và đã push (commit `bbd1721`) nhưng **chưa chạy test**. Người dùng cần chạy trên Colab:
->
-> 1. Đóng tab Colab cũ, mở lại notebook từ **File → Open notebook → GitHub** (để có mục 10).
-> 2. Chạy mục 1 và 2, rồi 9.1 — dòng cuối của 9.1 phải hiện commit `bbd1721` hoặc mới hơn.
-> 3. Chạy 10.1 (kỳ vọng `43 passed`) rồi 10.2 (bảng 52 dòng).
-> 4. Gửi kết quả 10.1 và 10.2 cho Claude (xuất PDF như các lần trước).
->
-> Không lưu notebook từ Colab lên GitHub (sẽ ghi đè bản trên repo).
->
-> **Sau khi có kết quả, Claude cần:** kiểm tra số liệu, tick 7 mục Giai đoạn 3, cập nhật file nhật ký và `khac-biet-so-voi-bai-goc.md`; rồi hỏi người dùng quyết định **có giữ Class Balance cho clustering (Covertype) không** — dự đoán điểm Balance đi ngược (tăng khi λ tăng), nếu bỏ thì số lượt chạy từ 312 xuống 288. Xóa khung này khi xong.
->
-> Commit ghi chú này có thể chưa push — kiểm tra `git status` đầu phiên.
-
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau) và 2 (module Profiling) đã xong. Tiếp theo: Giai đoạn 3 (module Pollution).
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling) và 3 (module Pollution) đã xong. Tiếp theo: Giai đoạn 4 (module ML downstream). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -68,15 +53,15 @@
 
 ## Giai đoạn 3 — Module Pollution (`src/pollution/`)
 
-*Trạng thái: 5 polluter và `tests/test_pollution.py` đã viết, **chưa chạy** — chờ kết quả cell 10.1 và 10.2 trên Colab rồi mới tick.*
+*Trạng thái: xong. Đã chạy trên Colab ngày 2026-10-09 ở commit `bbd1721` (pytest 43/43 passed; bảng 10.2 đủ 52 dòng trên mẫu 100.000 dòng × 3 dataset, điểm đo được khớp giá trị lý thuyết). Quyết định về Class Balance cho clustering: xem dòng "Trạng thái tổng quan".*
 
-- [ ] Viết `completeness.py` (MCAR missing value theo mức độ)
-- [ ] Viết `feature_accuracy.py` (nhiễu Gaussian/đổi giá trị ngẫu nhiên)
-- [ ] Viết `target_accuracy.py`
-- [ ] Viết `uniqueness.py` (nhân bản có kiểm soát)
-- [ ] Viết `class_balance.py`
-- [ ] Viết test (`tests/test_pollution.py`): dữ liệu polluted ở mức λ=0 phải ≈ dataset gốc
-- [ ] Kiểm tra mọi polluter đều dùng seed từ `configs/seeds.yaml` → tái lập được chính xác
+- [x] Viết `completeness.py` (MCAR missing value theo mức độ) — *Completeness đo được đúng 1 − λ trên cả 3 dataset*
+- [x] Viết `feature_accuracy.py` (nhiễu Gaussian/đổi giá trị ngẫu nhiên) — *HIGGS 0,643 / 0,436 / 0,287; Beijing và Covertype 0,722 / 0,468 / 0,243*
+- [x] Viết `target_accuracy.py` — *HIGGS (đổi nhãn) đúng 1 − λ; Beijing (nhiễu số) 0,643 / 0,435 / 0,285*
+- [x] Viết `uniqueness.py` (nhân bản có kiểm soát) — *Uniqueness ≈ 1 − λ; số dòng 100.000 → 125.000 / 200.000 / 500.000*
+- [x] Viết `class_balance.py` — *HIGGS giảm đúng hướng 0,889 → 0,711 / 0,444 / 0,178; **Covertype đi ngược** 0,254 → 0,303 / 0,377 / 0,451*
+- [x] Viết test (`tests/test_pollution.py`): dữ liệu polluted ở mức λ=0 phải ≈ dataset gốc — *31 test pollution, passed*
+- [x] Kiểm tra mọi polluter đều dùng seed từ `configs/seeds.yaml` → tái lập được chính xác — *seed là tham số của `pollute`, nơi gọi đọc từ `seeds.yaml`; test cùng seed cho cùng kết quả passed cho cả 5 polluter*
 
 ## Giai đoạn 4 — Module ML downstream (`src/downstream/`)
 
@@ -106,6 +91,7 @@
 - [ ] Tính MAE, R² cho meta-model và từng baseline
 - [ ] Tính hệ số tương quan Spearman
 - [ ] Phân tích theo từng tác vụ riêng (baseline nào thắng ở tác vụ nào)
+- [ ] Quyết định có đưa 24 lượt Class Balance × clustering (Covertype) vào bảng so sánh baseline không — xem ΔAMI của 24 lượt này trước; báo cáo phải nêu rõ bảng chính tính trên tập nào (312 hay 288 lượt)
 - [ ] Tổng hợp bảng so sánh cuối cùng
 
 ## Giai đoạn 8 — Scalability study (Spark, có thể làm song song từ Giai đoạn 2)

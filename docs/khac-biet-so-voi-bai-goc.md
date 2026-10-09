@@ -93,7 +93,7 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 
 ## 4. Khác biệt về cách làm bẩn dữ liệu (polluter)
 
-*Trạng thái cả mục: **Đã viết** (`src/pollution/`), chưa chạy test.*
+*Trạng thái cả mục: **Đã cài** (`src/pollution/`; test 43/43 passed, đã đo lại bằng profiler trên mẫu 100.000 dòng của cả 3 dataset — số liệu ở `cach-trien-khai-chi-tiet-tung-giai-doan.md`, Giai đoạn 3).*
 
 | Thành phần | Bài gốc | Đề tài | Lý do |
 |---|---|---|---|
@@ -107,7 +107,8 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 
 **Hiện tượng cần biết khi trình bày kết quả (không phải lỗi):**
 - **Nhãn nhị phân đổi 80%** (Target Accuracy, HIGGS, λ = 0,8): nhãn gần như bị đảo ngược chứ không phải nhiễu hơn. Vì train và test bẩn cùng mức (Scenario 3), mô hình học được quan hệ đảo và F1 có thể **tăng trở lại** so với λ = 0,5 (mức nhiễu tối đa với 2 lớp).
-- **Class Balance trên dữ liệu nhiều lớp**: với công thức `ε` của bài gốc, điểm Balance không nhất thiết giảm khi xóa bớt các lớp nhỏ (xem số đo thật ở cell 10.2 trước khi kết luận cho Covertype).
+- **Class Balance trên dữ liệu nhiều lớp**: với công thức `ε` của bài gốc, điểm Balance không nhất thiết giảm khi xóa bớt các lớp nhỏ. Đo thật trên Covertype (7 lớp): điểm **tăng** 0,254 → 0,303 / 0,377 / 0,451 khi λ = 0,2 / 0,5 / 0,8; trên HIGGS (2 lớp) điểm giảm đúng hướng 0,889 → 0,711 / 0,444 / 0,178. Nguyên nhân: `ε` coi "một nửa số lớp đầy, một nửa rỗng" là xấu nhất, còn polluter đẩy dữ liệu về "một lớp lớn, các lớp còn lại nhỏ đều". *Đã chốt: vẫn chạy Class Balance cho clustering (312 lượt); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.*
+- **Làm bẩn một dimension có thể kéo theo điểm của dimension khác** (đo ở cell 10.2): Completeness ở λ = 0,8 làm Uniqueness giảm (Covertype 0,78; Beijing 0,95; HIGGS 0,996) vì nhiều dòng mất gần hết feature nên trùng nhau; đổi nhãn HIGGS làm Class Balance tăng về phía 1 (0,889 → 0,932 / 0,998 / 0,931). Các cặp còn lại không ảnh hưởng nhau.
 
 ---
 

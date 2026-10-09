@@ -12,4 +12,6 @@
 
 Mọi polluter giữ index của dòng gốc, không sửa df đầu vào, và ở λ = 0 trả về dữ liệu y nguyên. Seed do nơi gọi truyền vào (đọc từ `configs/seeds.yaml`).
 
-Test: `python -m pytest tests/test_pollution.py -q`.
+Test: `python -m pytest tests/test_pollution.py -q` — đã chạy trên Colab, passed (cùng test profiling là 43/43).
+
+Lưu ý: trên dữ liệu nhiều lớp (Covertype), điểm Class Balance đo được **tăng** khi λ tăng — xem `docs/khac-biet-so-voi-bai-goc.md` mục 4.

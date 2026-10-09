@@ -145,7 +145,7 @@ Ba con số khác 1 đã được đối chiếu tay với số liệu Giai đo�
 
 ---
 
-## Giai đoạn 3 — Module Pollution (code đã viết, **chưa chạy test** → chưa tick)
+## Giai đoạn 3 — Module Pollution (xong, đã kiểm chứng trên Colab ngày 2026-10-09)
 
 **Đã làm:**
 
@@ -176,9 +176,37 @@ Ba con số khác 1 đã được đối chiếu tay với số liệu Giai đo�
 | Class Balance: giữ lớp lớn nhất, xóa ở các lớp còn lại | Theo thiết kế ("loại bớt dòng ở lớp thiểu số"); λ = 0 giữ nguyên dữ liệu gốc. Khác cách "bậc thang" của bài gốc — đã ghi vào `khac-biet-so-voi-bai-goc.md` |
 | Tham số phân phối nhân bản (mean 1, std 5) là đối số có giá trị mặc định | Là hằng số định nghĩa polluter, không phải tham số thí nghiệm |
 
-**Điều cần theo dõi khi có kết quả:**
+**Kết quả kiểm chứng (Colab, commit `bbd1721`):**
+- Cell 10.1: `43 passed in 44.85s` (31 test pollution + 12 test profiling).
+- Cell 10.2: đủ 52 dòng (13 cặp dataset × dimension, 4 mức λ), mẫu 100.000 dòng mỗi dataset, seed của run 1. Điểm của dimension bị làm bẩn ở λ = 0 / 0,2 / 0,5 / 0,8:
+
+| Dimension | HIGGS mẫu | Beijing | Covertype | Lý thuyết |
+|---|---|---|---|---|
+| Completeness | 1 / 0,8 / 0,5 / 0,2 | 1 / 0,8 / 0,5 / 0,2 | 1 / 0,8 / 0,5 / 0,2 | 1 − λ |
+| Feature Accuracy | 1 / 0,6433 / 0,4360 / 0,2866 | 1 / 0,7216 / 0,4680 / 0,2433 | 1 / 0,7216 / 0,4679 / 0,2431 | Số: 1 − √λ·√(2/π) = 0,643 / 0,436 / 0,286. Có one-hot: trung bình với 1 − λ = 0,722 / 0,468 / 0,243 |
+| Target Accuracy | 1 / 0,8 / 0,5 / 0,2 | 1 / 0,6425 / 0,4347 / 0,2850 | không áp dụng | Phân loại: 1 − λ. Số: như trên |
+| Uniqueness | 0,9998 / 0,7998 / 0,4999 / 0,2000 | 1 / 0,8 / 0,5 / 0,2 | 1 / 0,8 / 0,5 / 0,2 | ≈ 1 − λ |
+| Class Balance | 0,8885 / 0,7108 / 0,4443 / 0,1777 | không áp dụng | 0,2541 / 0,3033 / 0,3771 / 0,4508 | 2 lớp: baseline × (1 − λ) |
+
+- Số dòng sau khi làm bẩn: Uniqueness 100.000 → 125.000 / 200.000 / 500.000 (đúng `ρ = 1/(1 − λ)`); Class Balance HIGGS → 90.590 / 76.476 / 62.361, Covertype → 89.732 / 74.330 / 58.929; ba dimension còn lại giữ 100.000 dòng.
+- Hai công thức accuracy trên dữ liệu thật bị bẩn (phần còn thiếu của Giai đoạn 2) khớp lý thuyết tới 3 chữ số thập phân.
+
+**Tác dụng phụ chéo (đọc từ bảng đầy đủ 6 cột điểm; bản PDF đầu tiên bị cắt hai cột `uniqueness` và `class_balance`, người dùng đã gửi lại ảnh chụp output đủ cột):**
+
+- Các cột Completeness, Feature Accuracy, Target Accuracy chỉ đổi khi chính dimension đó bị làm bẩn; ở mọi dòng khác đều bằng 1,0000.
+- Polluter Uniqueness **giữ nguyên Class Balance** trên dữ liệu thật (HIGGS 0,8885 và Covertype 0,2541 ở cả 4 mức) — xác nhận thiết kế nhân bản riêng trong từng lớp.
+- Polluter Class Balance không làm đổi Uniqueness (HIGGS 0,9998 → 1,0000; Covertype giữ 1,0000).
+- Có **hai tác dụng phụ thật**, đều là hệ quả tất yếu của cách làm bẩn, không phải lỗi:
+
+| Polluter | Cột bị kéo theo | Số đo (λ = 0 / 0,2 / 0,5 / 0,8) | Giải thích |
+|---|---|---|---|
+| Completeness | Uniqueness | HIGGS 0,9998 / 1,0000 / 1,0000 / 0,9959; Beijing 1 / 1 / 1 / 0,9476; Covertype 1 / 1 / 0,9993 / **0,7800** | Ở λ cao, nhiều dòng mất gần hết feature nên trùng nhau. Covertype nặng nhất vì chỉ có 12 feature (10 số + 2 nhóm one-hot): xác suất một dòng mất cả 12 là 0,8¹² ≈ 6,9%, cộng thêm các dòng chỉ còn một nhóm one-hot ít giá trị |
+| Target Accuracy (đổi nhãn, HIGGS) | Class Balance | 0,8885 / 0,9321 / 0,9975 / 0,9309 | Đổi nhãn ngẫu nhiên trộn hai lớp về phía 50/50; λ = 0,5 cho cân bằng gần hoàn hảo, λ = 0,8 đối xứng với λ = 0,2. Tính tay từ tỷ lệ 53/47 ra 0,932 / 1,000 / 0,932 — khớp |
+
+Hệ quả cho các giai đoạn sau: meta-model nhận cả vector profile làm đầu vào nên vẫn thấy các thay đổi kéo theo này; nhưng khi diễn giải SHAP theo từng dimension (Giai đoạn 6) cần nhớ ở λ = 0,8 lượt chạy "Completeness" trên Covertype cũng mang tín hiệu Uniqueness.
+
+**Dự đoán đã được xác nhận — Class Balance trên Covertype đi ngược:** điểm Balance **tăng** 0,254 → 0,303 / 0,377 / 0,451 (tính tay trước đó: 0,31 / 0,38 / 0,45), vì công thức `ε` coi "một nửa số lớp đầy, một nửa rỗng" là xấu nhất, còn polluter đẩy dữ liệu về "một lớp lớn, các lớp còn lại nhỏ đều". Trên HIGGS (2 lớp) điểm giảm đúng hướng. **Quyết định (người dùng chốt ngày 2026-10-09):** giữ 24 lượt Class Balance × clustering khi chạy thí nghiệm (vẫn 312 lượt); đến Giai đoạn 7 mới quyết định có đưa vào bảng so sánh baseline không. Lý do: chưa biết ΔAMI của 24 lượt này — nếu gần 0 thì có bằng chứng đo được để loại, nếu rõ rệt thì là một phát hiện; lọc 24 dòng về sau rất dễ, còn chạy bổ sung phải mở lại Colab. Các phương án đã cân nhắc và không chọn: bỏ hẳn (288 lượt); sửa polluter chỉ xóa ở lớp nhỏ (điểm chỉ giảm khoảng 0,03 — ước lượng, chưa đo); làm bậc thang đúng bài gốc (phải bỏ khoảng 97% Covertype); đổi công thức sang entropy (lệch toán so với bài gốc). Lưu ý khi so sánh: ba baseline coi điểm cao là dữ liệu tốt, nên 24 lượt này bất lợi cho chúng.
+
+**Điều cần theo dõi ở giai đoạn sau:**
 - Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5 (HIGGS train 800K → 4 triệu dòng): thời gian huấn luyện ở Giai đoạn 5 sẽ dài hơn ước tính trong tài liệu thiết kế.
 - Đổi 80% nhãn nhị phân của HIGGS là đảo nhãn, F1 có thể tăng lại so với mức 0,5.
-- Class Balance trên Covertype: theo tính tay, điểm Balance **tăng** từ 0,256 lên khoảng 0,31 / 0,38 / 0,45 khi λ = 0,2 / 0,5 / 0,8, vì công thức `ε` coi "một nửa số lớp đầy, một nửa rỗng" là xấu nhất, còn polluter đẩy dữ liệu về "một lớp lớn, các lớp còn lại nhỏ đều". Cần xem số thật ở cell 10.2 rồi quyết định có giữ dimension này cho clustering không.
-
-**Chưa kiểm chứng:** code mới được rà bằng tay. Cần chạy cell 10.1 và 10.2 trên Colab.
