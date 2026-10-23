@@ -136,6 +136,20 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 - `diag` giả định các feature độc lập trong mỗi cụm. Mới so với `full` trên dữ liệu sạch; trên dữ liệu bẩn hai cấu hình có thể phản ứng khác nhau. *Chưa đo.*
 - `full` và `diag` (1 lần khởi tạo) cho AMI gần như trùng nhau, gợi ý rằng trên dữ liệu này GMM gần như giữ nguyên cách chia cụm của bước khởi tạo bằng k-Means, tức hai thuật toán clustering có thể hành xử khá giống nhau. *Suy đoán, chưa kiểm chứng.*
 
+### 4.2 Cách tính ΔPerformance (Experiment Runner)
+
+Bài gốc (Mohammed et al.) không mô hình hóa ΔPerformance, chỉ vẽ đường cong hiệu năng theo mức ô nhiễm, nên đề tài phải tự chốt quy ước. Pseudocode trong `thiet-ke-thi-nghiem-chi-tiet.md` mục 4 ban đầu ghi baseline "chạy 1 lần/thuật toán", nhưng không nói rõ seed nào.
+
+| Thành phần | Đề tài | Lý do |
+|---|---|---|
+| Baseline để trừ | **Cùng seed** với lượt chạy: `Δ = baseline(thuật toán, seed s) − raw(thuật toán, seed s)`, lấy từ `results/baseline_performance.csv` | Meta-model chỉ thấy vector profile, không thấy seed, nên phần Δ do seed gây ra là nhiễu nó không học được. Ghép theo seed khử phần nhiễu này: ở λ = 0, Δ = 0 tuyệt đối. Nếu lấy trung bình 3 seed, Δ của k-Means ở λ = 0 dao động khoảng ±0,017, đáng kể so với AMI sạch chỉ 0,17. Người dùng chốt ngày 2026-10-23 |
+| Phương án không chọn | Trung bình 3 seed | Đơn giản hơn, nhưng nhiễu seed dồn vào nhãn của meta-model. Vẫn tính lại được từ `raw_performance` và `baseline_performance.csv` mà không phải chạy lại |
+| Dấu của Δ | `baseline − raw`, nên Δ > 0 nghĩa là hiệu năng giảm | Theo `thiet-ke-thi-nghiem-chi-tiet.md` mục 4 |
+
+**Giới hạn cần nêu khi trình bày:** seed còn điều khiển cả cách làm bẩn, nên hai lượt cùng seed không khớp hoàn toàn. Ở λ cao, dữ liệu đổi nhiều và cùng seed có thể không còn giữ tương quan, nên lợi thế của cách ghép theo seed giảm dần. Chỉ ảnh hưởng đáng kể tới k-Means, GMM (và rất ít tới Random Forest); bốn thuật toán còn lại có độ lệch theo seed ≈ 0 nên hai cách cho gần như cùng kết quả.
+
+*Trạng thái: **Đã viết** (`src/experiment_runner/run_experiment.py`), chưa chạy test trên Colab.*
+
 ---
 
 ## 5. Khác biệt về chuẩn bị dữ liệu

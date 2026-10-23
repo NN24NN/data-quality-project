@@ -51,6 +51,7 @@ Giao tiếp bằng **tiếng Việt** trong mọi trao đổi, trừ khi đượ
 
 - **Mỗi khi xong một giai đoạn hoặc một mục checklist, phải tường thuật lại cho người dùng ngay trong chat: đã làm gì và làm như thế nào** (các bước, quyết định thiết kế và lý do, kết quả kiểm chứng, sự cố nếu có, việc chưa làm). Đồng thời ghi lại đầy đủ vào `docs/cach-trien-khai-chi-tiet-tung-giai-doan.md` (thêm/cập nhật đúng mục của giai đoạn đó, ghi rõ phần nào chưa chạy/kiểm chứng).
 - **Mỗi khi phát sinh điểm khác biệt so với hai bài báo gốc** (đổi công thức, đổi cách làm bẩn, đổi phạm vi, tự chốt một quy ước bài gốc không nêu), phải ghi vào `docs/khac-biet-so-voi-bai-goc.md` kèm lý do và trạng thái — file này là cơ sở làm slide giữa kỳ/cuối kỳ. Điểm lệch về công thức toán phải hỏi người dùng trước khi áp dụng, không tự quyết.
+- **Mỗi khi có kết quả chạy thật (Colab) của một giai đoạn, ghi số liệu vào `docs/ket-qua-thuc-nghiem.md`** (đúng mục của giai đoạn đó, kèm cell notebook, commit, ngày). Chỉ ghi số đã chạy; biểu đồ trong danh mục mục 9 vẽ bằng code đọc từ file kết quả, lưu vào `results/figures/`.
 - Khi sắp sang bước cần model/mức khác (vd Sonnet Low → Medium → Opus/High), nhắc người dùng đổi trước khi làm.
 
 ## Tài liệu tham chiếu đầy đủ
@@ -66,3 +67,4 @@ Giao tiếp bằng **tiếng Việt** trong mọi trao đổi, trừ khi đượ
 | `docs/checklist-trien-khai.md` | Checklist tiến độ theo từng giai đoạn |
 | `docs/khac-biet-so-voi-bai-goc.md` | Mọi thay đổi/khác biệt so với 2 bài báo gốc, kèm lý do — cơ sở làm slide |
 | `docs/cach-trien-khai-chi-tiet-tung-giai-doan.md` | Nhật ký: đã làm gì và làm như thế nào cho từng mục checklist |
+| `docs/ket-qua-thuc-nghiem.md` | Số liệu đã chạy của từng giai đoạn (bảng, kèm cell/commit) + danh mục biểu đồ — cơ sở viết báo cáo |

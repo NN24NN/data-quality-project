@@ -135,7 +135,9 @@ trong đó `ImBalance(d) = Σ_{i<j} |n_i − n_j|` (tổng chênh lệch kích t
 for task in [classification, regression, clustering]:
     for dataset in task.datasets:
         clean_train, clean_test = stratified_split(dataset, seed=base_seed)
-        baseline_perf[task][algo] = train_and_evaluate(algo, clean_train, clean_test)  # chạy 1 lần/thuật toán
+        for algo in task.algorithms:          # chạy trước, ở notebook cell 11.3 -> results/baseline_performance.csv
+            for run in [1, 2, 3]:
+                baseline_perf[task][algo][run] = train_and_evaluate(algo, clean_train, clean_test, seed=seed_table[run])
 
         for dimension in task.dimensions:
             for level in [0.0, 0.2, 0.5, 0.8]:
@@ -148,7 +150,7 @@ for task in [classification, regression, clustering]:
 
                     for algo in task.algorithms:
                         perf = train_and_evaluate(algo, polluted_train, polluted_test)
-                        delta_perf = baseline_perf[task][algo] - perf
+                        delta_perf = baseline_perf[task][algo][run] - perf   # baseline cùng seed
 
                         log_row(dataset, task, algo, dimension, level, run,
                                 profile_vector, perf, delta_perf)
@@ -158,6 +160,9 @@ for task in [classification, regression, clustering]:
 - `compute_profile` tính trên **tập train đã làm bẩn** (vì đây là thứ một hệ thống thực tế quan sát được trước khi biết kết quả mô hình)
 - Với Clustering, không có `train/test` tách biệt — polluted toàn bộ dataset, chạy thuật toán trực tiếp trên đó, tính AMI so với nhãn thật (nhãn thật không bị polluted)
 - `seed_table` cố định trước (không random mỗi lần chạy) để đảm bảo tái lập được toàn bộ kết quả
+- **(Chốt 2026-10-23)** ΔPerformance trừ baseline **cùng seed** với lượt chạy, không phải trung bình 3 seed — lý do ở `khac-biet-so-voi-bai-goc.md` mục 4.2
+- **(Cài đặt)** Ở λ = 0 mọi polluter trả về đúng dữ liệu sạch, nên kết quả không phụ thuộc dimension: runner chỉ huấn luyện thật ở dimension đầu tiên rồi chép sang các dimension còn lại (có kiểm tra dữ liệu trùng bản sạch). Vẫn đủ 312 dòng, nhưng chỉ 252 lượt huấn luyện thật
+- **(Cài đặt)** Mỗi (dimension, level, run) làm bẩn và profile một lần, dùng chung cho cả hai thuật toán của tác vụ
 
 ---
 

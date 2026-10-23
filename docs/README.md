@@ -5,3 +5,5 @@ Toàn bộ tài liệu thiết kế của đồ án: tổng quan bài gốc, pip
 `khac-biet-so-voi-bai-goc.md` ghi mọi thay đổi và khác biệt so với hai bài báo gốc (cơ sở làm slide báo cáo).
 
 `cach-trien-khai-chi-tiet-tung-giai-doan.md` ghi lại đã làm gì và làm như thế nào cho từng mục checklist.
+
+`ket-qua-thuc-nghiem.md` tổng hợp số liệu đã chạy của từng giai đoạn và danh mục biểu đồ, dùng để viết báo cáo.

@@ -344,3 +344,38 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 - GMM ra đúng ba giá trị đã đo ở cell 11.5; năm thuật toán còn lại giữ nguyên số của lần chạy trước — kết quả tái lập được giữa các phiên Colab.
 - Sau thay đổi, k-Means (± 0,017) là thuật toán dao động theo seed nhiều nhất. Chưa xử lý; nếu cần có thể tăng `n_init` của k-Means.
+
+## Giai đoạn 5 — Experiment Runner (đã viết code ngày 2026-10-23, chưa chạy trên Colab)
+
+**Đã làm:**
+
+| File | Nội dung |
+|---|---|
+| `src/experiment_runner/run_experiment.py` | Runner: làm bẩn → profile → huấn luyện/chấm điểm, ghi `results/experiment_results.parquet` |
+| `src/experiment_runner/__init__.py` | Để test import được `experiment_runner` |
+| `tests/test_experiment_runner.py` | 7 test trên dữ liệu đồ chơi (cùng 93 test cũ là 100) |
+| Notebook mục 12 | 12.1 chạy toàn bộ test; 12.2 chạy thử nhỏ; 12.3 chạy thật từng tác vụ; 12.4 kiểm tra file kết quả |
+
+**Quyết định của người dùng (2026-10-23):** ΔPerformance trừ baseline **cùng seed** với lượt chạy, không phải trung bình 3 seed. Lý do: meta-model không thấy seed, nên nhiễu do seed là sai số nó không học được; ghép theo seed thì ở λ = 0, Δ = 0 tuyệt đối. Chi tiết ở `khac-biet-so-voi-bai-goc.md` mục 4.2.
+
+**Làm như thế nào:**
+- Mọi tham số đều đọc từ `configs/`: ma trận (`experiment_matrix.yaml`), mức λ, seed, siêu tham số, mô tả dataset. Seed của lượt chạy (`runs[run_id]`) dùng cho cả polluter lẫn `random_state` của mô hình. `base_seed` chỉ dùng để chia train/test, giống cell 11.3.
+- Mỗi đơn vị (dimension, λ, run) làm như sau: làm bẩn train và test bằng cùng polluter, cùng seed; profile **tập train đã bẩn** (ground truth là train sạch); rồi huấn luyện cả hai thuật toán của tác vụ trên cùng dữ liệu bẩn. Clustering không tách train/test, làm bẩn toàn bộ Covertype. `n_classes` cho Class Balance là số lớp của train sạch.
+- Baseline đọc từ `results/baseline_performance.csv` theo khóa (dataset, thuật toán, run_id). Không chạy lại baseline trong runner.
+- **Chạy tiếp được:** sau mỗi đơn vị, runner ghi lại cả file. Nó ghi qua file `.tmp` rồi `os.replace`, nên mất kết nối giữa chừng cũng không để lại file hỏng. Khi khởi động, runner đọc file đã có và bỏ qua các khóa (task, thuật toán, dimension, λ, run_id) đã xong. Dữ liệu chỉ được đọc khi tác vụ còn lượt phải chạy.
+- **Chạy riêng từng phần:** `--tasks`, `--dimensions`, `--levels`, `--runs` chọn tập con của ma trận trong config (giá trị không có trong config thì báo lỗi). `--output` ghi ra file khác, cell 12.2 dùng nó cho file chạy thử.
+- **λ = 0 chỉ huấn luyện một lần:** mọi polluter ở λ = 0 trả về đúng dữ liệu sạch (test Giai đoạn 3), nên kết quả không phụ thuộc dimension. Runner chỉ huấn luyện ở dimension đầu tiên rồi chép sang các dimension còn lại. Trước khi chép, nó vẫn làm bẩn (rẻ) và `assert` dữ liệu trùng bản sạch. Kết quả vẫn đủ 312 dòng, nhưng chỉ 252 lượt huấn luyện thật (bớt 60 lượt, khoảng 19%).
+- **Kiểm tra cấu hình lệch:** ở λ = 0, Δ phải bằng 0, vì cùng dữ liệu, cùng seed, cùng code với cell 11.3. Nếu |Δ| > 1e-9, runner in cảnh báo; đây là dấu hiệu `configs/algorithms.yaml` đã đổi sau khi chạy baseline.
+- Cột output đúng thứ tự schema mục 5; tên cột profile lấy từ `profiling.common.PROFILE_KEYS`.
+
+**Test kiểm tra gì** (ma trận thu nhỏ: classification có split + clustering không split, 2 mức λ, 2 run, dữ liệu 400 dòng):
+- Đủ số dòng, đúng thứ tự cột schema, không trùng khóa, không NaN ở hiệu năng, `delta = baseline − raw`, file trên đĩa khớp kết quả trả về.
+- λ = 0 cho Δ = 0 khi baseline tính cùng seed.
+- Điểm profile của dimension bị làm bẩn đúng bằng 1 ở λ = 0 và giảm rõ ở λ cao nhất.
+- λ = 0 chỉ huấn luyện một lần mỗi (thuật toán, run), kiểm tra bằng cách đếm số lần gọi evaluator.
+- Chạy tiếp: chạy một phần, rồi chạy toàn bộ thì chỉ huấn luyện phần còn thiếu; chạy lần ba không huấn luyện gì và kết quả không đổi.
+- Chọn dimension không có trong config thì báo lỗi; chạy hai lần cho kết quả giống hệt.
+
+**Chưa chạy / chưa kiểm chứng:** máy local không có Python nên chưa chạy test nào. Cần chạy cell 12.1 (kỳ vọng `100 passed`) và 12.2 trên Colab, sau đó mới chạy thật 12.3.
+
+**Ước tính thời gian (thô, ngoại suy từ thời gian baseline ở cell 11.3):** regression khoảng 1,5–2 giờ, clustering khoảng 2–2,5 giờ, classification khoảng 2,5–3 giờ. Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5, nên các lượt đó chậm nhất. Cell 12.2 sẽ cho thời gian thật của một lượt có làm bẩn và profile.
