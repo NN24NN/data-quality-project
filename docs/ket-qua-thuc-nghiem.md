@@ -10,7 +10,7 @@
 | 2 — Profiling | Có |
 | 3 — Pollution | Có |
 | 4 — Downstream (baseline sạch) | Có |
-| 5 — Experiment Runner (312 lượt) | Có test, chạy thử (5.1), regression (5.2) và clustering (5.3): 192/312 dòng; classification *chưa có* |
+| 5 — Experiment Runner (312 lượt) | Có đủ: test và chạy thử (5.1), regression (5.2), clustering (5.3), classification (5.4), tổng kết (5.5) |
 | 6 — Meta-model + 3 baseline | *Chưa có* |
 | 7 — Đánh giá & so sánh | *Chưa có* |
 | 8 — Scalability (Spark) | *Chưa có* |
@@ -202,12 +202,56 @@ Baseline trên mẫu 100.000 dòng (cell 11.2, run 1) dùng để đo thời gia
 - Tổng 126,4 phút, sát ước tính (2,2–3 giờ). Uniqueness λ = 0,8 chậm nhất (khoảng 5 lần baseline) và chiếm gần 40% thời gian cả tác vụ.
 - Không có hiện tượng chậm gấp 4 như Feature Accuracy của regression: k-Means và GMM không dựa vào sắp xếp giá trị. Ngược lại, Feature Accuracy ở λ cao còn nhanh hơn baseline.
 
-### 5.4 Classification (chưa có)
+### 5.4 Classification — 120 dòng (đã có)
 
-*Chưa có.* Sẽ ghi các mục sau:
-- Kiểm tra file kết quả (12.4) khi đủ 312 dòng.
-- Bảng ΔF1 trung bình ± độ lệch chuẩn của classification.
-- Thời gian chạy thật.
+*Nguồn: cell 12.3 (`TASK = 'classification'`) và 12.4 trên Colab, ngày 2026-10-23. Tổng thời gian **147,8 phút**.*
+
+- Kiểm tra file (12.4): 120 / 120 dòng classification; **tổng 312 / 312**; trùng khóa 0; NaN chỉ ở `profile_class_balance` (96 dòng, thuộc regression); max |Δ| ở λ = 0 là 1,1e-16.
+
+**ΔF1-macro trung bình ± độ lệch chuẩn qua 3 run** (Δ = baseline − raw; baseline F1: Logistic Regression 0,6347, Random Forest 0,7250 / 0,7246 / 0,7249 theo seed):
+
+| Dimension | Thuật toán | λ = 0,2 | λ = 0,5 | λ = 0,8 |
+|---|---|---|---|---|
+| Completeness | Logistic Regression | 0,0377 ± 0,0002 | 0,0783 ± 0,0007 | 0,1444 ± 0,0017 |
+| Completeness | Random Forest | 0,0372 ± 0,0012 | 0,0874 ± 0,0008 | 0,1550 ± 0,0004 |
+| Feature Accuracy | Logistic Regression | 0,0657 ± 0,0016 | 0,0870 ± 0,0020 | 0,0995 ± 0,0022 |
+| Feature Accuracy | Random Forest | 0,1294 ± 0,0009 | 0,1617 ± 0,0004 | 0,1781 ± 0,0006 |
+| Target Accuracy | Logistic Regression | 0,0588 ± 0,0010 | **0,1385 ± 0,0019** | 0,0581 ± 0,0010 |
+| Target Accuracy | Random Forest | 0,0980 ± 0,0003 | **0,2263 ± 0,0011** | 0,0984 ± 0,0007 |
+| Uniqueness | Logistic Regression | −0,0001 ± 0,0010 | 0,0007 ± 0,0016 | 0,0004 ± 0,0008 |
+| Uniqueness | Random Forest | −0,0004 ± 0,0024 | −0,0006 ± 0,0010 | −0,0056 ± 0,0009 |
+| Class Balance | Logistic Regression | 0,0178 ± 0,0006 | 0,0733 ± 0,0006 | 0,1328 ± 0,0010 |
+| Class Balance | Random Forest | 0,0065 ± 0,0005 | 0,0472 ± 0,0007 | 0,1640 ± 0,0009 |
+
+**Nhận xét để đưa vào báo cáo:**
+- **Target Accuracy không đơn điệu theo λ:** Δ đạt đỉnh ở λ = 0,5 (Random Forest 0,226) rồi **giảm** ở λ = 0,8 về gần bằng λ = 0,2 (0,058 so với 0,059 ở Logistic Regression; 0,098 so với 0,098 ở Random Forest). Giải thích: HIGGS là nhị phân, đổi nhãn ở 80% dòng (cả train lẫn test, Scenario 3) gần như đảo ngược nhãn một cách nhất quán, nên mô hình học lại được quy luật ngược. Ở λ = 0,5 nhãn là nhiễu thuần túy nên tệ nhất. Hệ quả: điểm Target Accuracy 0,8 (λ = 0,2) và 0,2 (λ = 0,8) cho cùng mức giảm hiệu năng, tức quan hệ giữa điểm này và ΔF1 là hình chữ U ngược. *Giải thích này nhất quán với dữ liệu nhưng chưa kiểm chứng riêng.* Mô hình tuyến tính (baseline PCA, weighted score) khó nắm quan hệ này; meta-model phi tuyến thì có thể học được.
+- **Random Forest nhạy với Feature Accuracy hơn Logistic Regression** (ΔF1 0,13–0,18 so với 0,07–0,10), và nhạy hơn với Class Balance ở λ cao (0,164 so với 0,133).
+- **Uniqueness lại gần như không ảnh hưởng** (|Δ| ≤ 0,006; Random Forest thậm chí F1 tăng nhẹ ở λ = 0,8). Cả ba tác vụ cho cùng kết luận: nhân bản dòng ở cả train lẫn test hầu như không làm giảm hiệu năng.
+- **Class Balance (HIGGS, 2 lớp):** điểm Balance giảm theo λ (Giai đoạn 3) và ΔF1 tăng theo λ, cùng chiều như kỳ vọng; trái với clustering (Covertype) nơi điểm Balance tăng nhưng hiệu năng vẫn giảm.
+- Độ lệch chuẩn giữa 3 seed rất nhỏ (≤ 0,0024), nên nhãn ΔF1 ổn định hơn nhiều so với ΔAMI của k-Means.
+
+**Thời gian chạy thật mỗi đơn vị (3 run, cả hai thuật toán):**
+
+| Dimension | λ = 0 | λ = 0,2 | λ = 0,5 | λ = 0,8 |
+|---|---|---|---|---|
+| Completeness | 126–130 giây | 123–127 | 112–114 | 112–114 |
+| Feature Accuracy | chép (0 giây) | 182–185 | 191–193 | 191–196 |
+| Target Accuracy | chép | 132–138 | **208–210** | 135–142 |
+| Uniqueness | chép | 160–164 | 261–266 | 688–726 |
+| Class Balance | chép | 115–117 | 96–102 | 79 |
+
+- Target Accuracy ở λ = 0,5 chậm hơn hẳn (khoảng 209 giây so với 135 giây ở hai mức còn lại): nhãn nhiễu thuần túy làm Random Forest mọc cây sâu hơn. Khớp với dự đoán trước khi chạy.
+
+### 5.5 Tổng kết Giai đoạn 5
+
+- **312 / 312 dòng** trong `results/experiment_results.parquet` (Drive), 14 cột đúng schema. Tổng thời gian chạy **414,5 phút ≈ 6,9 giờ** (regression 140,3 + clustering 126,4 + classification 147,8 phút), nằm trong khoảng ước tính (6,5–7,5 giờ).
+- **Năm phát hiện đáng đưa vào báo cáo:**
+  1. **Đánh giá chất lượng dữ liệu phải theo ngữ cảnh tác vụ** (luận điểm chính của đề tài). Cùng một dimension, cùng mức λ, tác động rất khác nhau giữa các tác vụ và thuật toán. Ví dụ Completeness ở λ = 0,8: ΔR² ≈ 0,54 (regression), ΔF1 ≈ 0,15 (classification), ΔAMI ≈ 0,13 (clustering). Cùng tác vụ cũng khác nhau theo thuật toán: Feature Accuracy làm Random Forest giảm 0,13–0,18 F1, Logistic Regression chỉ 0,07–0,10.
+  2. **Uniqueness gần như không làm giảm hiệu năng ở cả 3 tác vụ** (|Δ| ≤ 0,022, thường ≤ 0,007), dù điểm Uniqueness đo được giảm xuống 0,2 (nhân bản dòng ở cả train lẫn test). Hệ quả: một điểm chất lượng tổng hợp có trọng số bằng nhau cho mọi dimension (weighted score) sẽ cảnh báo oan dimension này; meta-model nhiều khả năng cho Uniqueness trọng số SHAP rất thấp.
+  3. **Quan hệ giữa điểm profile và Δ không phải lúc nào cũng đơn điệu hay cùng chiều.** (a) Target Accuracy trên HIGGS có dạng chữ U ngược: điểm 0,8 và điểm 0,2 cho cùng mức giảm F1 (nhãn bị đảo nhất quán ở cả train và test, mô hình học lại được). (b) Class Balance trên Covertype: điểm Balance tăng (0,254 → 0,451) nhưng AMI giảm (ΔAMI 0,02–0,10). Cả hai trường hợp đều thách thức baseline giả định "điểm cao = dữ liệu tốt" và quan hệ tuyến tính (PCA composite của DQSOps), và là chỗ meta-model phi tuyến có thể thể hiện ưu thế.
+  4. **Hiệu ứng bão hòa (floor).** Feature Accuracy làm AMI của clustering sụp gần về 0 ở λ ≥ 0,5 nên ΔAMI bị chặn bởi baseline (~0,17–0,20); Feature Accuracy của regression cũng tăng chậm dần (ΔR² 0,20 → 0,27 từ λ = 0,5 lên 0,8). Δ tuyệt đối vì thế phụ thuộc mạnh vào mức baseline của từng tác vụ, nên khi gộp ba tác vụ cần cân nhắc dùng Δ tương đối (Δ / baseline) bên cạnh Δ tuyệt đối.
+  5. **Độ ổn định của nhãn ΔPerformance khác nhau theo tác vụ:** classification rất ổn định giữa 3 seed (độ lệch chuẩn ≤ 0,0024), regression ổn định (≤ 0,006), nhưng ΔAMI của k-Means nhiễu (độ lệch chuẩn tới 0,041, có lượt Δ âm). Ghép baseline theo seed (mục 4.2 của `khac-biet-so-voi-bai-goc.md`) đã giảm nhưng không loại hết phần nhiễu này; tác vụ clustering sẽ là tác vụ khó dự đoán nhất cho meta-model. Cần nêu trong phần giới hạn.
+- **Tổng thời gian và quy mô:** 312 dòng, 414,5 phút trên Colab CPU. Thuật toán chậm nhất là Gradient Boosting với Feature Accuracy (nhiễu làm mọi giá trị trong cột số trở nên duy nhất, chậm gấp 4 baseline) và Uniqueness λ = 0,8 (dữ liệu lớn gấp 5, chậm gấp 5–7 lần).- **Còn mở cho Giai đoạn 7:** có đưa 24 lượt Class Balance × clustering vào bảng so sánh chính không (ΔAMI 0,02–0,10, rõ rệt, nhưng điểm Balance tăng thay vì giảm).
 ## 6. Meta-model và 3 baseline (Giai đoạn 6)
 
 *Chưa có.* Sẽ ghi: siêu tham số meta-model, cách chia train/test cho meta-model, bảng SHAP importance theo tác vụ, trọng số PCA (PC1) của baseline DQSOps, và ngưỡng của baseline rule-based.

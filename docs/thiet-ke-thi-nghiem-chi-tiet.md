@@ -197,7 +197,7 @@ File lưu dạng `.parquet` (khuyến nghị, nhẹ hơn CSV khi số dòng lớ
 | Regression (Beijing, 420K dòng) | Gradient Boosting | ~5-15 giây | ~10-25 phút |
 | Clustering (Covertype, 581K dòng) | Gaussian Mixture | ~15-40 giây | ~25-65 phút |
 
-**Tổng ước tính: khoảng 1-2,5 giờ chạy tuần tự trên máy cá nhân** (CPU thông thường, không cần GPU). Có thể chạy song song theo tác vụ nếu máy đủ nhân CPU để rút ngắn còn ~1 giờ.
+**(Ước tính ban đầu — thực tế trên Colab CPU: 414,5 phút ≈ 6,9 giờ cho 312 dòng, xem `ket-qua-thuc-nghiem.md` mục 5.) Tổng ước tính: khoảng 1-2,5 giờ chạy tuần tự trên máy cá nhân** (CPU thông thường, không cần GPU). Có thể chạy song song theo tác vụ nếu máy đủ nhân CPU để rút ngắn còn ~1 giờ.
 
 ---
 

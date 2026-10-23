@@ -148,7 +148,7 @@ Bài gốc (Mohammed et al.) không mô hình hóa ΔPerformance, chỉ vẽ đ�
 
 **Giới hạn cần nêu khi trình bày:** seed còn điều khiển cả cách làm bẩn, nên hai lượt cùng seed không khớp hoàn toàn. Ở λ cao, dữ liệu đổi nhiều và cùng seed có thể không còn giữ tương quan, nên lợi thế của cách ghép theo seed giảm dần. Chỉ ảnh hưởng đáng kể tới k-Means, GMM (và rất ít tới Random Forest); bốn thuật toán còn lại có độ lệch theo seed ≈ 0 nên hai cách cho gần như cùng kết quả.
 
-*Trạng thái: **Đã cài** (`src/experiment_runner/run_experiment.py`; 100 passed và chạy thử đạt trên Colab ngày 2026-10-23; chưa chạy 312 lượt).*
+*Trạng thái: **Đã cài** (`src/experiment_runner/run_experiment.py`; 100 passed; đã chạy đủ 312 lượt trên Colab ngày 2026-10-23).*
 
 ---
 

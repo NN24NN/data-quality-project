@@ -6,10 +6,15 @@
 
 > ## ▶ BẮT ĐẦU PHIÊN SAU TỪ ĐÂY (ghi ngày 2026-10-23)
 >
-> Giai đoạn 5: **regression và clustering đã chạy xong** (192/312 dòng, cell 12.4 đạt; số liệu ở `ket-qua-thuc-nghiem.md` mục 5.2 và 5.3). Việc tiếp theo: cell 12.3 với `TASK = 'classification'` (ước tính 2,2–3 giờ), rồi 12.4; sau đó tổng phải là 312/312. Mất kết nối thì chạy lại đúng cell 12.3, runner chạy tiếp từ chỗ dừng.
+> Giai đoạn 0–5 đã xong. `results/experiment_results.parquet` (312 dòng) đang nằm trên Drive. Việc tiếp theo: **Giai đoạn 6 — meta-model và 3 baseline** (`src/metamodel/`, `src/baselines/`).
 >
-> Sau đó ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 5.4 và tick hai mục còn lại của Giai đoạn 5. Xóa khung này khi xong.
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **regression (140 phút) và clustering (126 phút) đã chạy xong, 192/312 dòng, kiểm tra đạt; classification chưa chạy.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Ước tính thời gian còn lại ~2,2–3 giờ (classification). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+> - **Hỏi người dùng trước khi viết:** cách chia train/test cho meta-model. 3 run của cùng (task, algorithm, dimension, λ) rất giống nhau, nên không được chia rời (rò rỉ); cần phương án nhóm (vd theo (dimension, λ), hoặc leave-one-dimension-out) và trình bày được/mất.
+> - Nhắc người dùng đổi model/mức (Giai đoạn 6 nặng thiết kế, vd Opus/High) trước khi làm.
+> - Quyết định ở Giai đoạn 7: 24 lượt Class Balance × clustering (ΔAMI 0,02–0,10, điểm Balance tăng thay vì giảm); báo cáo chính tính trên 312 hay 288 lượt.
+> - Kết quả Giai đoạn 5 và nhận xét: `ket-qua-thuc-nghiem.md` mục 5.
+>
+> Xóa khung này khi Giai đoạn 6 bắt đầu có code.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Tiếp theo: Giai đoạn 6 (meta-model + 3 baseline). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -81,8 +86,8 @@
 
 - [x] Viết `run_experiment.py`: vòng lặp task → dataset → dimension → level → run (ghép module 2+3+4) — *kèm 7 test (`tests/test_experiment_runner.py`); Colab 2026-10-23: 100 passed*
 - [x] Chạy thử ở quy mô nhỏ (1 dataset, 1 dimension, vài mức) để kiểm tra pipeline không lỗi — *cell 12.2: regression × completeness × λ ∈ {0; 0,5} × run 1; Δ = 0 ở λ = 0, Δ +0,278 (Ridge) / +0,248 (GB) ở λ = 0,5; 3,0 phút*
-- [ ] Chạy full 312 lượt, ghi ra `results/experiment_results.parquet` theo đúng schema đã định
-- [ ] Kiểm tra sơ bộ dữ liệu output: không có dòng lỗi/NaN bất thường, số dòng đúng 312
+- [x] Chạy full 312 lượt, ghi ra `results/experiment_results.parquet` theo đúng schema đã định — *Colab 2026-10-23: regression 140 phút, clustering 126 phút, classification 148 phút; tổng 414,5 phút*
+- [x] Kiểm tra sơ bộ dữ liệu output: không có dòng lỗi/NaN bất thường, số dòng đúng 312 — *cell 12.4: 312/312, trùng khóa 0, NaN chỉ ở `profile_class_balance` của regression (96 dòng, đúng thiết kế), max \|Δ\| ở λ = 0 là 1,1e-16*
 
 ## Giai đoạn 6 — Meta-model & Baselines
 

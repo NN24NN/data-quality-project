@@ -345,7 +345,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 - GMM ra đúng ba giá trị đã đo ở cell 11.5; năm thuật toán còn lại giữ nguyên số của lần chạy trước — kết quả tái lập được giữa các phiên Colab.
 - Sau thay đổi, k-Means (± 0,017) là thuật toán dao động theo seed nhiều nhất. Chưa xử lý; nếu cần có thể tăng `n_init` của k-Means.
 
-## Giai đoạn 5 — Experiment Runner (đã viết code và chạy thử đạt ngày 2026-10-23; chưa chạy 312 lượt)
+## Giai đoạn 5 — Experiment Runner (xong ngày 2026-10-23: đủ 312 dòng)
 
 **Đã làm:**
 
@@ -385,3 +385,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 **Kết quả chạy thật — regression (Colab, ngày 2026-10-23):** 96/96 dòng trong 140,3 phút; kiểm tra 12.4 đạt (trùng khóa 0, NaN chỉ ở `profile_class_balance`, max |Δ| ở λ = 0 là 1,1e-16). Số liệu đầy đủ và nhận xét ở `ket-qua-thuc-nghiem.md` mục 5.2. Điểm đáng chú ý: Uniqueness gần như không làm giảm hiệu năng regression (|Δ| ≤ 0,007); Feature Accuracy chậm gấp 4 so với dự kiến (~425 giây/đơn vị) nên tổng thời gian regression gấp khoảng 2 lần ước tính đầu (1,2–1,5 giờ). Clustering và classification chưa chạy.
 
 **Kết quả chạy thật — clustering (Colab, ngày 2026-10-23):** 96/96 dòng trong 126,4 phút (tổng đã có 192/312); kiểm tra 12.4 đạt. Số liệu đầy đủ ở `ket-qua-thuc-nghiem.md` mục 5.3. Điểm đáng chú ý: 24 lượt Class Balance × clustering cho ΔAMI rõ rệt (GMM 0,049 → 0,104; k-Means 0,023 → 0,096) trong khi điểm Balance đo được lại tăng theo λ — thông tin cho quyết định ở Giai đoạn 7; Uniqueness gần như không ảnh hưởng; k-Means nhiễu theo seed hơn GMM. Classification chưa chạy.
+
+**Kết quả chạy thật — classification (Colab, ngày 2026-10-23):** 120/120 dòng trong 147,8 phút; kiểm tra 12.4 đạt, **tổng 312/312 dòng**. Số liệu đầy đủ và nhận xét ở `ket-qua-thuc-nghiem.md` mục 5.4 và tổng kết ở mục 5.5. Điểm đáng chú ý: Target Accuracy (HIGGS) cho ΔF1 hình chữ U ngược (đỉnh ở λ = 0,5, hạ về mức λ = 0,2 ở λ = 0,8 vì nhãn bị đảo nhất quán ở cả train lẫn test); Uniqueness gần như không ảnh hưởng ở cả 3 tác vụ; Random Forest nhạy với Feature Accuracy hơn Logistic Regression.
+
+**Kết luận Giai đoạn 5:** 312/312 dòng, tổng 414,5 phút (≈ 6,9 giờ) trên Colab CPU. Việc mở sang Giai đoạn 6: chọn cách chia train/test cho meta-model (3 run của cùng một (dimension, λ) rất giống nhau nên không được chia rời, tránh rò rỉ), và tính cột còn thiếu cho H1.

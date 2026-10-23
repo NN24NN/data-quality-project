@@ -48,7 +48,7 @@ Chi tiết đầy đủ: [`pipeline-thi-nghiem.md`](./pipeline-thi-nghiem.md), [
 
 ## 5. Trạng thái hiện tại
 
-Giai đoạn 0 (thiết kế) đã hoàn tất. Giai đoạn 1 (dữ liệu & môi trường) gần xong: 3 dataset đã tải, 3 bản sạch đã tạo trên Google Drive, config đã có; còn HIGGS full (làm sau). Giai đoạn 2 (module Profiling, bản pandas và PySpark) đã xong và đã kiểm chứng. Giai đoạn 3 (module Pollution, 5 polluter) đã xong: 43/43 test passed, mức bẩn đo lại bằng profiler khớp lý thuyết trên cả 3 dataset. Giai đoạn 4 (module ML downstream) đã xong: 93/93 test passed, baseline sạch trên toàn bộ dữ liệu đã chạy với 3 seed. Giai đoạn 5 (Experiment Runner) đã viết code và chạy thử đạt trên Colab (ΔPerformance tính so với baseline cùng seed); chưa chạy 312 lượt. Xem tiến độ chi tiết và các bước tiếp theo tại [`checklist-trien-khai.md`](./checklist-trien-khai.md).
+Giai đoạn 0 (thiết kế) đã hoàn tất. Giai đoạn 1 (dữ liệu & môi trường) gần xong: 3 dataset đã tải, 3 bản sạch đã tạo trên Google Drive, config đã có; còn HIGGS full (làm sau). Giai đoạn 2 (module Profiling, bản pandas và PySpark) đã xong và đã kiểm chứng. Giai đoạn 3 (module Pollution, 5 polluter) đã xong: 43/43 test passed, mức bẩn đo lại bằng profiler khớp lý thuyết trên cả 3 dataset. Giai đoạn 4 (module ML downstream) đã xong: 93/93 test passed, baseline sạch trên toàn bộ dữ liệu đã chạy với 3 seed. Giai đoạn 5 (Experiment Runner) đã xong: đủ 312 dòng kết quả trong `results/experiment_results.parquet` (ΔPerformance tính so với baseline cùng seed). Tiếp theo là Giai đoạn 6 (meta-model và 3 baseline). Xem tiến độ chi tiết và các bước tiếp theo tại [`checklist-trien-khai.md`](./checklist-trien-khai.md).
 
 ## 6. Cấu trúc thư mục & quy tắc làm việc
 
