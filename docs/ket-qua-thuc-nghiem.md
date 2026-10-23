@@ -10,7 +10,7 @@
 | 2 — Profiling | Có |
 | 3 — Pollution | Có |
 | 4 — Downstream (baseline sạch) | Có |
-| 5 — Experiment Runner (312 lượt) | Có test, chạy thử (5.1) và regression 96/312 dòng (5.2); clustering và classification *chưa có* |
+| 5 — Experiment Runner (312 lượt) | Có test, chạy thử (5.1), regression (5.2) và clustering (5.3): 192/312 dòng; classification *chưa có* |
 | 6 — Meta-model + 3 baseline | *Chưa có* |
 | 7 — Đánh giá & so sánh | *Chưa có* |
 | 8 — Scalability (Spark) | *Chưa có* |
@@ -165,13 +165,49 @@ Baseline trên mẫu 100.000 dòng (cell 11.2, run 1) dùng để đo thời gia
 - Feature Accuracy chậm gấp 4 so với baseline (~425 giây so với ~101 giây) và không đổi theo λ. *Giải thích (suy đoán, chưa kiểm chứng):* nhiễu Gaussian làm mọi giá trị trong cột số trở nên duy nhất, nên Gradient Boosting phải thử nhiều ngưỡng chia hơn.
 - Uniqueness tăng theo kích thước dữ liệu (gấp 1,25 / 2 / 5,6 lần thời gian baseline).
 
-### 5.3 Clustering, Classification (chưa có)
+### 5.3 Clustering — 96 dòng (đã có)
+
+*Nguồn: cell 12.3 (`TASK = 'clustering'`) và 12.4 trên Colab, ngày 2026-10-23. Tổng thời gian **126,4 phút**. Hiện file có 192/312 dòng.*
+
+- Kiểm tra file (12.4): 96 / 96 dòng clustering; trùng khóa 0; NaN chỉ ở `profile_class_balance` (96 dòng, thuộc regression); max |Δ| ở λ = 0 là 1,1e-16.
+
+**ΔAMI trung bình ± độ lệch chuẩn qua 3 run** (Δ = baseline − raw; baseline AMI theo từng seed: k-Means 0,1846 / 0,1529 / 0,1794, GMM 0,2016 / 0,1894 / 0,1974):
+
+| Dimension | Thuật toán | λ = 0,2 | λ = 0,5 | λ = 0,8 |
+|---|---|---|---|---|
+| Completeness | k-Means | 0,0245 ± 0,0165 | 0,0716 ± 0,0407 | 0,1304 ± 0,0311 |
+| Completeness | GMM | 0,0423 ± 0,0090 | 0,1077 ± 0,0178 | 0,1425 ± 0,0143 |
+| Feature Accuracy | k-Means | 0,0953 ± 0,0069 | 0,1574 ± 0,0130 | 0,1712 ± 0,0165 |
+| Feature Accuracy | GMM | 0,1111 ± 0,0107 | 0,1657 ± 0,0096 | 0,1934 ± 0,0055 |
+| Uniqueness | k-Means | −0,0021 ± 0,0231 | 0,0089 ± 0,0214 | 0,0128 ± 0,0086 |
+| Uniqueness | GMM | 0,0072 ± 0,0032 | 0,0220 ± 0,0056 | 0,0214 ± 0,0089 |
+| **Class Balance (24 lượt đang xét)** | k-Means | 0,0233 ± 0,0132 | 0,0510 ± 0,0142 | 0,0962 ± 0,0140 |
+| **Class Balance (24 lượt đang xét)** | GMM | 0,0492 ± 0,0005 | 0,0581 ± 0,0106 | 0,1038 ± 0,0172 |
+
+**Nhận xét để đưa vào báo cáo:**
+- **24 lượt Class Balance × clustering cho ΔAMI rõ rệt và tăng đều theo λ** (GMM 0,049 → 0,058 → 0,104; k-Means 0,023 → 0,051 → 0,096), không gần 0. Trong khi đó điểm Class Balance đo được ở Giai đoạn 3 lại **tăng** khi λ tăng (0,254 → 0,451). Tức là điểm Balance tăng nhưng hiệu năng giảm. Đây là căn cứ cho quyết định ở Giai đoạn 7: ba baseline coi điểm cao là dữ liệu tốt nên sẽ dự đoán ngược chiều ở 24 lượt này. *Chưa kiểm tra cột `profile_class_balance` trong file kết quả; sẽ đối chiếu khi vẽ biểu đồ.*
+- Feature Accuracy làm AMI sụp gần về 0 ở λ = 0,5–0,8 (raw 0,001–0,038), nên ΔAMI bị chặn trên bởi chính baseline (~0,17–0,20): đường cong bão hòa vì không thể giảm dưới 0.
+- **Uniqueness gần như không ảnh hưởng** (|Δ| ≤ 0,022), giống regression. Với k-Means, giá trị trung bình thậm chí âm ở λ = 0,2 (−0,002 ± 0,023).
+- **k-Means nhiễu hơn GMM** do seed: độ lệch chuẩn lên tới 0,041 (Completeness λ = 0,5) so với 0,018 của GMM, cùng cỡ độ dao động baseline (± 0,017). Một số lượt k-Means có Δ âm khi Uniqueness (ví dụ run 2: −0,029). ΔAMI của k-Means vì thế nhiễu hơn ΔF1/ΔR²; ghép baseline theo seed đã giảm nhưng không loại hết phần này.
+
+**Thời gian chạy thật mỗi đơn vị (3 run, cả hai thuật toán):**
+
+| Dimension | λ = 0 | λ = 0,2 | λ = 0,5 | λ = 0,8 |
+|---|---|---|---|---|
+| Completeness | 152–177 giây | 151–180 | 109–172 | 119–155 |
+| Feature Accuracy | chép (0 giây) | 129–156 | 91–103 | 80–84 |
+| Uniqueness | chép | 176–202 | 280–314 | 742–870 |
+| Class Balance | chép | 132–148 | 90–113 | 81–87 |
+
+- Tổng 126,4 phút, sát ước tính (2,2–3 giờ). Uniqueness λ = 0,8 chậm nhất (khoảng 5 lần baseline) và chiếm gần 40% thời gian cả tác vụ.
+- Không có hiện tượng chậm gấp 4 như Feature Accuracy của regression: k-Means và GMM không dựa vào sắp xếp giá trị. Ngược lại, Feature Accuracy ở λ cao còn nhanh hơn baseline.
+
+### 5.4 Classification (chưa có)
 
 *Chưa có.* Sẽ ghi các mục sau:
 - Kiểm tra file kết quả (12.4) khi đủ 312 dòng.
-- Bảng Δ trung bình ± độ lệch chuẩn của clustering (ΔAMI) và classification (ΔF1).
-- Thời gian chạy thật từng tác vụ.
-- ΔAMI của 24 lượt Class Balance × clustering, làm căn cứ cho quyết định ở Giai đoạn 7.
+- Bảng ΔF1 trung bình ± độ lệch chuẩn của classification.
+- Thời gian chạy thật.
 ## 6. Meta-model và 3 baseline (Giai đoạn 6)
 
 *Chưa có.* Sẽ ghi: siêu tham số meta-model, cách chia train/test cho meta-model, bảng SHAP importance theo tác vụ, trọng số PCA (PC1) của baseline DQSOps, và ngưỡng của baseline rule-based.
