@@ -6,10 +6,10 @@
 
 > ## ▶ BẮT ĐẦU PHIÊN SAU TỪ ĐÂY (ghi ngày 2026-10-23)
 >
-> Giai đoạn 5: runner đã qua test (100 passed) và chạy thử (cell 12.2 đạt). Việc tiếp theo: **cell 12.3**, chạy thật từng tác vụ trên Colab **CPU** (regression → clustering → classification), rồi **12.4** kiểm tra đủ 312 dòng. Mất kết nối thì chạy lại đúng cell 12.3, runner chạy tiếp từ chỗ dừng.
+> Giai đoạn 5: **regression đã chạy xong** (96/96 dòng, 140 phút, cell 12.4 đạt; số liệu ở `ket-qua-thuc-nghiem.md` mục 5.2). Việc tiếp theo: cell 12.3 với `TASK = 'clustering'`, rồi `'classification'`, mỗi tác vụ xong chạy 12.4. Sau lần cuối, tổng phải là 312/312. Mất kết nối thì chạy lại đúng cell 12.3, runner chạy tiếp từ chỗ dừng.
 >
-> Sau đó ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 5.2 và tick hai mục còn lại của Giai đoạn 5. Xóa khung này khi 12.3 bắt đầu chạy.
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **code đã chạy thử đạt (100 passed; cell 12.2 ổn), chưa chạy 312 lượt** — 312 dòng kết quả, nhưng λ = 0 chỉ huấn luyện thật 18 lượt (chép sang các dimension khác) nên còn 252 lượt huấn luyện, ước tính thô 6,5–7 giờ, chạy riêng từng tác vụ. **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+> Sau đó ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 5.3 và tick hai mục còn lại của Giai đoạn 5. Xóa khung này khi cả hai tác vụ xong.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **regression đã chạy xong (96/312 dòng, 140 phút, kiểm tra đạt); clustering và classification chưa chạy.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Ước tính thời gian còn lại ~4,5–6,5 giờ (clustering ~2,2–3 giờ, classification ~2,2–3,2 giờ). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 

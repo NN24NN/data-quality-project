@@ -364,7 +364,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 - Baseline đọc từ `results/baseline_performance.csv` theo khóa (dataset, thuật toán, run_id). Không chạy lại baseline trong runner.
 - **Chạy tiếp được:** sau mỗi đơn vị, runner ghi lại cả file. Nó ghi qua file `.tmp` rồi `os.replace`, nên mất kết nối giữa chừng cũng không để lại file hỏng. Khi khởi động, runner đọc file đã có và bỏ qua các khóa (task, thuật toán, dimension, λ, run_id) đã xong. Dữ liệu chỉ được đọc khi tác vụ còn lượt phải chạy.
 - **Chạy riêng từng phần:** `--tasks`, `--dimensions`, `--levels`, `--runs` chọn tập con của ma trận trong config (giá trị không có trong config thì báo lỗi). `--output` ghi ra file khác, cell 12.2 dùng nó cho file chạy thử.
-- **λ = 0 chỉ huấn luyện một lần:** mọi polluter ở λ = 0 trả về đúng dữ liệu sạch (test Giai đoạn 3), nên kết quả không phụ thuộc dimension. Runner chỉ huấn luyện ở dimension đầu tiên rồi chép sang các dimension còn lại. Trước khi chép, nó vẫn làm bẩn (rẻ) và `assert` dữ liệu trùng bản sạch. Kết quả vẫn đủ 312 dòng, nhưng chỉ 252 lượt huấn luyện thật (bớt 60 lượt, khoảng 19%).
+- **λ = 0 chỉ huấn luyện một lần:** mọi polluter ở λ = 0 trả về đúng dữ liệu sạch (test Giai đoạn 3), nên kết quả không phụ thuộc dimension. Runner chỉ huấn luyện ở dimension đầu tiên rồi chép sang các dimension còn lại. Trước khi chép, nó vẫn làm bẩn (rẻ) và `assert` dữ liệu trùng bản sạch. Kết quả vẫn đủ 312 dòng, nhưng chỉ 252 dòng được huấn luyện thật (bớt 60 dòng, khoảng 19%). Tính theo đơn vị (dimension, λ, run, mỗi đơn vị chạy cả hai thuật toán): regression 48 đơn vị, trong đó 39 chạy thật.
 - **Kiểm tra cấu hình lệch:** ở λ = 0, Δ phải bằng 0, vì cùng dữ liệu, cùng seed, cùng code với cell 11.3. Nếu |Δ| > 1e-9, runner in cảnh báo; đây là dấu hiệu `configs/algorithms.yaml` đã đổi sau khi chạy baseline.
 - Cột output đúng thứ tự schema mục 5; tên cột profile lấy từ `profiling.common.PROFILE_KEYS`.
 
@@ -381,3 +381,5 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 **Chưa làm:** chạy thật 312 lượt (cell 12.3) và kiểm tra file kết quả (12.4).
 
 **Ước tính thời gian (thô, ngoại suy từ thời gian baseline ở cell 11.3):** regression khoảng 1,5–2 giờ, clustering khoảng 2–2,5 giờ, classification khoảng 2,5–3 giờ. Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5, nên các lượt đó chậm nhất. Cell 12.2 sẽ cho thời gian thật của một lượt có làm bẩn và profile.
+
+**Kết quả chạy thật — regression (Colab, ngày 2026-10-23):** 96/96 dòng trong 140,3 phút; kiểm tra 12.4 đạt (trùng khóa 0, NaN chỉ ở `profile_class_balance`, max |Δ| ở λ = 0 là 1,1e-16). Số liệu đầy đủ và nhận xét ở `ket-qua-thuc-nghiem.md` mục 5.2. Điểm đáng chú ý: Uniqueness gần như không làm giảm hiệu năng regression (|Δ| ≤ 0,007); Feature Accuracy chậm gấp 4 so với dự kiến (~425 giây/đơn vị) nên tổng thời gian regression gấp khoảng 2 lần ước tính đầu (1,2–1,5 giờ). Clustering và classification chưa chạy.

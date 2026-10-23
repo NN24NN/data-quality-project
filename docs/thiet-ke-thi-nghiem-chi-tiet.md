@@ -161,7 +161,7 @@ for task in [classification, regression, clustering]:
 - Với Clustering, không có `train/test` tách biệt — polluted toàn bộ dataset, chạy thuật toán trực tiếp trên đó, tính AMI so với nhãn thật (nhãn thật không bị polluted)
 - `seed_table` cố định trước (không random mỗi lần chạy) để đảm bảo tái lập được toàn bộ kết quả
 - **(Chốt 2026-10-23)** ΔPerformance trừ baseline **cùng seed** với lượt chạy, không phải trung bình 3 seed — lý do ở `khac-biet-so-voi-bai-goc.md` mục 4.2
-- **(Cài đặt)** Ở λ = 0 mọi polluter trả về đúng dữ liệu sạch, nên kết quả không phụ thuộc dimension: runner chỉ huấn luyện thật ở dimension đầu tiên rồi chép sang các dimension còn lại (có kiểm tra dữ liệu trùng bản sạch). Vẫn đủ 312 dòng, nhưng chỉ 252 lượt huấn luyện thật
+- **(Cài đặt)** Ở λ = 0 mọi polluter trả về đúng dữ liệu sạch, nên kết quả không phụ thuộc dimension: runner chỉ huấn luyện thật ở dimension đầu tiên rồi chép sang các dimension còn lại (có kiểm tra dữ liệu trùng bản sạch). Vẫn đủ 312 dòng, nhưng chỉ 252 dòng được huấn luyện thật
 - **(Cài đặt)** Mỗi (dimension, level, run) làm bẩn và profile một lần, dùng chung cho cả hai thuật toán của tác vụ
 
 ---

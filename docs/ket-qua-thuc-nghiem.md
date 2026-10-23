@@ -10,7 +10,7 @@
 | 2 — Profiling | Có |
 | 3 — Pollution | Có |
 | 4 — Downstream (baseline sạch) | Có |
-| 5 — Experiment Runner (312 lượt) | Mới có test và chạy thử (mục 5.1); 312 lượt *chưa có* |
+| 5 — Experiment Runner (312 lượt) | Có test, chạy thử (5.1) và regression 96/312 dòng (5.2); clustering và classification *chưa có* |
 | 6 — Meta-model + 3 baseline | *Chưa có* |
 | 7 — Đánh giá & so sánh | *Chưa có* |
 | 8 — Scalability (Spark) | *Chưa có* |
@@ -128,14 +128,50 @@ Baseline trên mẫu 100.000 dòng (cell 11.2, run 1) dùng để đo thời gia
 - Δ = 0 ở λ = 0 khớp kỳ vọng (cùng dữ liệu, seed, cấu hình với baseline). Ở λ = 0,5 chỉ điểm Completeness đổi (0,5), bốn điểm profile còn lại giữ nguyên 1,0.
 - Thời gian: lượt λ = 0 mất 102 giây (gồm đọc dữ liệu và huấn luyện hai thuật toán), lượt λ = 0,5 mất 77 giây (gồm làm bẩn và profile).
 
-### 5.2 Chưa có
+### 5.2 Regression — 96 dòng (đã có)
+
+*Nguồn: cell 12.3 (`TASK = 'regression'`) và 12.4 trên Colab, commit `7760252`, ngày 2026-10-23. Tổng thời gian **140,3 phút**.*
+
+- Kiểm tra file (12.4): 96 / 96 dòng regression; trùng khóa 0; NaN chỉ ở `profile_class_balance` (96 dòng, đúng vì regression không áp dụng Class Balance); max |Δ| ở λ = 0 là 1,1e-16.
+
+**ΔR² trung bình ± độ lệch chuẩn qua 3 run** (Δ = baseline − raw, dương nghĩa là hiệu năng giảm; baseline R²: Ridge 0,8580, Gradient Boosting 0,9157):
+
+| Dimension | Thuật toán | λ = 0,2 | λ = 0,5 | λ = 0,8 |
+|---|---|---|---|---|
+| Completeness | Ridge | 0,1089 ± 0,0013 | 0,2844 ± 0,0058 | 0,5461 ± 0,0022 |
+| Completeness | Gradient Boosting | 0,0870 ± 0,0011 | 0,2522 ± 0,0037 | 0,5433 ± 0,0021 |
+| Feature Accuracy | Ridge | 0,1030 ± 0,0008 | 0,2021 ± 0,0011 | 0,2732 ± 0,0011 |
+| Feature Accuracy | Gradient Boosting | 0,1129 ± 0,0016 | 0,2044 ± 0,0028 | 0,2674 ± 0,0023 |
+| Target Accuracy | Ridge | 0,1405 ± 0,0026 | 0,2816 ± 0,0034 | 0,3761 ± 0,0035 |
+| Target Accuracy | Gradient Boosting | 0,1508 ± 0,0021 | 0,3014 ± 0,0028 | 0,4023 ± 0,0028 |
+| Uniqueness | Ridge | 0,0040 ± 0,0026 | 0,0013 ± 0,0040 | −0,0010 ± 0,0009 |
+| Uniqueness | Gradient Boosting | 0,0010 ± 0,0011 | 0,0016 ± 0,0017 | 0,0002 ± 0,0006 |
+
+**Nhận xét để đưa vào báo cáo:**
+- Ba dimension Completeness, Feature Accuracy, Target Accuracy đều làm Δ tăng đơn điệu theo λ, độ lệch chuẩn giữa 3 run nhỏ (≤ 0,006), nên nhãn Δ cho meta-model ổn định.
+- **Uniqueness gần như không ảnh hưởng hiệu năng regression** (|Δ| ≤ 0,007, cùng cỡ độ dao động giữa các run, có lúc âm) dù điểm Uniqueness đo được giảm xuống 0,2. Nhân bản dòng ở cả train lẫn test không làm mô hình tệ đi đáng kể. Meta-model sẽ thấy Uniqueness gần như không có sức dự đoán ở tác vụ này; kỳ vọng SHAP của Uniqueness thấp ở regression.
+- Completeness ở λ = 0,8 làm hiệu năng giảm mạnh nhất (Δ ≈ 0,54, R² còn 0,31–0,37). Feature Accuracy bão hòa dần (Δ 0,20 → 0,27 từ λ = 0,5 lên 0,8). Target Accuracy làm Gradient Boosting giảm nhiều hơn Ridge, ngược với Completeness.
+
+**Thời gian chạy thật mỗi đơn vị (3 run, cả hai thuật toán):**
+
+| Dimension | λ = 0 | λ = 0,2 | λ = 0,5 | λ = 0,8 |
+|---|---|---|---|---|
+| Completeness | 101–103 giây | 92–94 | 73–74 | 47–50 |
+| Feature Accuracy | chép (0 giây) | 421–431 | 423–425 | 420–426 |
+| Target Accuracy | chép | 100–102 | 99–103 | 98–101 |
+| Uniqueness | chép | 127–129 | 212–217 | 569–576 |
+
+- Completeness nhanh dần khi λ tăng (nhiều ô điền trung vị nên cột gần hằng số, Gradient Boosting có ít ngưỡng chia hơn).
+- Feature Accuracy chậm gấp 4 so với baseline (~425 giây so với ~101 giây) và không đổi theo λ. *Giải thích (suy đoán, chưa kiểm chứng):* nhiễu Gaussian làm mọi giá trị trong cột số trở nên duy nhất, nên Gradient Boosting phải thử nhiều ngưỡng chia hơn.
+- Uniqueness tăng theo kích thước dữ liệu (gấp 1,25 / 2 / 5,6 lần thời gian baseline).
+
+### 5.3 Clustering, Classification (chưa có)
 
 *Chưa có.* Sẽ ghi các mục sau:
-- Kiểm tra file kết quả (12.4): số dòng từng tác vụ, NaN, max |Δ| ở λ = 0.
-- Bảng Δ trung bình ± độ lệch chuẩn theo (tác vụ, thuật toán, dimension, λ).
-- Thời gian chạy thật của từng tác vụ.
+- Kiểm tra file kết quả (12.4) khi đủ 312 dòng.
+- Bảng Δ trung bình ± độ lệch chuẩn của clustering (ΔAMI) và classification (ΔF1).
+- Thời gian chạy thật từng tác vụ.
 - ΔAMI của 24 lượt Class Balance × clustering, làm căn cứ cho quyết định ở Giai đoạn 7.
-
 ## 6. Meta-model và 3 baseline (Giai đoạn 6)
 
 *Chưa có.* Sẽ ghi: siêu tham số meta-model, cách chia train/test cho meta-model, bảng SHAP importance theo tác vụ, trọng số PCA (PC1) của baseline DQSOps, và ngưỡng của baseline rule-based.
