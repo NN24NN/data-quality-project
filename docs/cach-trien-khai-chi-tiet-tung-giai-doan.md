@@ -345,7 +345,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 - GMM ra đúng ba giá trị đã đo ở cell 11.5; năm thuật toán còn lại giữ nguyên số của lần chạy trước — kết quả tái lập được giữa các phiên Colab.
 - Sau thay đổi, k-Means (± 0,017) là thuật toán dao động theo seed nhiều nhất. Chưa xử lý; nếu cần có thể tăng `n_init` của k-Means.
 
-## Giai đoạn 5 — Experiment Runner (đã viết code ngày 2026-10-23, chưa chạy trên Colab)
+## Giai đoạn 5 — Experiment Runner (đã viết code và chạy thử đạt ngày 2026-10-23; chưa chạy 312 lượt)
 
 **Đã làm:**
 
@@ -376,6 +376,8 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 - Chạy tiếp: chạy một phần, rồi chạy toàn bộ thì chỉ huấn luyện phần còn thiếu; chạy lần ba không huấn luyện gì và kết quả không đổi.
 - Chọn dimension không có trong config thì báo lỗi; chạy hai lần cho kết quả giống hệt.
 
-**Chưa chạy / chưa kiểm chứng:** máy local không có Python nên chưa chạy test nào. Cần chạy cell 12.1 (kỳ vọng `100 passed`) và 12.2 trên Colab, sau đó mới chạy thật 12.3.
+**Kết quả kiểm chứng (Colab, commit `8f264e7`, ngày 2026-10-23):** cell 12.1 `100 passed in 55,61s`; cell 12.2 đạt (Δ = 0 ở λ = 0; ở λ = 0,5 chỉ điểm Completeness đổi, Δ +0,278 Ridge / +0,248 Gradient Boosting). Số liệu đầy đủ ở `ket-qua-thuc-nghiem.md` mục 5.1. Hai `PerformanceWarning` của pandas trong test (tra cứu chỉ mục nhiều tầng chưa sắp xếp) đã sửa bằng `sort_index()`.
+
+**Chưa làm:** chạy thật 312 lượt (cell 12.3) và kiểm tra file kết quả (12.4).
 
 **Ước tính thời gian (thô, ngoại suy từ thời gian baseline ở cell 11.3):** regression khoảng 1,5–2 giờ, clustering khoảng 2–2,5 giờ, classification khoảng 2,5–3 giờ. Uniqueness ở λ = 0,8 làm dữ liệu lớn gấp 5, nên các lượt đó chậm nhất. Cell 12.2 sẽ cho thời gian thật của một lượt có làm bẩn và profile.

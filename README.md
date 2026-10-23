@@ -6,7 +6,7 @@
 
 ## Trạng thái
 
-Giai đoạn 0 (thiết kế), 1 (dữ liệu, trừ HIGGS full), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong và đã kiểm chứng trên Google Colab. Giai đoạn 5 (Experiment Runner): đã viết code, chưa chạy trên Colab — xem `docs/checklist-trien-khai.md`.
+Giai đoạn 0 (thiết kế), 1 (dữ liệu, trừ HIGGS full), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong và đã kiểm chứng trên Google Colab. Giai đoạn 5 (Experiment Runner): code đã qua test và chạy thử trên Colab, chưa chạy 312 lượt — xem `docs/checklist-trien-khai.md`.
 
 ## Cấu trúc thư mục
 

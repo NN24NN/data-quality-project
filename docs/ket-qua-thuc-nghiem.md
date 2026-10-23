@@ -10,7 +10,7 @@
 | 2 — Profiling | Có |
 | 3 — Pollution | Có |
 | 4 — Downstream (baseline sạch) | Có |
-| 5 — Experiment Runner (312 lượt) | *Chưa có* (đã viết code, chưa chạy) |
+| 5 — Experiment Runner (312 lượt) | Mới có test và chạy thử (mục 5.1); 312 lượt *chưa có* |
 | 6 — Meta-model + 3 baseline | *Chưa có* |
 | 7 — Đánh giá & so sánh | *Chưa có* |
 | 8 — Scalability (Spark) | *Chưa có* |
@@ -111,8 +111,26 @@ Baseline trên mẫu 100.000 dòng (cell 11.2, run 1) dùng để đo thời gia
 
 ## 5. Experiment Runner — 312 lượt (Giai đoạn 5)
 
+### 5.1 Test và chạy thử (đã có)
+
+*Nguồn: cell 12.1 và 12.2 trên Colab, commit `8f264e7`, ngày 2026-10-23.*
+
+- Cell 12.1: `100 passed, 2 warnings in 55,61s` (7 test runner + 93 test cũ). Hai warning là `PerformanceWarning` của pandas trong code test, đã sửa bằng `sort_index()`; không ảnh hưởng kết quả.
+- Cell 12.2: regression × completeness × λ ∈ {0; 0,5} × run 1, 3,0 phút cho 4 dòng:
+
+| λ | Thuật toán | profile_completeness | raw (R²) | baseline | Δ |
+|---|---|---|---|---|---|
+| 0 | Ridge | 1,0 | 0,8580 | 0,8580 | +0,0000 |
+| 0 | Gradient Boosting | 1,0 | 0,9157 | 0,9157 | −0,0000 |
+| 0,5 | Ridge | 0,5 | 0,5797 | 0,8580 | +0,2783 |
+| 0,5 | Gradient Boosting | 0,5 | 0,6677 | 0,9157 | +0,2480 |
+
+- Δ = 0 ở λ = 0 khớp kỳ vọng (cùng dữ liệu, seed, cấu hình với baseline). Ở λ = 0,5 chỉ điểm Completeness đổi (0,5), bốn điểm profile còn lại giữ nguyên 1,0.
+- Thời gian: lượt λ = 0 mất 102 giây (gồm đọc dữ liệu và huấn luyện hai thuật toán), lượt λ = 0,5 mất 77 giây (gồm làm bẩn và profile).
+
+### 5.2 Chưa có
+
 *Chưa có.* Sẽ ghi các mục sau:
-- Kết quả test 12.1 và lượt chạy thử 12.2, kèm thời gian của một lượt.
 - Kiểm tra file kết quả (12.4): số dòng từng tác vụ, NaN, max |Δ| ở λ = 0.
 - Bảng Δ trung bình ± độ lệch chuẩn theo (tác vụ, thuật toán, dimension, λ).
 - Thời gian chạy thật của từng tác vụ.

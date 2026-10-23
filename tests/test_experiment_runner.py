@@ -87,7 +87,7 @@ def test_level_zero_matches_per_seed_baseline(tmp_path):
 
 
 def test_pollution_moves_its_own_profile_score(tmp_path):
-    res = run(tmp_path / 'out.parquet').set_index(['dimension', 'pollution_level'])
+    res = run(tmp_path / 'out.parquet').set_index(['dimension', 'pollution_level']).sort_index()
     top = max(LEVELS)
     for dim in ['completeness', 'target_accuracy', 'uniqueness', 'feature_accuracy']:
         col = f'profile_{dim}'

@@ -6,16 +6,10 @@
 
 > ## ▶ BẮT ĐẦU PHIÊN SAU TỪ ĐÂY (ghi ngày 2026-10-23)
 >
-> Giai đoạn 5 đã có code (`src/experiment_runner/run_experiment.py`, `tests/test_experiment_runner.py`, notebook mục 12) nhưng **chưa chạy trên Colab**. Việc tiếp theo của người dùng:
+> Giai đoạn 5: runner đã qua test (100 passed) và chạy thử (cell 12.2 đạt). Việc tiếp theo: **cell 12.3**, chạy thật từng tác vụ trên Colab **CPU** (regression → clustering → classification), rồi **12.4** kiểm tra đủ 312 dòng. Mất kết nối thì chạy lại đúng cell 12.3, runner chạy tiếp từ chỗ dừng.
 >
-> 1. Notebook: chạy mục 1, 2, 9.1 → **12.1** (pytest, kỳ vọng 100 passed) → **12.2** (chạy thử, ~4 phút; ở λ = 0 phải thấy `Δ +0.0000`). Gửi ảnh chụp kết quả.
-> 2. Nếu 12.2 ổn: **12.3** chạy thật từng tác vụ (regression → clustering → classification), rồi **12.4** kiểm tra đủ 312 dòng.
->
-> **Đã chốt (2026-10-23):** ΔPerformance tính so với baseline **cùng seed** của lượt chạy (không lấy trung bình 3 seed) — xem `khac-biet-so-voi-bai-goc.md` mục 4.2.
->
-> Xóa khung này khi cell 12.2 đã chạy ổn.
-
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã viết code, chưa chạy trên Colab** — 312 dòng kết quả, nhưng λ = 0 chỉ huấn luyện thật 18 lượt (chép sang các dimension khác) nên còn 252 lượt huấn luyện, ước tính thô 6,5–7 giờ, chạy riêng từng tác vụ. **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+> Sau đó ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 5.2 và tick hai mục còn lại của Giai đoạn 5. Xóa khung này khi 12.3 bắt đầu chạy.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **code đã chạy thử đạt (100 passed; cell 12.2 ổn), chưa chạy 312 lượt** — 312 dòng kết quả, nhưng λ = 0 chỉ huấn luyện thật 18 lượt (chép sang các dimension khác) nên còn 252 lượt huấn luyện, ước tính thô 6,5–7 giờ, chạy riêng từng tác vụ. **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -85,8 +79,8 @@
 
 ## Giai đoạn 5 — Experiment Runner (`src/experiment_runner/`)
 
-- [ ] Viết `run_experiment.py`: vòng lặp task → dataset → dimension → level → run (ghép module 2+3+4) — *đã viết kèm 7 test (`tests/test_experiment_runner.py`), chưa chạy test trên Colab (cell 12.1)*
-- [ ] Chạy thử ở quy mô nhỏ (1 dataset, 1 dimension, vài mức) để kiểm tra pipeline không lỗi — *cell 12.2: regression × completeness × λ ∈ {0; 0,5} × run 1*
+- [x] Viết `run_experiment.py`: vòng lặp task → dataset → dimension → level → run (ghép module 2+3+4) — *kèm 7 test (`tests/test_experiment_runner.py`); Colab 2026-10-23: 100 passed*
+- [x] Chạy thử ở quy mô nhỏ (1 dataset, 1 dimension, vài mức) để kiểm tra pipeline không lỗi — *cell 12.2: regression × completeness × λ ∈ {0; 0,5} × run 1; Δ = 0 ở λ = 0, Δ +0,278 (Ridge) / +0,248 (GB) ở λ = 0,5; 3,0 phút*
 - [ ] Chạy full 312 lượt, ghi ra `results/experiment_results.parquet` theo đúng schema đã định
 - [ ] Kiểm tra sơ bộ dữ liệu output: không có dòng lỗi/NaN bất thường, số dòng đúng 312
 
