@@ -10,18 +10,15 @@
 >
 > **Giai đoạn 7 xong** (Colab 2026-10-26, commit `755bf48`, `124 passed`). Kết quả và 10 kết luận: `ket-qua-thuc-nghiem.md` mục 7.
 >
-> **Giai đoạn 8 đã chốt thiết kế (7 điểm, `khac-biet-so-voi-bai-goc.md` mục 4.7) và viết code ngày 2026-10-26, chưa chạy:** `src/scalability/spark_scale_study.py`, `configs/scalability.yaml`, `tests/test_scalability.py`, notebook mục 15. Người dùng đã đồng ý tải HIGGS full trên Colab và lưu parquet (~1,2GB) lên Drive.
+> **Giai đoạn 8 xong** (Colab 2026-10-26, commit `54a7837`, `134 passed`): pandas hết RAM ở 22M dòng, PySpark chạy được trong giới hạn 4 GB; số liệu và 6 kết luận ở `ket-qua-thuc-nghiem.md` mục 8.3–8.4. Giai đoạn 0–8 đều xong (trừ cài `requirements.txt` local — bỏ qua vì chạy trên Colab).
 >
-> **Đã chạy lần 1 (2026-10-26):** HIGGS full đã lưu Drive (0,69GB); 15.3 xong — thời gian và đối chiếu dùng được (`ket-qua-thuc-nghiem.md` mục 8.2), nhưng **bộ nhớ pandas đo sai** (lỗi `ru_maxrss`, đã sửa) và pandas **không hết RAM ở 11M** → người dùng chốt thêm mốc 22M (HIGGS ghép 2 lần).
->
-> **Việc tiếp theo:**
-> 1. Người dùng chạy mục 1, 2, 9.1, **15.1** (kỳ vọng `134 passed`) rồi **15.4** (đo lại pandas + mốc 22M, 40–50 phút), gửi output dạng văn bản, kèm dòng "Máy: {...}" cuối output. Output 15.1 của lần 1 chưa được gửi.
-> 2. Ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 8, tick Giai đoạn 8 (và mục HIGGS full của Giai đoạn 1), cập nhật `.md` liên quan. Sau khi xong, hỏi người dùng có xóa `higgs_full_raw.parquet` trên Drive để giải phóng dung lượng không.
-> 3. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
+> **Việc tiếp theo: Giai đoạn 9 — biểu đồ và báo cáo.**
+> 1. Còn treo: `higgs_full_raw.parquet` (0,69 GB) trên Drive — hỏi người dùng có xóa không (kết quả đã nằm trong `scalability_benchmark.csv`; giữ thì đo lại được).
+> 2. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
 >
 > **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
 
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Giai đoạn 6 (meta-model + 3 baseline): **đã xong ngày 2026-10-26** (`116 passed`; Δ tuyệt đối, Group K-Fold: MAE meta-model 0,055 so với 0,077 weighted score và 0,084 DQSOps-PCA). Giai đoạn 7 (đánh giá & so sánh): **đã xong ngày 2026-10-26** (`124 passed`; meta-model hơn DQSOps-PCA có ý nghĩa thống kê, hơn weighted score chưa có ý nghĩa ở tổng thể). Giai đoạn 8 (Spark scalability): **đã chốt thiết kế và viết code ngày 2026-10-26, chưa chạy trên Colab.** Sau đó: Giai đoạn 9 (biểu đồ + báo cáo). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Giai đoạn 6 (meta-model + 3 baseline): **đã xong ngày 2026-10-26** (`116 passed`; Δ tuyệt đối, Group K-Fold: MAE meta-model 0,055 so với 0,077 weighted score và 0,084 DQSOps-PCA). Giai đoạn 7 (đánh giá & so sánh): **đã xong ngày 2026-10-26** (`124 passed`; meta-model hơn DQSOps-PCA có ý nghĩa thống kê, hơn weighted score chưa có ý nghĩa ở tổng thể). Giai đoạn 8 (Spark scalability): **đã xong ngày 2026-10-26** (pandas nhanh hơn 4–38 lần nhưng hết RAM ở 22M dòng; PySpark chạy được 22M trong giới hạn 4 GB). Tiếp theo: Giai đoạn 9 (biểu đồ + báo cáo). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -119,12 +116,12 @@
 
 ## Giai đoạn 8 — Scalability study (Spark, có thể làm song song từ Giai đoạn 2)
 
-*Trạng thái: đã chốt thiết kế (2026-10-26: thêm mốc 0,1M; profile bản sạch so với chính nó; mỗi lần đo một tiến trình con, 3 lần, trung vị; chỉ đo bộ nhớ pandas, Spark giới hạn 4g; lưu HIGGS full parquet lên Drive) và viết code. **Lần chạy 1 (2026-10-26):** thời gian + đối chiếu đạt ở 5 mốc; bộ nhớ pandas đo sai (đã sửa); pandas không hết RAM ở 11M → thêm mốc 22M. Chờ lần 2 (cell 15.4, kỳ vọng `134 passed`) nên chưa tick.*
+*Trạng thái: đã chốt thiết kế (2026-10-26: thêm mốc 0,1M; profile bản sạch so với chính nó; mỗi lần đo một tiến trình con, 3 lần, trung vị; chỉ đo bộ nhớ pandas, Spark giới hạn 4g; lưu HIGGS full parquet lên Drive) và viết code. **Xong ngày 2026-10-26** (lần 2, commit `54a7837`, `134 passed`; máy Colab 2 nhân, 13,6 GB RAM). Lần 1 đo sai bộ nhớ pandas và pandas không hết RAM ở 11M → sửa cách đo + thêm mốc 22M (HIGGS ghép 2 lần). Số liệu: `ket-qua-thuc-nghiem.md` mục 8.*
 
-- [ ] Viết `scalability/spark_scale_study.py` — *đã viết*
-- [ ] Chạy `spark_profiler.py` trên các mốc kích thước tăng dần của HIGGS full (1M, 3M, 6M, 11M dòng) — *thêm mốc 0,1M*
-- [ ] Đo runtime/memory, đối chiếu với bản pandas ở các mốc nhỏ — *bộ nhớ: chỉ đo pandas; đối chiếu điểm profile ở mọi mốc cả hai cùng chạy được*
-- [ ] Lưu kết quả → `results/scalability_benchmark.csv`
+- [x] Viết `scalability/spark_scale_study.py`
+- [x] Chạy `spark_profiler.py` trên các mốc kích thước tăng dần của HIGGS full (1M, 3M, 6M, 11M dòng) — *thêm 0,1M và 22M; Spark chạy được mọi mốc, 22M trong 527 giây với giới hạn 4 GB*
+- [x] Đo runtime/memory, đối chiếu với bản pandas ở các mốc nhỏ — *pandas nhanh hơn 4–38 lần nhưng **hết RAM ở 22M** (7,3 GB ở 11M, máy 13,6 GB); điểm profile hai engine khớp tới 1e-16 đến 11M*
+- [x] Lưu kết quả → `results/scalability_benchmark.csv` — *36 dòng trên Drive*
 
 ## Giai đoạn 9 — Báo cáo & Biểu đồ
 

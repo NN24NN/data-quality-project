@@ -11,4 +11,4 @@
 
 - `test_scalability.py` — chuẩn bị dữ liệu và cắt mốc đúng (kể cả mốc vượt dữ liệu gốc); đo pandas trong tiến trình con, RAM không kế thừa từ tiến trình cha; `--redo` chỉ đo lại engine được chọn; phân loại thất bại (`oom`/`error`); engine thất bại thì mốc lớn hơn `skipped`; chạy tiếp được; pandas và PySpark khớp đầu-cuối; quá giờ thì giết tiến trình. Chỉ chạy trên Linux; phần PySpark cần Java.
 
-Chạy tất cả: `python -m pytest tests/ -q` (trên Colab: cell 15.1; Giai đoạn 7 đạt `124 passed` ngày 2026-10-26, Giai đoạn 8 thêm 10 test, kỳ vọng `134 passed`).
+Chạy tất cả: `python -m pytest tests/ -q` (trên Colab: cell 15.1; Giai đoạn 7 đạt `124 passed` ngày 2026-10-26, Giai đoạn 8 thêm 10 test, đạt `134 passed` ngày 2026-10-26).

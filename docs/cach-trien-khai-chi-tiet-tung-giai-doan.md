@@ -487,7 +487,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Chưa làm:** biểu đồ H5–H7 (để Giai đoạn 9).
 
-## Giai đoạn 8 — Scalability (lần chạy 1 ngày 2026-10-26; **chờ lần chạy 2**: đo lại bộ nhớ pandas + mốc 22M)
+## Giai đoạn 8 — Scalability (xong ngày 2026-10-26, hai lần chạy trên Colab)
 
 **Quyết định của người dùng (2026-10-26)**, lý do và lợi ích đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.7:
 1. Profile bản sạch so với chính nó (không làm bẩn 11M dòng, không ghi dữ liệu bẩn ra đĩa).
@@ -526,4 +526,8 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 - Thêm `run --engines pandas --redo` để đo lại riêng pandas, giữ nguyên kết quả Spark (không phải đo lại 30 phút của Spark). Cell 15.4: đo lại pandas, rồi chạy tiếp để Spark đo mốc 22M. Dòng "Máy: {...}" chuyển xuống cuối output.
 - Test: thêm 2 (mốc vượt dữ liệu gốc; `--redo`), sửa test đo RAM thành test hồi quy → tổng kỳ vọng `134 passed`.
 
-**Chưa làm:** lần chạy 2 (cell 15.4).
+**Lần chạy 2 (Colab, commit `54a7837`, 2026-10-26):** cell 15.1 `134 passed` (197,9 giây). Cell 15.4: máy 2 nhân, 13,6 GB RAM; cắt lại 6 mốc trong tiến trình con (44 giây). Đo lại pandas (7,8 phút): đỉnh RAM giờ hợp lý (0,20 / 0,85 / 2,24 / 4,11 / 7,32 GB) — lỗi "sàn 2GB" đã hết; mốc 22M `oom` ở lần 1, hai lần sau `skipped` đúng thiết kế. Spark mốc 22M (28,6 phút): `ok` 3/3, trung vị 526,6 giây. Đối chiếu điểm profile khớp ở 5 mốc (≤ 1,1e-16).
+
+**Kết luận Giai đoạn 8** (đầy đủ ở `ket-qua-thuc-nghiem.md` mục 8.4): điểm gãy của pandas đo được thật (hết RAM ở 22M dòng trên máy 13,6 GB, bộ nhớ tăng ~0,65 GB/triệu dòng), PySpark chạy được 22M trong giới hạn 4 GB; PySpark chậm hơn ở mọi mốc pandas còn chạy được nhưng khoảng cách thu hẹp từ 38 lần xuống 4 lần. Phương án B (thêm mốc 22M) đã cho đúng bằng chứng cần cho đóng góp "quy mô lớn".
+
+**Còn treo:** `higgs_full_raw.parquet` (0,69 GB) trên Drive — chờ người dùng quyết định có xóa không.

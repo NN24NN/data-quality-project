@@ -303,7 +303,9 @@ Cả hai bài gốc đều không có phần này: Mohammed et al. dùng dữ li
 
 **Giới hạn cần nêu khi trình bày:** Spark ở chế độ local trên một máy ảo Colab (khoảng 2 nhân) không phản ánh cluster phân tán thật — đây là minh họa xu hướng (thiết kế mục 8 của `kien-truc`). Kết quả profile ở Giai đoạn 8 gần như bằng 1 (dữ liệu sạch); khả năng phát hiện bẩn đã kiểm chứng ở Giai đoạn 3. Pandas đọc dữ liệu 2 lần (bản cần đo và ground truth) như cách dùng thật, nên bộ nhớ của nó gấp đôi so với chỉ profile một bảng không cần Accuracy.
 
-*Trạng thái: Đã viết (`src/scalability/spark_scale_study.py`; chưa chạy trên Colab).*
+**Đã xác nhận bằng số liệu (Colab 2026-10-26, `ket-qua-thuc-nghiem.md` mục 8.3–8.4):** máy 2 nhân, 13,6 GB RAM. Pandas nhanh hơn PySpark 4–38 lần ở 0,1M–11M dòng nhưng **hết RAM ở 22M**; PySpark chạy được 22M dòng trong giới hạn 4 GB (trung vị 527 giây). Đúng như thiết kế đã lường trước: lợi thế của Spark trên máy này là chạy được khi dữ liệu vượt RAM, không phải tốc độ. **Điểm 8 (mốc 22M) là điều chỉnh đáng giá:** không có nó, phần "quy mô lớn" chỉ có ngoại suy. Hai engine cho điểm profile khớp tới 1e-16 ở mọi mốc đến 11M.
+
+*Trạng thái: **Đã cài** (`src/scalability/spark_scale_study.py`; `134 passed`; chạy trên Colab ngày 2026-10-26, hai lần).*
 
 ---
 

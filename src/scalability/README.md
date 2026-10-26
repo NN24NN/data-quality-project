@@ -11,4 +11,4 @@
 
 Tham số: `configs/scalability.yaml`. Lý do thiết kế: `docs/khac-biet-so-voi-bai-goc.md` mục 4.7.
 
-*Trạng thái: lần chạy 1 xong (thời gian + đối chiếu dùng được); chờ lần 2 (cell 15.4).*
+*Trạng thái: xong, chạy trên Colab ngày 2026-10-26 (`134 passed`; pandas hết RAM ở 22M, PySpark chạy được). Kết quả: `docs/ket-qua-thuc-nghiem.md` mục 8.*

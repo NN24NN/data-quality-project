@@ -13,7 +13,7 @@
 | 5 — Experiment Runner (312 lượt) | Có đủ: test và chạy thử (5.1), regression (5.2), clustering (5.3), classification (5.4), tổng kết (5.5) |
 | 6 — Meta-model + 3 baseline | Có: test, MAE xem nhanh, trọng số PC1, SHAP theo tác vụ (6.1–6.5) |
 | 7 — Đánh giá & so sánh | Có: bảng chính (7.1), bootstrap (7.2), bảng phụ 288 (7.3), Good/Bad (7.4), chẩn đoán SHAP (7.5), tổng kết (7.6) |
-| 8 — Scalability (Spark) | Một phần: lần 1 (thời gian + đối chiếu, 8.2); chờ lần 2 (bộ nhớ pandas đã sửa + mốc 22M, 8.3) |
+| 8 — Scalability (Spark) | Có: chuẩn bị dữ liệu (8.1), lần 1 (8.2, bộ nhớ không dùng), **lần 2 — bảng chính (8.3)**, tổng kết (8.4) |
 
 ---
 
@@ -484,9 +484,33 @@ Trung vị 3 lần, mọi lần đều `ok`:
 
 **Nhận xét lần 1:** (1) Pandas và PySpark cho điểm profile **giống hệt** ở mọi mốc đến 11M dòng — cùng công thức, khác engine, kiểm chứng ở quy mô lớn. (2) PySpark chậm hơn ở mọi mốc, nhưng khoảng cách thu hẹp từ 28 lần (0,1M) xuống ~4,5 lần (≥ 6M): đúng dự đoán về thời gian khởi động truy vấn của Spark. (3) **Pandas không hết RAM ở 11M dòng** trên máy Colab tiêu chuẩn, nên chưa đo được điểm gãy — người dùng chốt thêm mốc 22M (phương án B, `khac-biet-so-voi-bai-goc.md` mục 4.7 điểm 8).
 
-### 8.3 Lần chạy 2 — đo lại pandas + mốc 22M (cell 15.4)
+### 8.3 Lần chạy 2 — đo lại pandas + mốc 22M (cell 15.4) — **bảng chính cho H10**
 
-*Chưa có.*
+*Colab CPU tiêu chuẩn, commit `54a7837`, ngày 2026-10-26. Máy: **2 nhân CPU, 13,6 GB RAM**. Cell 15.1: **`134 passed`** (197,9 giây). Cắt 6 mốc mất 44 giây; đo lại pandas 7,8 phút, Spark mốc 22M 28,6 phút.*
+
+Trung vị 3 lần. Pandas đo lại ở lần 2 với cách đo RAM đã sửa; Spark mốc 0,1M–11M giữ từ lần 1 (phiên Colab khác, cùng cấu hình máy), mốc 22M đo ở lần 2. Spark chạy với giới hạn `spark.driver.memory = 4g`, không đo bộ nhớ.
+
+| Số dòng | Pandas (giây) | PySpark (giây) | PySpark / pandas | Đỉnh RAM pandas | Trạng thái |
+|---|---|---|---|---|---|
+| 0,1M | 0,3 | 11,4 | 38 lần | 0,20 GB | cả hai ok |
+| 1M | 3,4 | 40,2 | 12 lần | 0,85 GB | cả hai ok |
+| 3M | 14,2 | 83,9 | 5,9 lần | 2,24 GB | cả hai ok |
+| 6M | 31,9 | 155,2 | 4,9 lần | 4,11 GB | cả hai ok |
+| 11M | 75,0 | 303,3 | 4,0 lần | 7,32 GB | cả hai ok |
+| **22M** (HIGGS ×2) | **— (`oom`)** | **526,6** | — | **vượt 13,6 GB** | **pandas hết RAM, Spark ok 3/3** |
+
+Spark ở mốc 22M: 526,6 / 532,7 / 508,1 giây (ổn định). Đối chiếu điểm profile pandas và PySpark ở 5 mốc cả hai cùng chạy: khớp, sai số tương đối lớn nhất 1,1e-16 (bằng sai số làm tròn của số thực).
+
+Ghi chú: thời gian pandas ở 11M lần này là 75,0 giây (lần 1: 65,7 giây) — dao động giữa các phiên Colab khoảng 10–15%; các lần trong cùng một phiên dao động ít hơn (63,9–75,9 giây).
+
+### 8.4 Tổng kết Giai đoạn 8 — kết luận cho báo cáo
+
+1. **Điểm gãy của pandas là số đo thật:** pandas profile được 11M dòng HIGGS (7,3 GB RAM, 54% RAM máy) nhưng **hết RAM ở 22M dòng** trên máy 13,6 GB; **PySpark chạy hết 22M dòng trong giới hạn 4 GB**, ổn định qua 3 lần (508–533 giây). Đây là bằng chứng chính cho đóng góp "profiling ở quy mô lớn".
+2. **Bộ nhớ pandas tăng tuyến tính theo số dòng:** khoảng 0,65 GB mỗi triệu dòng (0,85 → 7,32 GB từ 1M đến 11M). Theo đường này, 22M dòng cần khoảng 14,4 GB — vượt 13,6 GB RAM, khớp với kết quả `oom`. Hệ số này phản ánh việc pandas giữ 2 bản dữ liệu (bản cần đo và ground truth) cùng các bảng trung gian khi tìm dòng trùng.
+3. **PySpark chậm hơn pandas ở mọi mốc pandas còn chạy được**, nhưng khoảng cách thu hẹp đều: 38 lần (0,1M) → 12 → 5,9 → 4,9 → **4,0 lần (11M)**. Ở dữ liệu nhỏ, thời gian khởi động truy vấn của Spark chiếm gần hết thời gian chạy. Thời gian pandas tăng nhanh hơn số dòng (1M → 11M: số dòng × 11, thời gian × 22), còn Spark tăng chậm hơn hoặc bằng số dòng (1M → 11M: × 7,5; 11M → 22M: × 1,74).
+4. **Kết luận thực tế:** với dữ liệu vừa RAM, pandas là lựa chọn đúng (nhanh hơn 4–38 lần trên máy 2 nhân); PySpark đáng dùng khi dữ liệu vượt RAM — đổi tốc độ lấy khả năng chạy được trong giới hạn bộ nhớ cố định.
+5. **Cùng công thức, khác engine — kiểm chứng đến 11M dòng:** điểm profile của hai engine khớp tới 1e-16 ở mọi mốc, mở rộng kết quả đối chiếu 50.000 dòng của Giai đoạn 2.
+6. **Giới hạn cần nêu:** (a) Spark chạy local trên 2 nhân, không phải cluster thật — minh họa xu hướng; (b) mốc 22M là HIGGS ghép 2 lần (mỗi dòng có bản trùng), không phải dữ liệu thật 22M dòng; tỷ lệ 11M → 22M của Spark (× 1,74) có thể thấp hơn dữ liệu thật vì bước tìm dòng trùng gặp nhiều trùng; (c) Spark 0,1M–11M và 22M đo ở hai phiên Colab khác nhau; (d) không đo bộ nhớ thật của Spark, chỉ biết nó chạy trong giới hạn heap 4 GB.
 
 ---
 
