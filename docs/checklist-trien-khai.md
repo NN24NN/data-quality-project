@@ -6,17 +6,17 @@
 
 > ## ▶ BẮT ĐẦU PHIÊN SAU TỪ ĐÂY (ghi ngày 2026-10-26)
 >
-> **Đang dừng ở:** Giai đoạn 6 đã chốt thiết kế (7 quyết định, `khac-biet-so-voi-bai-goc.md` mục 4.3–4.5) và **đã viết code, chưa chạy** (`src/metamodel/`, `src/baselines/`, `configs/metamodel.yaml`, `tests/test_metamodel.py`, notebook mục 13). Chi tiết: `cach-trien-khai-chi-tiet-tung-giai-doan.md`, mục Giai đoạn 6.
+> **Đang dừng ở:** Giai đoạn 6 **xong** (chạy trên Colab ngày 2026-10-26, commit `e47cda9`; `116 passed`). Kết quả trên Drive `results/`: `metamodel_cv_predictions.parquet`, `metamodel.pkl`, `dqsops_pca_weights.csv`, `shap_importance.csv`. Số liệu và nhận xét: `ket-qua-thuc-nghiem.md` mục 6.
 >
-> **Việc tiếp theo:**
-> 1. Người dùng chạy notebook mục 1, 2, 9.1 rồi **13.1 → 13.3** trên Colab (CPU), gửi output dạng văn bản. Sửa nếu test lỗi.
-> 2. Ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 6, tick các mục Giai đoạn 6, cập nhật `.md` liên quan.
-> 3. Sang Giai đoạn 7: tính MAE / R² / Spearman và ma trận Good/Bad từ `results/metamodel_cv_predictions.parquet`; quyết định 312 hay 288 lượt.
+> **Việc tiếp theo: Giai đoạn 7** (đánh giá & so sánh).
+> 1. Viết code tính MAE / R² / Spearman (trung bình ± độ lệch chuẩn qua 3 seed, theo tác vụ và tổng thể) và accuracy/F1 Good/Bad (ngưỡng Δ tương đối 10%, độ nhạy 5%/20%) từ `results/metamodel_cv_predictions.parquet` — không huấn luyện lại.
+> 2. Quyết định 312 hay 288 lượt (24 lượt Class Balance × clustering).
+> 3. Xem lại vì sao Uniqueness ở classification có tỷ trọng SHAP 0,107 dù ΔF1 ≈ 0 (`ket-qua-thuc-nghiem.md` mục 6.5).
 > 4. Còn treo: sửa cell 10.2 để lưu CSV cho H1.
 >
 > **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
 
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Giai đoạn 6 (meta-model + 3 baseline): **đã chốt thiết kế và viết code ngày 2026-10-26, chưa chạy test trên Colab.** **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Giai đoạn 6 (meta-model + 3 baseline): **đã xong ngày 2026-10-26** (`116 passed`; Δ tuyệt đối, Group K-Fold: MAE meta-model 0,055 so với 0,077 weighted score và 0,084 DQSOps-PCA). Tiếp theo: Giai đoạn 7. **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -93,14 +93,14 @@
 
 ## Giai đoạn 6 — Meta-model & Baselines
 
-*Trạng thái: đã chốt thiết kế (2026-10-26) và viết code + 16 test (kỳ vọng tổng `116 passed`); **chưa chạy trên Colab** nên chưa tick. Chạy notebook mục 13.*
+*Trạng thái: xong. Đã chạy trên Colab ngày 2026-10-26 ở commit `e47cda9` (cell 13.1: `116 passed`; 13.2: 8.112 dòng dự đoán out-of-fold; 13.3: SHAP theo tác vụ). Số liệu: `ket-qua-thuc-nghiem.md` mục 6.*
 
-- [ ] Viết `metamodel/train_metamodel.py` (Gradient Boosting Regressor dự đoán ΔPerformance) — *đã viết; kèm đánh giá chéo Group K-Fold + nội suy, ghi `metamodel_cv_predictions.parquet`*
-- [ ] Viết `metamodel/explain_shap.py` (tính SHAP, xuất bảng trọng số theo task) → `results/shap_importance.csv` — *đã viết*
-- [ ] Viết `baselines/rule_based.py` — *đã viết*
-- [ ] Viết `baselines/weighted_score.py` — *đã viết*
-- [ ] Viết `baselines/dqsops_pca.py` (baseline quan trọng nhất — PCA composite theo đúng cách DQSOps) — *đã viết; trọng số PC1 → `dqsops_pca_weights.csv`*
-- [ ] Lưu mô hình đã huấn luyện → `results/metamodel.pkl` — *code đã có (cell 13.2)*
+- [x] Viết `metamodel/train_metamodel.py` (Gradient Boosting Regressor dự đoán ΔPerformance) — *kèm đánh giá chéo Group K-Fold + nội suy; Δ tuyệt đối, MAE tổng thể 0,055 so với 0,077 (weighted) / 0,084 (DQSOps-PCA)*
+- [x] Viết `metamodel/explain_shap.py` (tính SHAP, xuất bảng trọng số theo task) → `results/shap_importance.csv` — *Uniqueness thấp nhất ở cả 3 tác vụ; dimension đứng đầu khác nhau theo tác vụ*
+- [x] Viết `baselines/rule_based.py`
+- [x] Viết `baselines/weighted_score.py`
+- [x] Viết `baselines/dqsops_pca.py` (baseline quan trọng nhất — PCA composite theo đúng cách DQSOps) — *PC1 chỉ giải thích 26,8% phương sai; Feature Accuracy trọng số ≈ 0, Target Accuracy âm*
+- [x] Lưu mô hình đã huấn luyện → `results/metamodel.pkl`
 
 ## Giai đoạn 7 — Đánh giá & So sánh
 

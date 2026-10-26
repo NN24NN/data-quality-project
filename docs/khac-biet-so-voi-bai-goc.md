@@ -185,7 +185,7 @@ Mohammed et al. không huấn luyện mô hình dự đoán nên không có quy 
 - **Hai góc đánh giá bổ trợ nhau:** A đo khả năng tổng quát sang mức bẩn mới, C đo khả năng nội suy theo λ. C còn cho thấy điểm yếu của baseline tuyến tính (PCA, weighted) khi quan hệ giữa profile và Δ phi tuyến.
 - **So sánh công bằng giữa 4 phương pháp:** cùng fold, cùng dữ liệu train, nên chênh lệch phản ánh phương pháp chứ không phải cách chia.
 
-*Trạng thái: Thiết kế (Giai đoạn 6 chưa có code).*
+*Trạng thái: **Đã cài** (`src/metamodel/train_metamodel.py`; `116 passed`; chạy trên Colab ngày 2026-10-26, kết quả ở `ket-qua-thuc-nghiem.md` mục 6).*
 
 ### 4.4 Nhãn của meta-model: Δ tuyệt đối (chính) và Δ tương đối (phụ)
 
@@ -217,7 +217,7 @@ Thêm vào đó, Feature Accuracy làm AMI sụp về ≈ 0 từ λ = 0,5, nên 
 
 **Giới hạn cần nêu khi trình bày:** với clustering, baseline AMI nhỏ nên Δ tương đối khuếch đại nhiễu. Ví dụ độ lệch chuẩn ΔAMI 0,041 của k-Means tương ứng ~24% trên thang tương đối. Kết quả clustering trên thang tương đối cần đọc thận trọng.
 
-*Trạng thái: Thiết kế (Giai đoạn 6 chưa có code).*
+*Trạng thái: **Đã cài** (`src/metamodel/train_metamodel.py`; `116 passed`; chạy trên Colab ngày 2026-10-26, kết quả ở `ket-qua-thuc-nghiem.md` mục 6).*
 
 ### 4.5 Đầu vào của meta-model và cấu hình 3 baseline
 
@@ -241,7 +241,9 @@ Bài gốc không có các chi tiết này: Mohammed et al. không có meta-mode
 
 **Giới hạn cần nêu khi trình bày:** điền 1,0 cho Class Balance của regression làm cột này có phương sai gắn với tác vụ khi PCA gộp cả 3 tác vụ, nên PC1 của DQSOps phần nào phản ánh "đây là tác vụ nào". Đây là hệ quả của việc dùng một điểm chung cho mọi tác vụ, đúng như DQSOps làm.
 
-*Trạng thái: Đã viết (code Giai đoạn 6, chưa chạy test trên Colab).*
+**Đã xác nhận bằng số liệu (Colab 2026-10-26, `ket-qua-thuc-nghiem.md` mục 6.4):** PC1 chỉ giải thích 26,8% phương sai. Trọng số lớn nhất rơi vào Class Balance (0,595) và Target Accuracy (−0,704, âm), còn Feature Accuracy, dimension gây hại mạnh nhất, có trọng số ≈ 0. Đây là **điểm cộng cho báo cáo**: một bằng chứng cụ thể rằng điểm chất lượng tổng hợp không gắn downstream có thể "đo" sai thứ (tác vụ thay vì mức bẩn). Trong khi đó SHAP của meta-model xếp Feature Accuracy đứng đầu ở 2/3 tác vụ và Uniqueness thấp nhất ở cả 3.
+
+*Trạng thái: **Đã cài** (`src/baselines/`, `src/metamodel/`; `116 passed`; chạy trên Colab ngày 2026-10-26).*
 
 ---
 

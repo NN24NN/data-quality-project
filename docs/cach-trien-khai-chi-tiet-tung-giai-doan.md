@@ -390,7 +390,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Kết luận Giai đoạn 5:** 312/312 dòng, tổng 414,5 phút (≈ 6,9 giờ) trên Colab CPU. Việc mở sang Giai đoạn 6: chọn cách chia train/test cho meta-model (3 run của cùng một (dimension, λ) rất giống nhau nên không được chia rời, tránh rò rỉ), và tính cột còn thiếu cho H1.
 
-## Giai đoạn 6 — Meta-model và 3 baseline (đã viết code ngày 2026-10-26, **chưa chạy test trên Colab**)
+## Giai đoạn 6 — Meta-model và 3 baseline (xong ngày 2026-10-26, đã kiểm chứng trên Colab)
 
 **Quyết định thiết kế của người dùng (2026-10-26)**, lý do và lợi ích đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.3–4.5:
 1. **Chia train/test:** `StratifiedGroupKFold` 5 fold, nhóm = (task, dimension, λ), λ = 0 gộp 1 nhóm mỗi task (42 nhóm), lặp lại với 3 seed của `seeds.yaml`. Thí nghiệm phụ: nội suy (train λ ∈ {0; 0,2; 0,8}, test λ = 0,5). Bỏ phương án leave-one-dimension-out.
@@ -430,4 +430,15 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 - Đánh giá chéo: đủ số dòng dự đoán, không trùng; meta-model có MAE thấp hơn weighted score và DQSOps-PCA trên dữ liệu có ảnh hưởng phụ thuộc tác vụ; chạy hai lần cho kết quả giống hệt.
 - SHAP: tỷ trọng cộng lại bằng 1 ở mỗi (nhãn, tác vụ); dimension không áp dụng được đánh dấu; Completeness quan trọng hơn Uniqueness ở regression.
 
-**Chưa làm / chưa kiểm chứng:** chưa chạy test và các cell 13.1–13.3 trên Colab (máy local không có Python), nên chưa tick checklist. Chưa có số liệu meta-model/SHAP thật.
+**Kết quả kiểm chứng (Colab CPU, commit `e47cda9`, ngày 2026-10-26):**
+- Cell 13.1: `116 passed` trong 60,8 giây. Có 2 `PerformanceWarning` của pandas trong test SHAP (tra chỉ mục nhiều tầng chưa sắp xếp), đã sửa bằng `sort_index()`, giống cách sửa ở Giai đoạn 5.
+- Cell 13.2: 8.112 dòng dự đoán, đúng bằng số tính trước; chạy 5 giây.
+- Cell 13.3: `shap_importance.csv`, tỷ trọng đúng định dạng, dimension không áp dụng hiện NaN.
+
+**Kết quả chính** (đầy đủ ở `ket-qua-thuc-nghiem.md` mục 6):
+- Group K-Fold, Δ tuyệt đối: meta-model có MAE thấp nhất ở cả 3 tác vụ, tổng thể 0,055 so với 0,077 (weighted score) và 0,084 (DQSOps-PCA).
+- Meta-model không thắng ở mọi ô: weighted score tốt hơn ở classification với Δ tương đối; DQSOps-PCA tốt hơn ở classification và clustering trong thí nghiệm nội suy (78 dòng, 1 lần chia).
+- PC1 của DQSOps chỉ giải thích 26,8% phương sai; Feature Accuracy có trọng số ≈ 0, Target Accuracy âm. Điểm tổng hợp chủ yếu nắm "tác vụ nào" chứ không nắm "bẩn đến đâu".
+- SHAP: Uniqueness thấp nhất ở cả 3 tác vụ; dimension đứng đầu khác nhau theo tác vụ (Feature Accuracy với classification/clustering, Completeness với regression).
+
+**Chưa làm:** R², Spearman, ma trận Good/Bad và độ lệch chuẩn theo seed thuộc Giai đoạn 7. Chưa giải thích được tỷ trọng SHAP 0,107 của Uniqueness ở classification.

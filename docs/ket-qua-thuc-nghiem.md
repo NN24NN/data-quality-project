@@ -11,7 +11,7 @@
 | 3 — Pollution | Có |
 | 4 — Downstream (baseline sạch) | Có |
 | 5 — Experiment Runner (312 lượt) | Có đủ: test và chạy thử (5.1), regression (5.2), clustering (5.3), classification (5.4), tổng kết (5.5) |
-| 6 — Meta-model + 3 baseline | *Chưa có* |
+| 6 — Meta-model + 3 baseline | Có: test, MAE xem nhanh, trọng số PC1, SHAP theo tác vụ (6.1–6.5) |
 | 7 — Đánh giá & so sánh | *Chưa có* |
 | 8 — Scalability (Spark) | *Chưa có* |
 
@@ -254,7 +254,91 @@ Baseline trên mẫu 100.000 dòng (cell 11.2, run 1) dùng để đo thời gia
 - **Tổng thời gian và quy mô:** 312 dòng, 414,5 phút trên Colab CPU. Thuật toán chậm nhất là Gradient Boosting với Feature Accuracy (nhiễu làm mọi giá trị trong cột số trở nên duy nhất, chậm gấp 4 baseline) và Uniqueness λ = 0,8 (dữ liệu lớn gấp 5, chậm gấp 5–7 lần).- **Còn mở cho Giai đoạn 7:** có đưa 24 lượt Class Balance × clustering vào bảng so sánh chính không (ΔAMI 0,02–0,10, rõ rệt, nhưng điểm Balance tăng thay vì giảm).
 ## 6. Meta-model và 3 baseline (Giai đoạn 6)
 
-*Chưa có.* Sẽ ghi: siêu tham số meta-model, cách chia train/test cho meta-model, bảng SHAP importance theo tác vụ, trọng số PCA (PC1) của baseline DQSOps, và ngưỡng của baseline rule-based.
+*Nguồn: notebook cell 13.1–13.3, Colab CPU, commit `e47cda9`, ngày 2026-10-26. Thiết kế: `khac-biet-so-voi-bai-goc.md` mục 4.3–4.5; tham số: `configs/metamodel.yaml`.*
+
+### 6.1 Cấu hình đã chạy
+
+| Thành phần | Giá trị |
+|---|---|
+| Meta-model | `GradientBoostingRegressor`, 100 cây, sâu 3, learning rate 0,1, không tinh chỉnh; 14 đặc trưng (5 profile + 3 task + 6 thuật toán) |
+| Nhãn | Δ tuyệt đối (chính), Δ tương đối = Δ / baseline (phụ) |
+| Chia chính | `StratifiedGroupKFold` 5 fold, 42 nhóm (task, dimension, λ), lặp 3 seed (42, 43, 44) |
+| Chia phụ | Nội suy: train λ ∈ {0; 0,2; 0,8} (234 dòng), test λ = 0,5 (78 dòng), 1 lần chia |
+| Rule-based | Bad nếu bất kỳ dimension < 0,9 |
+
+### 6.2 Kiểm chứng
+
+- Cell 13.1: **`116 passed`** trong 60,8 giây (100 test cũ + 16 test mới). Có 2 `PerformanceWarning` của pandas trong `test_shap_importance_task_aware` (tra chỉ mục nhiều tầng chưa sắp xếp), đã sửa bằng `sort_index()` sau lần chạy này.
+- Cell 13.2: 312 dòng đầu vào, **8.112 dòng dự đoán** (đúng bằng 312 × 3 seed × 2 nhãn × 4 phương pháp + 78 × 2 × 4), chạy trong 5 giây.
+
+### 6.3 MAE out-of-fold (xem nhanh — số liệu chính, kèm R² và Spearman, tính ở Giai đoạn 7)
+
+Trung bình qua các lần lặp; rule-based chỉ cho nhãn Good/Bad nên không có MAE. **In đậm** = thấp nhất trong cột.
+
+**Group K-Fold (đánh giá chính):**
+
+| Nhãn | Phương pháp | Classification | Clustering | Regression | Tất cả |
+|---|---|---|---|---|---|
+| Tuyệt đối | Meta-model | **0,0387** | **0,0374** | **0,0931** | **0,0550** |
+| | Weighted score | 0,0452 | 0,0717 | 0,1210 | 0,0767 |
+| | DQSOps-PCA | 0,0734 | 0,0550 | 0,1272 | 0,0843 |
+| Tương đối | Meta-model | 0,0822 | **0,1869** | **0,0981** | **0,1193** |
+| | Weighted score | **0,0639** | 0,2656 | 0,1129 | 0,1410 |
+| | DQSOps-PCA | 0,1222 | 0,2878 | 0,1736 | 0,1890 |
+
+**Nội suy (test λ = 0,5, 78 dòng, 1 lần chia):**
+
+| Nhãn | Phương pháp | Classification | Clustering | Regression | Tất cả |
+|---|---|---|---|---|---|
+| Tuyệt đối | Meta-model | 0,0500 | 0,0541 | **0,0970** | **0,0657** |
+| | Weighted score | 0,0516 | 0,0538 | 0,1492 | 0,0823 |
+| | DQSOps-PCA | **0,0371** | **0,0456** | 0,1337 | 0,0694 |
+| Tương đối | Meta-model | 0,1247 | **0,1640** | **0,0576** | **0,1162** |
+| | Weighted score | **0,0860** | 0,2717 | 0,1240 | 0,1548 |
+| | DQSOps-PCA | 0,1019 | 0,3093 | 0,1601 | 0,1836 |
+
+**Nhận xét sơ bộ (chờ R² và Spearman ở Giai đoạn 7 mới kết luận):**
+- **Đánh giá chính, Δ tuyệt đối:** meta-model có MAE thấp nhất ở **cả 3 tác vụ** và tổng thể. MAE tổng thể là 0,055, thấp hơn weighted score 28% và DQSOps-PCA 35%.
+- **Không thắng tuyệt đối:** với Δ tương đối, ở classification weighted score tốt hơn (0,064 so với 0,082). Ở thí nghiệm nội suy Δ tuyệt đối, DQSOps-PCA tốt hơn ở classification và clustering. Đây là kết quả trung thực, nên báo cáo đúng như vậy, không chỉ báo số gộp. Riêng tập nội suy chỉ có 78 dòng và 1 lần chia, không có độ lệch chuẩn, nên chênh lệch nhỏ (vd 0,050 so với 0,037) chưa chắc có ý nghĩa.
+- **Lợi thế của meta-model lớn nhất ở clustering và regression**, đúng nơi ảnh hưởng của dimension phụ thuộc mạnh vào tác vụ: clustering Δ tuyệt đối 0,037 so với 0,055–0,072.
+- Regression có MAE lớn nhất ở mọi phương pháp vì Δ của regression có biên độ lớn nhất (tới ~0,54).
+
+### 6.4 Trọng số PC1 của DQSOps-PCA (fit trên cả 312 dòng — dữ liệu cho H9)
+
+| Dimension | Trọng số PC1 |
+|---|---|
+| Completeness | 0,227 |
+| Feature Accuracy | −0,001 |
+| Target Accuracy | **−0,704** |
+| Uniqueness | 0,314 |
+| Class Balance | **0,595** |
+
+PC1 chỉ giải thích **26,8%** phương sai, gần mức 20% của 5 cột độc lập.
+
+**Nhận xét (điểm đáng đưa vào báo cáo):** điểm tổng hợp kiểu DQSOps **không phản ánh chất lượng dữ liệu** trên bộ thí nghiệm này, vì ba lẽ:
+- Feature Accuracy là dimension gây hại mạnh ở cả 3 tác vụ nhưng có trọng số ≈ 0.
+- Target Accuracy mang trọng số âm, tức điểm Target Accuracy giảm (dữ liệu xấu đi) lại làm "điểm chất lượng" tăng.
+- Hai trọng số lớn nhất rơi vào Class Balance và Target Accuracy, hai cột có mức nền khác nhau theo tác vụ: Class Balance là 1,0 (điền cho regression), 0,89 (HIGGS), 0,25 (Covertype); Target Accuracy luôn là 1 ở clustering. PC1 vì thế chủ yếu nắm "dòng này thuộc tác vụ nào" chứ không nắm "dữ liệu bẩn đến đâu".
+
+Nguyên nhân gốc: mỗi lượt chỉ làm bẩn một dimension, nên các dimension gần như không tương quan và không có một "trục chất lượng chung" cho PCA bắt được. Đây là bằng chứng cụ thể cho giới hạn đã nêu ở `khac-biet-so-voi-bai-goc.md` mục 4.5, và cho luận điểm "trọng số cố định, không gắn với downstream" của đề tài.
+
+### 6.5 Tỷ trọng SHAP theo tác vụ (meta-model cuối, fit trên cả 312 dòng — dữ liệu cho H8)
+
+Tỷ trọng = trung bình |SHAP| của dimension / tổng của các dimension áp dụng được cho tác vụ đó; "—" = không áp dụng.
+
+| Dimension | Classification (tuyệt đối / tương đối) | Clustering (tuyệt đối / tương đối) | Regression (tuyệt đối / tương đối) |
+|---|---|---|---|
+| Completeness | 0,242 / 0,250 | 0,323 / 0,276 | **0,359 / 0,364** |
+| Feature Accuracy | **0,274 / 0,321** | **0,435 / 0,467** | 0,260 / 0,331 |
+| Target Accuracy | 0,256 / 0,162 | — | 0,327 / 0,265 |
+| Uniqueness | 0,107 / 0,064 | 0,040 / 0,039 | 0,055 / 0,040 |
+| Class Balance | 0,121 / 0,203 | 0,203 / 0,218 | — |
+
+**Nhận xét:**
+- **Thứ tự quan trọng khác nhau theo tác vụ** (luận điểm task-aware). Đứng đầu là Feature Accuracy với classification và clustering, nhưng Completeness với regression. Feature Accuracy chiếm gần một nửa (0,44–0,47) ở clustering, khớp hiện tượng AMI sụp về ≈ 0 ở mục 5.5.
+- **Uniqueness có tỷ trọng thấp nhất ở cả 3 tác vụ** (0,04–0,11), khớp phát hiện 2 ở mục 5.5 (Uniqueness gần như không làm giảm hiệu năng). Ngược hẳn với DQSOps-PCA, nơi Uniqueness có trọng số dương lớn thứ ba (0,314).
+- Hai thang nhãn cho cùng thứ tự đứng đầu ở mỗi tác vụ, nên kết luận không phụ thuộc cách chuẩn hóa nhãn.
+- **Cần xem lại ở Giai đoạn 7:** Uniqueness ở classification có tỷ trọng 0,107, cao hơn hai tác vụ kia dù ΔF1 của nó gần 0. Có thể vì điểm Uniqueness cũng dao động ở các lượt dimension khác (vd Completeness λ = 0,8 kéo Uniqueness xuống, mục 4 của `khac-biet`), nên mô hình gán một phần ảnh hưởng của Completeness cho Uniqueness. Chưa kiểm chứng.
 
 ## 7. Đánh giá và so sánh (Giai đoạn 7)
 

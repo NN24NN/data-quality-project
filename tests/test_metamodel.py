@@ -175,7 +175,7 @@ def test_shap_importance_task_aware():
     prof = imp[imp['kind'] == 'profile']
     # tỷ trọng các dimension áp dụng được cộng lại bằng 1 ở mỗi (nhãn, tác vụ)
     assert np.allclose(prof.dropna(subset=['share']).groupby(['target', 'task'])['share'].sum(), 1)
-    na = prof.set_index(['task', 'feature'])['applicable']
+    na = prof.set_index(['task', 'feature'])['applicable'].sort_index()
     assert not na[('regression', 'profile_class_balance')].any()
     assert not na[('clustering', 'profile_target_accuracy')].any()
     share = prof[prof['target'] == 'absolute'].pivot(index='feature', columns='task', values='share')

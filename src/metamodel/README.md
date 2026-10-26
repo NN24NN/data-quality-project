@@ -8,4 +8,4 @@
 - **Output (`results/`):** `metamodel_cv_predictions.parquet` (dự đoán out-of-fold, dạng dài), `metamodel.pkl` (mô hình cuối cho mỗi nhãn), `dqsops_pca_weights.csv`, `shap_importance.csv`.
 - Tham số: `configs/metamodel.yaml`. Lý do thiết kế: `docs/khac-biet-so-voi-bai-goc.md` mục 4.3–4.5. Chạy: notebook mục 13.
 
-*Trạng thái: đã viết, chưa chạy test trên Colab.*
+*Trạng thái: xong, đã chạy trên Colab ngày 2026-10-26 (`116 passed`). Kết quả: `docs/ket-qua-thuc-nghiem.md` mục 6.*

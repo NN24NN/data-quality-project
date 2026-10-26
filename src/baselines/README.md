@@ -12,4 +12,4 @@ Cùng giao diện `fit(results, y)` / `predict(results)` với meta-model, nhậ
 
 Ngưỡng và giá trị điền: `configs/metamodel.yaml`. Lý do: `docs/khac-biet-so-voi-bai-goc.md` mục 4.5.
 
-*Trạng thái: đã viết, chưa chạy test trên Colab.*
+*Trạng thái: xong, đã chạy trên Colab ngày 2026-10-26 (`116 passed`). Kết quả: `docs/ket-qua-thuc-nghiem.md` mục 6.*
