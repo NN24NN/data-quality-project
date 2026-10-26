@@ -487,7 +487,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Chưa làm:** biểu đồ H5–H7 (để Giai đoạn 9).
 
-## Giai đoạn 8 — Scalability (đã viết code ngày 2026-10-26, **chưa chạy trên Colab**)
+## Giai đoạn 8 — Scalability (lần chạy 1 ngày 2026-10-26; **chờ lần chạy 2**: đo lại bộ nhớ pandas + mốc 22M)
 
 **Quyết định của người dùng (2026-10-26)**, lý do và lợi ích đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.7:
 1. Profile bản sạch so với chính nó (không làm bẩn 11M dòng, không ghi dữ liệu bẩn ra đĩa).
@@ -518,4 +518,12 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Test kiểm tra gì** (HIGGS giả lập 400 dòng, mốc 100 và 300): chuẩn bị đúng kiểu dữ liệu, mốc nhỏ là phần đầu của mốc lớn, `row_id` đúng; pandas chạy được trong tiến trình con và đo được RAM, điểm profile đúng (có 1 dòng trùng); phân loại thất bại; pandas `oom` ở mốc đầu thì các lần sau `skipped` và không chạy thử; chạy tiếp không đo lại; hàm đối chiếu phát hiện được chênh lệch; pandas và PySpark khớp đầu-cuối qua tiến trình con; quá giờ trả `timeout`.
 
-**Chưa làm / chưa kiểm chứng:** chưa chạy trên Colab (kỳ vọng `132 passed`), chưa tải HIGGS full, chưa có số liệu.
+**Lần chạy 1 (Colab, commit `1054af0`, 2026-10-26):** cell 15.2 lưu `higgs_full_raw.parquet` (11.000.000 dòng, 0,69GB). Cell 15.3: cả hai engine `ok` 3/3 lần ở 5 mốc; điểm profile khớp hoàn toàn đến 11M dòng; PySpark chậm hơn 28 lần ở 0,1M, ~4,5 lần từ 6M. Số liệu: `ket-qua-thuc-nghiem.md` mục 8.2. Output của 15.1 chưa được gửi.
+
+**Hai vấn đề phát hiện ở lần 1 và cách xử lý:**
+- **Lỗi đo bộ nhớ (lỗi code của Claude):** đỉnh RAM pandas ở 0,1M và 1M giống hệt (2.021,6 MB) — vô lý. `ru_maxrss` trên Linux giữ lại mức đỉnh của tiến trình cha khi tạo tiến trình con; tiến trình cha đã nạp ~2GB HIGGS để cắt mốc. Sửa: (1) đọc `VmHWM` từ `/proc/self/status` (chỉ bộ nhớ của chính tiến trình đo); (2) cắt mốc trong tiến trình con riêng (lệnh `subsets`), để tiến trình cha không chiếm RAM của các lần đo pandas — ở lần 1, pandas thực tế có ít hơn ~2GB RAM so với máy. Thêm test hồi quy (tiến trình cha giữ ~800MB, số đo của con vẫn < 600MB).
+- **Pandas không hết RAM ở 11M dòng (7,3GB trên máy ~12,7GB):** chưa có điểm gãy để chứng minh lợi thế của Spark. Đã trình bày 3 phương án (chỉ ngoại suy; thêm mốc 22M bằng HIGGS ghép 2 lần; giới hạn pandas ở 4GB); người dùng chọn **thêm mốc 22M**. `make_subsets` nhận `max_repeat` (config: 2), ghép dữ liệu gốc nối tiếp rồi cắt, `row_id` vẫn duy nhất; giới hạn thời gian nâng lên 40 phút.
+- Thêm `run --engines pandas --redo` để đo lại riêng pandas, giữ nguyên kết quả Spark (không phải đo lại 30 phút của Spark). Cell 15.4: đo lại pandas, rồi chạy tiếp để Spark đo mốc 22M. Dòng "Máy: {...}" chuyển xuống cuối output.
+- Test: thêm 2 (mốc vượt dữ liệu gốc; `--redo`), sửa test đo RAM thành test hồi quy → tổng kỳ vọng `134 passed`.
+
+**Chưa làm:** lần chạy 2 (cell 15.4).

@@ -12,8 +12,10 @@
 >
 > **Giai đoạn 8 đã chốt thiết kế (7 điểm, `khac-biet-so-voi-bai-goc.md` mục 4.7) và viết code ngày 2026-10-26, chưa chạy:** `src/scalability/spark_scale_study.py`, `configs/scalability.yaml`, `tests/test_scalability.py`, notebook mục 15. Người dùng đã đồng ý tải HIGGS full trên Colab và lưu parquet (~1,2GB) lên Drive.
 >
+> **Đã chạy lần 1 (2026-10-26):** HIGGS full đã lưu Drive (0,69GB); 15.3 xong — thời gian và đối chiếu dùng được (`ket-qua-thuc-nghiem.md` mục 8.2), nhưng **bộ nhớ pandas đo sai** (lỗi `ru_maxrss`, đã sửa) và pandas **không hết RAM ở 11M** → người dùng chốt thêm mốc 22M (HIGGS ghép 2 lần).
+>
 > **Việc tiếp theo:**
-> 1. Người dùng chạy mục 1, 2, 9.1 rồi **15.1 → 15.3** trên Colab (runtime CPU tiêu chuẩn, không High-RAM; kỳ vọng `132 passed`; 15.3 khoảng 45–90 phút), gửi output dạng văn bản.
+> 1. Người dùng chạy mục 1, 2, 9.1, **15.1** (kỳ vọng `134 passed`) rồi **15.4** (đo lại pandas + mốc 22M, 40–50 phút), gửi output dạng văn bản, kèm dòng "Máy: {...}" cuối output. Output 15.1 của lần 1 chưa được gửi.
 > 2. Ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 8, tick Giai đoạn 8 (và mục HIGGS full của Giai đoạn 1), cập nhật `.md` liên quan. Sau khi xong, hỏi người dùng có xóa `higgs_full_raw.parquet` trên Drive để giải phóng dung lượng không.
 > 3. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
 >
@@ -45,7 +47,7 @@
 - [x] Xác nhận và tải Beijing Multi-Site Air Quality (12 trạm, UCI) vào `data/raw/beijing_air_quality/` — *12 file CSV `PRSA_Data_*.csv`, mỗi file 35.064 dòng × 18 cột (đã có sẵn cột `station`)*
 - [x] Xác nhận và tải mẫu HIGGS (~500K-1M dòng) vào `data/raw/higgs_sample/` — *`higgs_sample_raw.parquet`, 1.000.000 × 29, target 1: 52,99% / 0: 47,01% (seed 42)*
 - [x] Xác nhận và tải Covertype full (581K dòng) vào `data/raw/covertype/` — *`covertype_raw.parquet`, 581.012 × 55, 7 lớp (lớp 4 chỉ 2.747 dòng)*
-- [ ] (Có thể làm sau) Tải HIGGS full (11M dòng, ~2.8GB) vào `data/raw/higgs_full/` — chỉ cần cho Giai đoạn 8 — *làm bằng cell 15.2 (lưu parquet `higgs_full_raw.parquet` trên Drive)*
+- [x] (Có thể làm sau) Tải HIGGS full (11M dòng, ~2.8GB) vào `data/raw/higgs_full/` — chỉ cần cho Giai đoạn 8 — *cell 15.2 ngày 2026-10-26: `higgs_full_raw.parquet` trên Drive, 11.000.000 dòng, 0,69GB*
 - [x] Gộp 12 file trạm Beijing thành 1 bảng, thêm cột `station` — *420.768 × 18 (cột `station` đã có sẵn trong từng file)*
 - [x] Tạo bản "baseline" sạch cho Beijing (xử lý missing tự nhiên, one-hot `wd`/`station`) → `data/processed/beijing_clean.parquet` — *382.168 × 42 (bỏ 38.600 dòng missing = 9,2%), NaN = 0, trùng = 0*
 - [x] Tạo bản sạch cho HIGGS sample (lấy mẫu stratified theo target) → `data/processed/higgs_sample_clean.parquet` — *1.000.000 × 29; có 2.281 dòng trùng (0,23%), giữ nguyên*
@@ -117,7 +119,7 @@
 
 ## Giai đoạn 8 — Scalability study (Spark, có thể làm song song từ Giai đoạn 2)
 
-*Trạng thái: đã chốt thiết kế (2026-10-26: thêm mốc 0,1M; profile bản sạch so với chính nó; mỗi lần đo một tiến trình con, 3 lần, trung vị; chỉ đo bộ nhớ pandas, Spark giới hạn 4g; lưu HIGGS full parquet lên Drive) và viết code + 8 test; **chưa chạy trên Colab** nên chưa tick. Chạy notebook mục 15.*
+*Trạng thái: đã chốt thiết kế (2026-10-26: thêm mốc 0,1M; profile bản sạch so với chính nó; mỗi lần đo một tiến trình con, 3 lần, trung vị; chỉ đo bộ nhớ pandas, Spark giới hạn 4g; lưu HIGGS full parquet lên Drive) và viết code. **Lần chạy 1 (2026-10-26):** thời gian + đối chiếu đạt ở 5 mốc; bộ nhớ pandas đo sai (đã sửa); pandas không hết RAM ở 11M → thêm mốc 22M. Chờ lần 2 (cell 15.4, kỳ vọng `134 passed`) nên chưa tick.*
 
 - [ ] Viết `scalability/spark_scale_study.py` — *đã viết*
 - [ ] Chạy `spark_profiler.py` trên các mốc kích thước tăng dần của HIGGS full (1M, 3M, 6M, 11M dòng) — *thêm mốc 0,1M*

@@ -7,13 +7,15 @@ Thiết kế: docs/khac-biet-so-voi-bai-goc.md mục 4.7. Tham số: configs/sca
 - Mỗi lần đo là một tiến trình con riêng (cả nhóm tiến trình, gồm JVM của Spark): hết RAM chỉ làm chết tiến trình con
   -> 'oom'; quá giờ -> 'timeout'. Engine đã thất bại ở một mốc thì các mốc lớn hơn ghi 'skipped'.
 - Thời gian = đọc parquet + profile. Spark chạy khởi động một lần trên mốc nhỏ nhất (bỏ kết quả) trước khi bấm giờ.
-- Bộ nhớ: chỉ đo đỉnh RSS của pandas; Spark chạy với giới hạn cố định spark_driver_memory.
+- Bộ nhớ: chỉ đo đỉnh RSS của pandas (VmHWM); Spark chạy với giới hạn cố định spark_driver_memory.
+- Mốc 22M (lớn hơn HIGGS full) = ghép HIGGS 2 lần, chỉ tạo ở ổ tạm — để đo được điểm pandas hết RAM.
 
 Chạy trên Colab (từ thư mục repo):
     python src/scalability/spark_scale_study.py prepare --project-dir /content/drive/MyDrive/data-quality-project
     python src/scalability/spark_scale_study.py run --project-dir /content/drive/MyDrive/data-quality-project
 prepare: tải HIGGS full về --work-dir, đổi sang parquet trên Drive (bỏ qua nếu đã có).
 run: cắt các mốc (kèm row_id) ra --work-dir, đo, ghi dần <project-dir>/results/scalability_benchmark.csv.
+     --engines pandas --redo: xóa kết quả cũ của pandas rồi đo lại, giữ nguyên kết quả Spark.
 """
 import argparse
 import json
@@ -69,19 +71,28 @@ def prepare_raw(gz_path, out_path):
     return len(df)
 
 
-def make_subsets(raw_path, sizes, out_dir):
-    """Cắt n dòng đầu cho mỗi mốc, thêm cột row_id (0..n-1). Bỏ qua file đã có. Trả về {n: đường dẫn}."""
+def subset_paths(sizes, out_dir):
+    return {n: os.path.join(out_dir, f'higgs_{n}.parquet') for n in sorted(sizes)}
+
+
+def make_subsets(raw_path, sizes, out_dir, max_repeat=1):
+    """Cắt n dòng đầu cho mỗi mốc, thêm cột row_id (0..n-1). Bỏ qua file đã có. Trả về {n: đường dẫn}.
+
+    Mốc lớn hơn dữ liệu gốc (tối đa max_repeat lần) = ghép dữ liệu gốc nối tiếp nhiều lần rồi cắt; row_id vẫn duy nhất
+    nên phép ghép với ground truth của Spark vẫn đúng, còn mỗi dòng có bản trùng (Uniqueness giảm).
+    """
     import pyarrow as pa
     import pyarrow.parquet as pq
     os.makedirs(out_dir, exist_ok=True)
-    table, paths = None, {}
-    for n in sorted(sizes):
-        path = os.path.join(out_dir, f'higgs_{n}.parquet')
+    table, paths = None, subset_paths(sizes, out_dir)
+    for n, path in paths.items():
         if not os.path.exists(path):
             table = table if table is not None else pq.read_table(raw_path)
-            if n > table.num_rows:
-                raise ValueError(f"Mốc {n} lớn hơn số dòng của dữ liệu ({table.num_rows})")
-            sub = table.slice(0, n).append_column(ID_COL, pa.array(np.arange(n, dtype='int64')))
+            if n > table.num_rows * max_repeat:
+                raise ValueError(f"Mốc {n} lớn hơn {max_repeat} lần số dòng của dữ liệu ({table.num_rows})")
+            copies = -(-n // table.num_rows)                              # làm tròn lên
+            base = pa.concat_tables([table] * copies) if copies > 1 else table
+            sub = base.slice(0, n).append_column(ID_COL, pa.array(np.arange(n, dtype='int64')))
             pq.write_table(sub, path + '.tmp')
             os.replace(path + '.tmp', path)
         paths[n] = path
@@ -90,9 +101,20 @@ def make_subsets(raw_path, sizes, out_dir):
 
 # --- Một lần đo (chạy trong tiến trình con) ---
 
-def measure_pandas(path, cfg):
-    import resource
+def peak_rss_mb():
+    """Đỉnh RSS của chính tiến trình này (VmHWM, Linux).
 
+    Không dùng resource.getrusage(...).ru_maxrss: Linux giữ lại mức đỉnh của tiến trình cha khi tạo tiến trình con,
+    nên mọi số đo bị "sàn" bằng bộ nhớ của tiến trình cha (lỗi của lần chạy đầu, ~2GB do cha đã nạp HIGGS để cắt mốc).
+    """
+    with open('/proc/self/status') as f:
+        for line in f:
+            if line.startswith('VmHWM:'):
+                return int(line.split()[1]) / 1024          # kB -> MB
+    raise RuntimeError("Không đọc được VmHWM trong /proc/self/status")
+
+
+def measure_pandas(path, cfg):
     import pyarrow.parquet as pq
     from profiling import pandas_profiler
     cols = [c for c in pq.read_schema(path).names if c != ID_COL]   # pandas ghép theo index, không cần row_id
@@ -102,8 +124,7 @@ def measure_pandas(path, cfg):
     read_seconds = time.perf_counter() - t0
     profile = pandas_profiler.compute_profile(df, clean=clean, **_profile_kw(cfg))
     seconds = time.perf_counter() - t0
-    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024   # Linux: KB -> MB
-    return {'seconds': seconds, 'read_seconds': read_seconds, 'peak_rss_mb': peak, **profile}
+    return {'seconds': seconds, 'read_seconds': read_seconds, 'peak_rss_mb': peak_rss_mb(), **profile}
 
 
 def measure_spark(path, warmup_path, cfg):
@@ -178,10 +199,15 @@ def machine_info():
     return {'cpu_count': os.cpu_count(), 'total_ram_gb': round(ram / 1e9, 1)}
 
 
-def run_study(cfg, paths, out_path, engines=ENGINES, run=run_worker):
-    """Đo mọi (mốc, engine, lần), ghi out_path sau mỗi lần; chạy lại thì bỏ qua các lần đã có."""
+def run_study(cfg, paths, out_path, engines=ENGINES, run=run_worker, redo=False):
+    """Đo mọi (mốc, engine, lần), ghi out_path sau mỗi lần; chạy lại thì bỏ qua các lần đã có.
+
+    redo=True: xóa các dòng đã có của `engines` rồi đo lại (dòng của engine khác giữ nguyên).
+    """
     scfg = cfg['scale']
     rows = pd.read_csv(out_path).to_dict('records') if os.path.exists(out_path) else []
+    if redo:
+        rows = [r for r in rows if r['engine'] not in engines]
     done = {(r['engine'], int(r['n_rows']), int(r['repeat'])) for r in rows}
     failed = {r['engine'] for r in rows if r['status'] in FAILED}
     sizes = sorted(paths)
@@ -238,10 +264,13 @@ def check_parity(df, rtol):
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='cmd', required=True)
-    for name in ('prepare', 'run'):
+    for name in ('prepare', 'subsets', 'run'):
         s = sub.add_parser(name)
         s.add_argument('--project-dir', required=True, help='thư mục chứa data/ và results/ (Drive)')
         s.add_argument('--work-dir', default='/content/higgs_scale', help='ổ tạm cho file tải về và các mốc')
+        if name == 'run':
+            s.add_argument('--engines', nargs='+', choices=ENGINES, default=ENGINES)
+            s.add_argument('--redo', action='store_true', help='xóa kết quả cũ của --engines rồi đo lại')
     w = sub.add_parser('worker')                      # dùng nội bộ: một lần đo trong tiến trình con
     w.add_argument('--engine', choices=ENGINES, required=True)
     w.add_argument('--path', required=True)
@@ -268,13 +297,21 @@ def main(argv=None):
         print(f"Đã lưu {raw_path}: {n:,} dòng, {os.path.getsize(raw_path) / 1e9:.2f} GB")
         return
 
+    if args.cmd == 'subsets':
+        make_subsets(raw_path, cfg['scale']['sizes'], args.work_dir, cfg['scale']['max_repeat'])
+        return
+
     t0 = time.time()
-    paths = make_subsets(raw_path, cfg['scale']['sizes'], args.work_dir)
-    print(f"Đã có {len(paths)} mốc trong {args.work_dir} ({time.time() - t0:.0f} giây). Máy: {machine_info()}", flush=True)
+    paths = subset_paths(cfg['scale']['sizes'], args.work_dir)
+    if not all(os.path.exists(p) for p in paths.values()):
+        # cắt mốc trong tiến trình con: nạp HIGGS (~2GB) ở đây sẽ chiếm RAM của chính các lần đo pandas
+        subprocess.run([sys.executable, os.path.abspath(__file__), 'subsets', '--project-dir', args.project_dir,
+                        '--work-dir', args.work_dir], check=True)
+    print(f"Đã có {len(paths)} mốc trong {args.work_dir} ({time.time() - t0:.0f} giây)", flush=True)
     out = os.path.join(args.project_dir, 'results', 'scalability_benchmark.csv')
-    df = run_study(cfg, paths, out)
+    df = run_study(cfg, paths, out, engines=args.engines, redo=args.redo)
     pd.set_option('display.width', 250, 'display.max_columns', 20)
-    print(f"\nĐã lưu {out} ({len(df)} dòng, {(time.time() - t0) / 60:.1f} phút)")
+    print(f"\nĐã lưu {out} ({len(df)} dòng, {(time.time() - t0) / 60:.1f} phút). Máy: {machine_info()}")
     print("\nTrung vị thời gian (giây), đỉnh RAM pandas (MB), trạng thái theo mốc:")
     print(summarize(df).to_string(float_format='{:.1f}'.format))
     print("\nĐối chiếu điểm profile pandas vs PySpark:")

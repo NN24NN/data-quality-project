@@ -17,7 +17,7 @@ N_RAW = 400
 
 
 @pytest.fixture(scope='module')
-def paths(tmp_path_factory):
+def raw_path(tmp_path_factory):
     d = tmp_path_factory.mktemp('scale')
     rng = np.random.default_rng(0)
     raw = pd.DataFrame(rng.normal(size=(N_RAW, len(ss.HIGGS_COLUMNS))).astype('float32'), columns=ss.HIGGS_COLUMNS)
@@ -25,9 +25,14 @@ def paths(tmp_path_factory):
     raw.iloc[5] = raw.iloc[4]                                          # 1 dòng trùng
     gz = d / 'HIGGS.csv.gz'
     raw.to_csv(gz, header=False, index=False, compression='gzip')
-    raw_path = str(d / 'raw' / 'higgs_full_raw.parquet')
-    assert ss.prepare_raw(str(gz), raw_path) == N_RAW
-    return ss.make_subsets(raw_path, SIZES, str(d / 'work'))
+    path = str(d / 'raw' / 'higgs_full_raw.parquet')
+    assert ss.prepare_raw(str(gz), path) == N_RAW
+    return path
+
+
+@pytest.fixture(scope='module')
+def paths(raw_path, tmp_path_factory):
+    return ss.make_subsets(raw_path, SIZES, str(tmp_path_factory.mktemp('work')))
 
 
 def small_cfg(**scale):
@@ -45,6 +50,20 @@ def test_prepare_and_subsets(paths):
     pd.testing.assert_frame_equal(small, big.head(SIZES[0]))              # mốc nhỏ là phần đầu của mốc lớn
 
 
+def test_subsets_beyond_raw_repeat_data(raw_path, tmp_path):
+    """Mốc lớn hơn dữ liệu gốc = ghép dữ liệu gốc nối tiếp; row_id vẫn duy nhất; vượt max_repeat thì báo lỗi."""
+    n = int(N_RAW * 1.5)
+    df = pd.read_parquet(ss.make_subsets(raw_path, [n], str(tmp_path), max_repeat=2)[n])
+    raw = pd.read_parquet(raw_path)
+    assert len(df) == n and df[ss.ID_COL].is_unique
+    pd.testing.assert_frame_equal(df.iloc[N_RAW:].drop(columns=ss.ID_COL).reset_index(drop=True),
+                                  raw.head(n - N_RAW))
+    with pytest.raises(ValueError):
+        ss.make_subsets(raw_path, [N_RAW * 3], str(tmp_path), max_repeat=2)
+    with pytest.raises(ValueError):
+        ss.make_subsets(raw_path, [N_RAW + 1], str(tmp_path / 'b'))                # mặc định không ghép
+
+
 def test_classify_failure():
     assert ss.classify_failure(-signal.SIGKILL, '') == 'oom'
     assert ss.classify_failure(ss.MEMORY_ERROR_EXIT, '') == 'oom'
@@ -53,8 +72,11 @@ def test_classify_failure():
 
 
 def test_pandas_worker_in_subprocess(paths):
+    """Đỉnh RAM chỉ của tiến trình đo, không kế thừa bộ nhớ của tiến trình cha (lỗi ru_maxrss ở lần chạy đầu)."""
+    ballast = np.ones(100_000_000)                                       # tiến trình cha giữ ~800MB
     res = ss.run_worker('pandas', paths[300], paths[100], timeout=300)
-    assert res['status'] == 'ok' and res['peak_rss_mb'] > 0 and 0 < res['read_seconds'] <= res['seconds']
+    assert ballast.sum() > 0
+    assert res['status'] == 'ok' and 0 < res['peak_rss_mb'] < 600 and 0 < res['read_seconds'] <= res['seconds']
     assert res['profile_completeness'] == 1.0 and res['profile_feature_accuracy'] == 1.0
     assert res['profile_uniqueness'] < 1.0                                 # có 1 dòng trùng
 
@@ -85,6 +107,22 @@ def test_resume_skips_finished_runs(paths, tmp_path):
     again = ss.run_study(small_cfg(), paths, out, engines=['pandas'], run=fake_run)
     assert len(calls) == len(SIZES) and len(again) == len(first) == len(SIZES)
     assert list(pd.read_csv(out).columns) == ss.COLUMNS
+
+
+def test_redo_reruns_only_selected_engine(paths, tmp_path):
+    out = str(tmp_path / 'bench.csv')
+    calls = []
+
+    def fake_run(engine, path, warmup, timeout):
+        calls.append(engine)
+        return {'status': 'ok', 'seconds': float(len(calls))}
+
+    ss.run_study(small_cfg(), paths, out, run=fake_run)
+    calls.clear()
+    df = ss.run_study(small_cfg(), paths, out, engines=['pandas'], run=fake_run, redo=True)
+    assert calls == ['pandas'] * len(SIZES)
+    assert len(df) == 2 * len(SIZES)                                     # dòng Spark giữ nguyên
+    assert (df.loc[df['engine'] == 'spark', 'seconds'] <= 2 * len(SIZES)).all()
 
 
 def test_check_parity():

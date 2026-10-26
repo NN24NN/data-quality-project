@@ -4,9 +4,10 @@
 source_url: https://archive.ics.uci.edu/ml/machine-learning-databases/00280/HIGGS.csv.gz
 raw_file: data/raw/higgs_full/higgs_full_raw.parquet   # trên Drive, tương đối với --project-dir
 
-sizes: [100000, 1000000, 3000000, 6000000, 11000000]   # mốc nhỏ là phần đầu của mốc lớn
+sizes: [100000, 1000000, 3000000, 6000000, 11000000, 22000000]   # mốc nhỏ là phần đầu của mốc lớn
+max_repeat: 2               # mốc lớn hơn HIGGS full (11M) = ghép HIGGS nối tiếp tối đa 2 lần (22M), row_id vẫn duy nhất
 repeats: 3                  # mỗi mốc × engine; báo trung vị
-timeout_seconds: 1200       # quá giờ -> 'timeout'; engine đã thất bại thì bỏ qua các mốc lớn hơn
+timeout_seconds: 2400       # quá giờ -> 'timeout'; engine đã thất bại thì bỏ qua các mốc lớn hơn (22M của Spark ~10 phút)
 
 spark_master: local[*]
 spark_driver_memory: 4g     # giới hạn bộ nhớ cố định của Spark (không đo bộ nhớ JVM)

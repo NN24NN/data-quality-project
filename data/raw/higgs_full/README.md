@@ -6,4 +6,6 @@ Trên Drive: `higgs_full_raw.parquet` (~1,2GB), tạo bằng notebook cell 15.2 
 
 Sau khi xong Giai đoạn 8 có thể xóa để giải phóng dung lượng Drive (hỏi người dùng trước); kết quả đo đã nằm trong `results/scalability_benchmark.csv`.
 
-*Trạng thái: chưa tải (chờ chạy cell 15.2).*
+*Trạng thái: đã tải ngày 2026-10-26 (cell 15.2): 11.000.000 dòng, 0,69GB trên Drive.*
+
+Mốc 22M dùng ở cell 15.4 là HIGGS full ghép nối tiếp 2 lần, chỉ tạo ở `/content`, không lưu ở đây.

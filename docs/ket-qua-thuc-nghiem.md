@@ -13,7 +13,7 @@
 | 5 — Experiment Runner (312 lượt) | Có đủ: test và chạy thử (5.1), regression (5.2), clustering (5.3), classification (5.4), tổng kết (5.5) |
 | 6 — Meta-model + 3 baseline | Có: test, MAE xem nhanh, trọng số PC1, SHAP theo tác vụ (6.1–6.5) |
 | 7 — Đánh giá & so sánh | Có: bảng chính (7.1), bootstrap (7.2), bảng phụ 288 (7.3), Good/Bad (7.4), chẩn đoán SHAP (7.5), tổng kết (7.6) |
-| 8 — Scalability (Spark) | *Chưa có* |
+| 8 — Scalability (Spark) | Một phần: lần 1 (thời gian + đối chiếu, 8.2); chờ lần 2 (bộ nhớ pandas đã sửa + mốc 22M, 8.3) |
 
 ---
 
@@ -462,7 +462,31 @@ Trung bình |SHAP| (nhãn tuyệt đối), tách theo dimension đang bị làm 
 
 ## 8. Scalability (Giai đoạn 8)
 
-*Chưa có.* Sẽ ghi: runtime và memory của profiling pandas so với PySpark ở các mốc 1M / 3M / 6M / 11M dòng HIGGS.
+*Nguồn: notebook cell 15.2–15.3, Colab CPU tiêu chuẩn, commit `1054af0`, ngày 2026-10-26. Thiết kế: `khac-biet-so-voi-bai-goc.md` mục 4.7.*
+
+### 8.1 Chuẩn bị dữ liệu (cell 15.2)
+
+HIGGS full tải từ UCI, đổi sang parquet trên Drive: **11.000.000 dòng, 0,69 GB** (nhỏ hơn ước tính 1,2GB nhờ nén parquet). Ổ `/content` của Colab: 108GB, còn trống 88GB.
+
+### 8.2 Lần chạy 1 (cell 15.3) — thời gian dùng được, bộ nhớ **không dùng được**
+
+Trung vị 3 lần, mọi lần đều `ok`:
+
+| Số dòng | Pandas (giây) | PySpark (giây) | PySpark chậm hơn | Đối chiếu điểm profile |
+|---|---|---|---|---|
+| 0,1M | 0,4 | 11,4 | 28,5 lần | khớp (sai số 0,0) |
+| 1M | 3,8 | 40,2 | 10,6 lần | khớp (0,0) |
+| 3M | 14,0 | 83,9 | 6,0 lần | khớp (0,0) |
+| 6M | 35,7 | 155,2 | 4,3 lần | khớp (0,0) |
+| 11M | 65,7 | 303,3 | 4,6 lần | khớp (0,0) |
+
+**Bộ nhớ đỉnh của pandas đo được ở lần này bị sai** (2.021,6 / 2.021,6 / 2.247,0 / 4.141,9 / 7.314,8 MB): giá trị ở 0,1M và 1M giống hệt nhau. Nguyên nhân là lỗi trong code đo — `resource.getrusage(...).ru_maxrss` trên Linux giữ lại mức đỉnh của tiến trình cha (đã nạp ~2GB HIGGS để cắt mốc) khi tạo tiến trình con, nên mọi số đo có "sàn" ~2GB. Đã sửa (đọc `VmHWM`, cắt mốc trong tiến trình con riêng) và đo lại ở mục 8.3. Giá trị ở 6M và 11M cao hơn sàn nên có thể gần đúng, nhưng không dùng.
+
+**Nhận xét lần 1:** (1) Pandas và PySpark cho điểm profile **giống hệt** ở mọi mốc đến 11M dòng — cùng công thức, khác engine, kiểm chứng ở quy mô lớn. (2) PySpark chậm hơn ở mọi mốc, nhưng khoảng cách thu hẹp từ 28 lần (0,1M) xuống ~4,5 lần (≥ 6M): đúng dự đoán về thời gian khởi động truy vấn của Spark. (3) **Pandas không hết RAM ở 11M dòng** trên máy Colab tiêu chuẩn, nên chưa đo được điểm gãy — người dùng chốt thêm mốc 22M (phương án B, `khac-biet-so-voi-bai-goc.md` mục 4.7 điểm 8).
+
+### 8.3 Lần chạy 2 — đo lại pandas + mốc 22M (cell 15.4)
+
+*Chưa có.*
 
 ---
 
