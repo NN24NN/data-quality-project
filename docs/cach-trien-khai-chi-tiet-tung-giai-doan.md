@@ -530,4 +530,4 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Kết luận Giai đoạn 8** (đầy đủ ở `ket-qua-thuc-nghiem.md` mục 8.4): điểm gãy của pandas đo được thật (hết RAM ở 22M dòng trên máy 13,6 GB, bộ nhớ tăng ~0,65 GB/triệu dòng), PySpark chạy được 22M trong giới hạn 4 GB; PySpark chậm hơn ở mọi mốc pandas còn chạy được nhưng khoảng cách thu hẹp từ 38 lần xuống 4 lần. Phương án B (thêm mốc 22M) đã cho đúng bằng chứng cần cho đóng góp "quy mô lớn".
 
-**Còn treo:** `higgs_full_raw.parquet` (0,69 GB) trên Drive — chờ người dùng quyết định có xóa không.
+**Dữ liệu HIGGS full:** người dùng quyết định **giữ** `higgs_full_raw.parquet` (0,69 GB) trên Drive (2026-10-26), để đo lại được nếu cần.

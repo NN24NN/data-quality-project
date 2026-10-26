@@ -12,9 +12,12 @@
 >
 > **Giai đoạn 8 xong** (Colab 2026-10-26, commit `54a7837`, `134 passed`): pandas hết RAM ở 22M dòng, PySpark chạy được trong giới hạn 4 GB; số liệu và 6 kết luận ở `ket-qua-thuc-nghiem.md` mục 8.3–8.4. Giai đoạn 0–8 đều xong (trừ cài `requirements.txt` local — bỏ qua vì chạy trên Colab).
 >
-> **Việc tiếp theo: Giai đoạn 9 — biểu đồ và báo cáo.**
-> 1. Còn treo: `higgs_full_raw.parquet` (0,69 GB) trên Drive — hỏi người dùng có xóa không (kết quả đã nằm trong `scalability_benchmark.csv`; giữ thì đo lại được).
-> 2. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
+> **Kết thúc phiên ngày 2026-10-26** (commit cuối của phiên được ghi trong `git log`). Người dùng quyết định **giữ** `higgs_full_raw.parquet` (0,69 GB) trên Drive. Mọi file kết quả nằm trên Drive `results/`, không có trong git: `experiment_results.parquet`, `baseline_performance.csv`, `metamodel_cv_predictions.parquet`, `metamodel.pkl`, `dqsops_pca_weights.csv`, `shap_importance.csv`, `shap_by_row_dimension.csv`, `method_comparison.csv`, `method_bootstrap.csv`, `goodbad_comparison.csv`, `scalability_benchmark.csv`.
+>
+> **Việc tiếp theo: Giai đoạn 9 — biểu đồ và báo cáo** (người dùng chốt làm ở phiên sau).
+> 1. Gợi ý mức model: vẽ biểu đồ ít thiết kế → có thể dùng Sonnet; viết báo cáo/diễn giải kết quả → Opus. Nhắc người dùng trước khi bắt đầu, theo `CLAUDE.md`.
+> 2. Trước khi viết code: chốt với người dùng cách tổ chức `notebooks/03_visualize_results.ipynb` (đọc file kết quả từ Drive, lưu `.png` vào `results/figures/`), thứ tự vẽ, và cấu trúc báo cáo. Danh mục H1–H10 ở `ket-qua-thuc-nghiem.md` mục 9; dữ liệu nguồn của từng hình đã có đủ trừ H1.
+> 3. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
 >
 > **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
 

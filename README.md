@@ -6,7 +6,14 @@
 
 ## Trạng thái
 
-Giai đoạn 0 (thiết kế), 1 (dữ liệu, trừ HIGGS full), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong và đã kiểm chứng trên Google Colab. Giai đoạn 5 (Experiment Runner) đã xong: đủ 312 dòng kết quả. Tiếp theo: Giai đoạn 6 (meta-model + 3 baseline) — xem `docs/checklist-trien-khai.md`.
+Giai đoạn 0–8 đã xong và đã kiểm chứng trên Google Colab (cập nhật 2026-10-26, `134 passed`):
+- 0–4: thiết kế, dữ liệu (kể cả HIGGS full), module Profiling, Pollution, ML downstream.
+- 5: Experiment Runner — đủ 312 dòng kết quả.
+- 6: meta-model (Gradient Boosting + SHAP) và 3 baseline (rule-based, weighted score, DQSOps-PCA).
+- 7: đánh giá & so sánh — meta-model ước lượng và xếp hạng mức suy giảm tốt nhất ở cả 3 tác vụ; hơn DQSOps-PCA có ý nghĩa thống kê.
+- 8: scalability — pandas hết RAM ở 22M dòng, PySpark chạy được trong giới hạn 4 GB.
+
+Tiếp theo: Giai đoạn 9 (biểu đồ H1–H10 và báo cáo) — xem `docs/checklist-trien-khai.md`. Số liệu: `docs/ket-qua-thuc-nghiem.md`; khác biệt so với bài gốc: `docs/khac-biet-so-voi-bai-goc.md`.
 
 ## Cấu trúc thư mục
 
