@@ -9,4 +9,4 @@
 
 - `test_evaluate_methods.py` — chỉ số hồi quy/phân loại khớp tính tay; bootstrap lấy lại theo nhóm, tái lập được; bảng phụ bỏ đúng 24 lượt; đủ dòng ở 3 bảng kết quả; chẩn đoán SHAP. Dùng bảng giả lập của `test_metamodel.py`.
 
-Chạy tất cả: `python -m pytest tests/ -q` (trên Colab: cell 14.1; Giai đoạn 6 đạt `116 passed`, Giai đoạn 7 thêm 8 test, kỳ vọng `124 passed`).
+Chạy tất cả: `python -m pytest tests/ -q` (trên Colab: cell 14.1; Giai đoạn 6 đạt `116 passed`, Giai đoạn 7 thêm 8 test, đạt `124 passed` ngày 2026-10-26).

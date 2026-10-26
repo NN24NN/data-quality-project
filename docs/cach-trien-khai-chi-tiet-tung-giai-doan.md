@@ -443,7 +443,7 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Chưa làm:** R², Spearman, ma trận Good/Bad và độ lệch chuẩn theo seed thuộc Giai đoạn 7. Chưa giải thích được tỷ trọng SHAP 0,107 của Uniqueness ở classification.
 
-## Giai đoạn 7 — Đánh giá & so sánh (đã viết code ngày 2026-10-26, **chưa chạy trên Colab**)
+## Giai đoạn 7 — Đánh giá & so sánh (xong ngày 2026-10-26, đã kiểm chứng trên Colab)
 
 **Quyết định của người dùng (2026-10-26)**, lý do và lợi ích đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.6:
 1. Code ở `src/metamodel/evaluate_methods.py`, đọc dự đoán out-of-fold của Giai đoạn 6, không huấn luyện lại.
@@ -473,4 +473,16 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 
 **Test kiểm tra gì:** chỉ số hồi quy và phân loại khớp đáp án tính tay (kể cả trường hợp không có Bad); bootstrap lấy lại theo nhóm chứ không theo dòng và tái lập được với cùng seed; bảng phụ bỏ đúng 24 dòng; trên dự đoán out-of-fold của bảng giả lập: đủ số dòng ở cả 3 bảng, một ô MAE khớp tính tay, CI chứa điểm ước lượng, nhãn thật không phụ thuộc phương pháp, tp+fp+fn+tn = số dòng; chẩn đoán SHAP đủ dòng và Completeness của regression đến chủ yếu từ chính lượt Completeness.
 
-**Chưa làm / chưa kiểm chứng:** chưa chạy trên Colab (kỳ vọng `124 passed`), chưa có số liệu, chưa tick checklist.
+**Kết quả kiểm chứng (Colab CPU, commit `755bf48`, ngày 2026-10-26):** cell 14.1 `124 passed` trong 65,1 giây, không cảnh báo; 14.2 ghi đủ 3 file (96 / 64 / 192 dòng, đúng số tính trước); 14.3 ghi `shap_by_row_dimension.csv`, `shap_importance.csv` không đổi so với 13.3.
+
+**Kết quả chính** (đầy đủ ở `ket-qua-thuc-nghiem.md` mục 7, 10 kết luận ở 7.6):
+- Meta-model có MAE thấp nhất và Spearman cao nhất ở cả 3 tác vụ với Δ tuyệt đối.
+- Bootstrap: hơn DQSOps-PCA có ý nghĩa thống kê; hơn weighted score chưa có ý nghĩa ở tổng thể (p = 0,057), có ý nghĩa ở clustering (Δ tương đối).
+- DQSOps-PCA có Spearman ≈ 0 hoặc âm: không xếp hạng được mức suy giảm.
+- Good/Bad: weighted score tốt nhất ở ngưỡng 5–10%, meta-model tốt nhất ở 20%; rule-based báo Bad 92% số lượt vì Class Balance sạch của cả HIGGS (0,887) và Covertype dưới 0,9.
+- Kết luận giữ nguyên trên 288 lượt.
+- Chẩn đoán SHAP bác bỏ giả thuyết "Uniqueness mượn ảnh hưởng của Completeness"; Uniqueness đóng vai trò tín hiệu loại trừ.
+
+**Hai điểm thực tế khác dự kiến:** tỷ lệ Bad thật là 51,6% chứ không phải thiểu số; giả thuyết về SHAP của Uniqueness sai. Cả hai đã ghi trung thực trong `ket-qua-thuc-nghiem.md` mục 7.6.
+
+**Chưa làm:** biểu đồ H5–H7 (để Giai đoạn 9).

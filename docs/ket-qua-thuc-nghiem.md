@@ -12,7 +12,7 @@
 | 4 — Downstream (baseline sạch) | Có |
 | 5 — Experiment Runner (312 lượt) | Có đủ: test và chạy thử (5.1), regression (5.2), clustering (5.3), classification (5.4), tổng kết (5.5) |
 | 6 — Meta-model + 3 baseline | Có: test, MAE xem nhanh, trọng số PC1, SHAP theo tác vụ (6.1–6.5) |
-| 7 — Đánh giá & so sánh | *Chưa có* |
+| 7 — Đánh giá & so sánh | Có: bảng chính (7.1), bootstrap (7.2), bảng phụ 288 (7.3), Good/Bad (7.4), chẩn đoán SHAP (7.5), tổng kết (7.6) |
 | 8 — Scalability (Spark) | *Chưa có* |
 
 ---
@@ -342,7 +342,123 @@ Tỷ trọng = trung bình |SHAP| của dimension / tổng của các dimension 
 
 ## 7. Đánh giá và so sánh (Giai đoạn 7)
 
-*Chưa có.* Sẽ ghi: bảng MAE / R² / Spearman cho meta-model và 3 baseline (toàn bộ và từng tác vụ); accuracy/F1 Good/Bad cho baseline rule-based; bảng chính tính trên 312 hay 288 lượt.
+*Nguồn: notebook cell 14.1–14.3, Colab CPU, commit `755bf48`, ngày 2026-10-26. Thiết kế: `khac-biet-so-voi-bai-goc.md` mục 4.6. File trên Drive `results/`: `method_comparison.csv`, `method_bootstrap.csv`, `goodbad_comparison.csv`, `shap_by_row_dimension.csv`.*
+
+- Cell 14.1: **`124 passed`** trong 65,1 giây (116 cũ + 8 mới).
+- **Bảng chính tính trên 312 lượt**; bảng phụ 288 lượt (bỏ Class Balance × clustering, chỉ lọc phần đánh giá) ở mục 7.3.
+- Số liệu dạng "trung bình ± độ lệch chuẩn qua 3 seed" (Group K-Fold). **In đậm** = tốt nhất trong cột.
+
+### 7.1 Bảng so sánh chính — Group K-Fold, Δ tuyệt đối (dữ liệu cho H5)
+
+| Chỉ số | Phương pháp | Classification | Clustering | Regression | Tất cả |
+|---|---|---|---|---|---|
+| MAE ↓ | Meta-model | **0,039 ± 0,008** | **0,037 ± 0,009** | **0,093 ± 0,013** | **0,055 ± 0,006** |
+| | Weighted score | 0,045 ± 0,003 | 0,072 ± 0,001 | 0,121 ± 0,003 | 0,077 ± 0,002 |
+| | DQSOps-PCA | 0,073 ± 0,003 | 0,055 ± 0,004 | 0,127 ± 0,005 | 0,084 ± 0,003 |
+| Spearman ↑ | Meta-model | **0,720 ± 0,081** | **0,616 ± 0,046** | **0,635 ± 0,085** | **0,660 ± 0,035** |
+| | Weighted score | 0,508 ± 0,092 | 0,319 ± 0,059 | 0,607 ± 0,020 | 0,323 ± 0,042 |
+| | DQSOps-PCA | −0,014 ± 0,068 | −0,053 ± 0,177 | 0,013 ± 0,095 | 0,058 ± 0,018 |
+| R² ↑ | Meta-model | −0,235 ± 0,381 | −0,098 ± 1,068 | **0,453 ± 0,150** | **0,383 ± 0,122** |
+| | Weighted score | **0,228 ± 0,052** | −0,900 ± 0,105 | 0,000 ± 0,002 | 0,071 ± 0,015 |
+| | DQSOps-PCA | −0,698 ± 0,168 | **−0,028 ± 0,171** | −0,097 ± 0,040 | −0,029 ± 0,049 |
+
+**Δ tương đối (bảng phụ về thang nhãn):**
+
+| Chỉ số | Phương pháp | Classification | Clustering | Regression | Tất cả |
+|---|---|---|---|---|---|
+| MAE ↓ | Meta-model | 0,082 ± 0,008 | **0,187 ± 0,016** | **0,098 ± 0,012** | **0,119 ± 0,003** |
+| | Weighted score | **0,064 ± 0,006** | 0,266 ± 0,006 | 0,113 ± 0,004 | 0,141 ± 0,004 |
+| | DQSOps-PCA | 0,122 ± 0,002 | 0,288 ± 0,006 | 0,174 ± 0,013 | 0,189 ± 0,006 |
+| Spearman ↑ | Meta-model | **0,661 ± 0,116** | **0,466 ± 0,114** | **0,775 ± 0,031** | **0,586 ± 0,029** |
+| | Weighted score | 0,563 ± 0,034 | 0,373 ± 0,029 | 0,609 ± 0,022 | 0,469 ± 0,021 |
+| | DQSOps-PCA | −0,129 ± 0,190 | −0,522 ± 0,070 | −0,200 ± 0,296 | −0,158 ± 0,132 |
+| R² ↑ | Meta-model | −0,900 ± 0,060 | **0,563 ± 0,079** | **0,513 ± 0,144** | **0,538 ± 0,052** |
+| | Weighted score | **−0,053 ± 0,094** | 0,180 ± 0,024 | 0,429 ± 0,033 | 0,341 ± 0,024 |
+| | DQSOps-PCA | −1,425 ± 0,046 | −0,168 ± 0,036 | −0,260 ± 0,179 | −0,073 ± 0,054 |
+
+**Thí nghiệm nội suy (test λ = 0,5, 78 dòng, 1 lần chia)**, MAE tuyệt đối / Spearman tuyệt đối:
+
+| Phương pháp | Classification | Clustering | Regression | Tất cả |
+|---|---|---|---|---|
+| Meta-model | 0,050 / 0,726 | 0,054 / 0,715 | **0,097 / 0,830** | **0,066 / 0,839** |
+| Weighted score | 0,052 / −0,219 | 0,054 / 0,674 | 0,149 / 0,435 | 0,082 / 0,179 |
+| DQSOps-PCA | **0,037 / 0,927** | **0,046 / 0,803** | 0,134 / 0,684 | 0,069 / 0,715 |
+
+Với Δ tương đối, meta-model tốt nhất ở regression (MAE 0,058, Spearman 0,927) và clustering (0,164 / 0,925), kém ở classification (0,125 / 0,143).
+
+### 7.2 Bootstrap theo nhóm — hiệu MAE meta-model − baseline, CI 95% (âm = meta-model tốt hơn)
+
+Group K-Fold, 312 lượt. **In đậm** = CI không chứa 0 (khác biệt có ý nghĩa ở mức 95%).
+
+| Nhãn | So với | Classification | Clustering | Regression | Tất cả |
+|---|---|---|---|---|---|
+| Tuyệt đối | DQSOps-PCA | **−0,035 [−0,059; −0,001]** | −0,018 [−0,035; +0,007] | −0,034 [−0,084; +0,002] | **−0,029 [−0,048; −0,011]** |
+| | Weighted score | −0,007 [−0,032; +0,031] | −0,034 [−0,063; +0,005] | −0,028 [−0,095; +0,030] | −0,022 [−0,047; +0,005] |
+| Tương đối | DQSOps-PCA | −0,040 [−0,103; +0,050] | **−0,101 [−0,226; −0,016]** | **−0,076 [−0,127; −0,030]** | **−0,070 [−0,119; −0,028]** |
+| | Weighted score | +0,018 [−0,039; +0,068] | **−0,079 [−0,179; −0,006]** | −0,015 [−0,083; +0,029] | −0,022 [−0,063; +0,012] |
+
+Thí nghiệm nội suy: khác biệt có ý nghĩa chỉ ở regression (tuyệt đối, so với DQSOps-PCA: −0,037 [−0,066; −0,000]) và ở Δ tương đối với clustering, regression (so với cả hai baseline ở clustering; so với DQSOps-PCA ở regression). Ở classification và clustering với Δ tuyệt đối, DQSOps-PCA nhỉnh hơn nhưng không có ý nghĩa (CI chứa 0).
+
+### 7.3 Bảng phụ 288 lượt (bỏ 24 lượt Class Balance × clustering)
+
+| Nhãn | Phương pháp | Classification | Clustering | Regression | Tất cả |
+|---|---|---|---|---|---|
+| Tuyệt đối | Meta-model | **0,039** | **0,038** | **0,093** | **0,057** |
+| | Weighted score | 0,045 | 0,078 | 0,121 | 0,079 |
+| | DQSOps-PCA | 0,073 | 0,061 | 0,127 | 0,088 |
+| Tương đối | Meta-model | 0,082 | **0,178** | **0,098** | **0,111** |
+| | Weighted score | **0,064** | 0,285 | 0,113 | 0,136 |
+| | DQSOps-PCA | 0,122 | 0,323 | 0,174 | 0,190 |
+
+(MAE, Group K-Fold.) Bootstrap trên 288 lượt cho cùng kết luận: meta-model hơn DQSOps-PCA có ý nghĩa ở cả hai nhãn (tuyệt đối −0,032 [−0,053; −0,011]); hơn weighted score không có ý nghĩa ở tổng thể. **Kết luận không phụ thuộc 24 lượt gây tranh cãi**, thậm chí khoảng cách meta-model − baseline ở clustering còn lớn hơn khi bỏ chúng.
+
+### 7.4 Good/Bad — ngưỡng Δ tương đối 10%, Group K-Fold, 312 lượt (dữ liệu cho H7)
+
+| Phương pháp | F1 lớp Bad | Balanced accuracy | Accuracy | Tỷ lệ đoán Bad | tp / fp / fn / tn (tất cả tác vụ) |
+|---|---|---|---|---|---|
+| Weighted score | **0,790** | **0,741** | **0,747** | 0,692 | 149 / 67 / 12 / 84 |
+| Meta-model | 0,746 | 0,709 | 0,713 | 0,618 | 132 / 61 / 29 / 90 |
+| Rule-based | 0,717 | 0,579 | 0,593 | 0,923 | 161 / 127 / 0 / 24 |
+| DQSOps-PCA | 0,645 | 0,463 | 0,478 | 0,955 | 148 / 150 / 13 / 1 |
+
+Tỷ lệ Bad thật: **51,6%** (regression 53,1%, clustering 61,5%, classification 42,5%).
+
+Balanced accuracy theo tác vụ (classification / clustering / regression): weighted 0,840 / 0,500 / 0,778; meta-model 0,826 / 0,512 / 0,703; rule-based 0,500 / 0,500 / 0,767; DQSOps-PCA 0,478 / 0,500 / 0,402.
+
+Độ nhạy theo ngưỡng (F1 lớp Bad, tất cả tác vụ):
+
+| Phương pháp | 5% | 10% | 20% |
+|---|---|---|---|
+| Weighted score | **0,831** | **0,790** | 0,560 |
+| Meta-model | 0,792 | 0,746 | **0,687** |
+| Rule-based | 0,782 | 0,717 | 0,542 |
+| DQSOps-PCA | 0,724 | 0,645 | 0,338 |
+
+### 7.5 Chẩn đoán SHAP của Uniqueness ở classification
+
+Trung bình |SHAP| (nhãn tuyệt đối), tách theo dimension đang bị làm bẩn của dòng:
+
+| Dòng thuộc lượt | Completeness | Feature Acc. | Target Acc. | Uniqueness | Class Balance | Số dòng |
+|---|---|---|---|---|---|---|
+| λ = 0 | 0,0186 | 0,0215 | 0,0166 | 0,0132 | 0,0063 | 30 |
+| Completeness | **0,0770** | 0,0156 | 0,0146 | 0,0043 | 0,0146 | 18 |
+| Feature Accuracy | 0,0117 | **0,0841** | 0,0156 | 0,0050 | 0,0073 | 18 |
+| Target Accuracy | 0,0132 | 0,0144 | **0,0862** | 0,0169 | 0,0056 | 18 |
+| Uniqueness | 0,0194 | 0,0215 | 0,0166 | 0,0118 | 0,0065 | 18 |
+| Class Balance | 0,0168 | 0,0203 | 0,0184 | 0,0146 | **0,0402** | 18 |
+
+### 7.6 Tổng kết Giai đoạn 7 — kết luận cho báo cáo
+
+1. **Meta-model ước lượng mức suy giảm tốt nhất.** Với Δ tuyệt đối (bảng chính), MAE thấp nhất và Spearman cao nhất ở **cả 3 tác vụ** (Spearman 0,62–0,72 so với 0,32–0,61 của weighted score). Với Δ tương đối, meta-model vẫn có Spearman cao nhất ở cả 3 tác vụ và MAE tốt nhất ở clustering, regression.
+2. **Meta-model hơn DQSOps-PCA có ý nghĩa thống kê** ở tổng thể với cả hai nhãn (tuyệt đối −0,029 [−0,048; −0,011]). **Hơn weighted score nhưng chưa có ý nghĩa ở tổng thể** (−0,022 [−0,047; +0,005], p = 0,057); có ý nghĩa ở clustering (Δ tương đối). Với 42 nhóm, sức mạnh thống kê có hạn — cần nói đúng như vậy, không nói "vượt trội mọi baseline".
+3. **DQSOps-PCA gần như không xếp hạng được mức suy giảm:** Spearman ≈ 0 với Δ tuyệt đối và âm với Δ tương đối (−0,52 ở clustering). Khớp phát hiện ở mục 6.4 (PC1 nắm "tác vụ nào" chứ không nắm "bẩn đến đâu"). Đây là bằng chứng mạnh nhất cho luận điểm "điểm chất lượng không gắn downstream thì không dự đoán được hiệu năng".
+4. **Weighted score là baseline mạnh ở bài toán Good/Bad** (F1 0,790 so với 0,746 của meta-model ở ngưỡng 10%), nhưng meta-model bền hơn khi ngưỡng cao (20%: 0,687 so với 0,560). Diễn giải: điểm trung bình đủ để nhận ra "có dimension nào đó bị bẩn", nhưng không đủ để ước lượng **bẩn đến mức hại bao nhiêu** — phần đó cần biết tác vụ.
+5. **Rule-based gần như luôn báo Bad** (92,3% số lượt; chỉ 24 lượt Good), vì Class Balance sạch của **cả HIGGS (0,887) lẫn Covertype (0,254)** đã dưới ngưỡng 0,9: balanced accuracy 0,500 ở classification và clustering. Luật cố định không thích nghi được với mức nền tự nhiên của từng dataset.
+6. **R² trong từng tác vụ không ổn định** (meta-model clustering −0,098 ± 1,068): R² phạt nặng vài lỗi lớn khi cả một nhóm (vd λ = 0,8) bị giấu, trong khi phương sai Δ trong một tác vụ nhỏ. MAE và Spearman là thước đo chính đáng tin hơn; báo R² kèm giải thích này.
+7. **Thí nghiệm nội suy cho tín hiệu lẫn lộn** (78 dòng, phần lớn CI chứa 0): meta-model tốt nhất ở regression và tổng thể; DQSOps-PCA nhỉnh hơn ở classification và clustering với Δ tuyệt đối nhưng không có ý nghĩa.
+8. **Kết luận đứng vững trên 288 lượt** (mục 7.3).
+9. **Chẩn đoán SHAP (mục 7.5) bác bỏ giả thuyết** "Uniqueness mượn ảnh hưởng của Completeness": |SHAP| của Uniqueness ở các dòng Completeness chỉ 0,0043, thấp nhất. Nó trải đều ở dòng λ = 0, Target Accuracy, Class Balance, Uniqueness (0,012–0,017). Diễn giải: điểm Uniqueness hầu như chỉ đổi ở lượt làm bẩn Uniqueness (nơi Δ ≈ 0), nên mô hình dùng nó như tín hiệu **loại trừ** — "điểm Uniqueness bình thường → đây không phải lượt vô hại → dự đoán Δ cao hơn trung bình". Tỷ trọng 0,107 vì thế không có nghĩa Uniqueness gây hại cho classification; báo cáo cần nêu rõ cách đọc này khi trình bày H8.
+10. **Dự đoán sai của nhóm khi thiết kế:** đã đoán lớp Bad là thiểu số, thực tế 51,6% — accuracy vì thế không bị lệch mạnh, nhưng F1 lớp Bad và balanced accuracy vẫn là thước đo đúng (thấy rõ ở DQSOps-PCA: accuracy 0,478 nhưng gần như đoán Bad hết).
 
 ## 8. Scalability (Giai đoạn 8)
 

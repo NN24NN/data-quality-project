@@ -231,7 +231,7 @@ Bài gốc không có các chi tiết này: Mohammed et al. không có meta-mode
 | 4 | Rule-based | Ngưỡng **mọi dimension < 0,9 → Bad**, cố định theo ví dụ của thiết kế, không tinh chỉnh. "Bad" thật: **Δ tương đối > 10%** (mất trên 10% hiệu năng); phân tích độ nhạy với 5% và 20%. Meta-model được rời rạc hóa bằng dự đoán Δ tương đối với cùng ngưỡng | Δ tương đối cho phép một ngưỡng chung cho cả 3 tác vụ. Tinh chỉnh ngưỡng thì rule-based thành một mô hình học, không còn là baseline "luật cố định" | Ngưỡng trên Δ tuyệt đối: một con số không phù hợp cả R² ~0,9 lẫn AMI ~0,2 |
 | 5 | Siêu tham số meta-model | Cố định theo thiết kế: `n_estimators = 100`, `max_depth = 3`, `learning_rate = 0.1`; seed từ `seeds.yaml`. **Không tinh chỉnh** | 312 dòng mà tinh chỉnh thì phải dùng nested CV, dễ overfit lên chính tập đánh giá; giữ cố định cho số liệu trung thực | Grid search trong CV thường: số liệu bị lạc quan giả tạo |
 
-**Hệ quả cần biết khi đọc kết quả rule-based:** Class Balance của Covertype ở baseline sạch đã là 0,254 < 0,9, nên rule-based báo **Bad cho mọi lượt Covertype, kể cả λ = 0**. Đây là điểm yếu thật của luật cố định khi dữ liệu mất cân bằng tự nhiên, nên giữ nguyên và nêu trong báo cáo.
+**Hệ quả cần biết khi đọc kết quả rule-based:** Class Balance của Covertype ở baseline sạch đã là 0,254 < 0,9, nên rule-based báo **Bad cho mọi lượt Covertype, kể cả λ = 0**. *Đo thật (Giai đoạn 7) cho thấy HIGGS cũng vậy:* Class Balance sạch là 0,887, chỉ dưới ngưỡng một chút, nên rule-based báo Bad cho mọi lượt classification; tổng cộng 92,3% số lượt bị báo Bad. Đây là điểm yếu thật của luật cố định khi dữ liệu mất cân bằng tự nhiên, nên giữ nguyên và nêu trong báo cáo.
 
 **Lợi ích cho báo cáo (điểm cộng):**
 - **Mỗi lựa chọn đều có lý do và phương án thay thế đã cân nhắc**, nên trả lời được câu hỏi "sao không làm cách khác?" cho từng điểm.
@@ -267,7 +267,14 @@ Hai bài gốc không có bước này: Mohammed et al. không có mô hình d�
 
 **Giới hạn cần nêu khi trình bày:** 42 nhóm là ít cho bootstrap, khoảng tin cậy chỉ mang tính tham khảo. Thí nghiệm nội suy chỉ có 13 nhóm ở λ = 0,5 nên khoảng tin cậy ở đó rất rộng. Lỗi tuyệt đối của mỗi dòng được lấy trung bình qua 3 lần lặp trước khi bootstrap.
 
-*Trạng thái: Đã viết (`src/metamodel/evaluate_methods.py`, chẩn đoán trong `explain_shap.py`; chưa chạy trên Colab).*
+**Đã xác nhận bằng số liệu (Colab 2026-10-26, `ket-qua-thuc-nghiem.md` mục 7):**
+- **Bootstrap đổi cách diễn đạt kết luận:** nếu chỉ nhìn MAE (0,055 so với 0,077), dễ nói "meta-model vượt trội cả hai baseline". Bootstrap cho thấy chỉ hơn DQSOps-PCA là có ý nghĩa; hơn weighted score thì CI [−0,047; +0,005] còn chứa 0. Báo cáo nói đúng mức này — một kết luận được kiểm chứng, khó bị bắt bẻ.
+- **Báo theo tác vụ** làm lộ ra chỗ weighted score thắng (classification với Δ tương đối, và bài toán Good/Bad), thay vì bị con số gộp che đi.
+- **Bảng 288 lượt** cho cùng kết luận, khoảng cách ở clustering còn lớn hơn: meta-model không thắng nhờ 24 lượt Class Balance.
+- **Dự đoán sai khi thiết kế:** lớp Bad không phải thiểu số (51,6%). F1 lớp Bad và balanced accuracy vẫn cần thiết: DQSOps-PCA có accuracy 0,478 nhưng balanced accuracy 0,463 vì gần như đoán Bad hết.
+- **Chẩn đoán SHAP bác bỏ giả thuyết ban đầu** và cho một cách đọc đúng hơn (Uniqueness là tín hiệu loại trừ), giúp trình bày H8 không bị hiểu sai.
+
+*Trạng thái: **Đã cài** (`src/metamodel/evaluate_methods.py`, chẩn đoán trong `explain_shap.py`; `124 passed`; chạy trên Colab ngày 2026-10-26).*
 
 ---
 
