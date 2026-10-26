@@ -1,0 +1,22 @@
+# Giai đoạn 6 — meta-model và 3 baseline
+# Lý do từng giá trị: docs/khac-biet-so-voi-bai-goc.md mục 4.3 (chia train/test), 4.4 (nhãn), 4.5 (đầu vào, baseline)
+# Seed lấy từ seeds.yaml, không đặt ở đây.
+
+gradient_boosting:          # GradientBoostingRegressor — cố định theo thiết kế, KHÔNG tinh chỉnh
+  n_estimators: 100
+  max_depth: 3
+  learning_rate: 0.1
+
+not_applicable_fill: 1.0    # dimension không áp dụng (NaN) -> 1.0 trong ma trận đầu vào của meta-model và PCA
+
+targets: [absolute, relative]   # absolute = delta_performance (chính); relative = delta / baseline_performance (phụ)
+
+cv:
+  n_splits: 5               # StratifiedGroupKFold, nhóm = (task, dimension, λ); lặp lại với mỗi seed trong seeds.yaml runs
+
+interpolation_test_level: 0.5   # thí nghiệm phụ: train trên các λ còn lại, test trên λ này
+
+rule_based:
+  profile_threshold: 0.9            # Bad nếu bất kỳ dimension áp dụng được < ngưỡng
+  bad_relative_delta: 0.10          # nhãn thật Bad nếu Δ tương đối > 10% (dùng ở Giai đoạn 7)
+  sensitivity_relative_delta: [0.05, 0.20]

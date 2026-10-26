@@ -58,6 +58,8 @@
 
 **Điểm cần nói rõ khi trình bày:** với cột toàn giá trị dương, `mean(|gt|) = mean(gt)`, nên trên những cột đó kết quả **trùng với bài gốc**. Đây là mở rộng công thức cho loại cột bài gốc không gặp, không phải thay công thức.
 
+**Lợi ích cho báo cáo (điểm cộng):** cho thấy nhóm phát hiện được một điểm yếu của công thức gốc khi đưa sang loại dữ liệu bài gốc chưa gặp (cột đối xứng quanh 0, cột âm), và sửa theo cách **tương thích ngược** (trùng bài gốc trên cột dương). Nếu không sửa, điểm Feature Accuracy của HIGGS sẽ vô nghĩa và toàn bộ meta-model học trên số rác.
+
 **Chưa kiểm chứng:** nhận định "cột nào trung bình gần 0" dựa trên hiểu biết về hai bộ dữ liệu, chưa đo trên bản sạch. Cần in `mean` và `mean(|·|)` từng cột để có số liệu thật cho slide.
 
 *Trạng thái: Đã cài (`src/profiling/common.py`, hàm `numeric_accuracy`; test 12/12 passed).*
@@ -79,6 +81,8 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 | Mỗi **nhóm cột one-hot** tính là 1 feature categorical (thiếu = cả nhóm bằng 0; sai = khác bản sạch ở bất kỳ bit nào) | Dữ liệu sạch đã one-hot sẵn (`wd`, `station`, `Wilderness_Area`, `Soil_Type`); nếu tính từng cột thì hướng gió bị đếm thành 16 feature |
 | Ô đang **thiếu** không tính vào accuracy | Một lỗi không bị đếm ở cả Completeness lẫn Accuracy; các dimension độc lập với nhau |
 | Dimension **không áp dụng** trả `NaN`, không gán 1.0 | Class Balance không có nghĩa với regression; không bịa điểm |
+
+**Lợi ích cho báo cáo (điểm cộng, chung cho 3.2 và 3.3):** bài gốc để ngỏ các chi tiết này; đề tài chốt tường minh, có lý do và có test đáp án tính tay. Nhờ vậy kết quả **tái lập được**, và các dimension độc lập với nhau (một lỗi không bị đếm hai lần), điều cần thiết khi đưa profile vào meta-model và đọc SHAP theo từng dimension.
 
 *Trạng thái: Đã cài.*
 
@@ -105,6 +109,11 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 | Phân phối số lần nhân bản | Uniform / normal / Zipf | Chỉ normal (mean 1, std 5), tối thiểu 1 bản sao | Thu gọn |
 | Class Balance | Xếp kích thước lớp thành bậc thang đều (chênh nhau hằng số Δ), bớt ở lớp nhỏ và thêm vào lớp lớn; λ = 0 là cân bằng hoàn toàn | Giữ nguyên lớp lớn nhất, xóa tỷ lệ λ số dòng của mọi lớp còn lại; λ = 0 là dữ liệu gốc | Cách của bài gốc đòi cân bằng lại dữ liệu ngay ở λ = 0, làm mất baseline thật; với Covertype sẽ phải bỏ phần lớn dữ liệu |
 
+**Lợi ích cho báo cáo (điểm cộng):**
+- **Cả 5 dimension dùng chung một thang λ** (điểm đo được ≈ 1 − λ, đã kiểm chứng bằng profiler), nên so sánh được tác động giữa các dimension ở cùng mức bẩn và meta-model học trên các feature cùng thang.
+- **Giữ baseline thật** (không xóa trùng, không cân bằng lại ở λ = 0): Δ đo đúng mức suy giảm so với dữ liệu thực tế, không so với một bản dữ liệu đã bị chỉnh.
+- **Đã đo lại liều lượng** bằng profiler (cell 10.2) thay vì tin vào lý thuyết; phát hiện và ghi nhận được hai hiện tượng không hiển nhiên dưới đây, là nội dung thảo luận tốt.
+
 **Hiện tượng cần biết khi trình bày kết quả (không phải lỗi):**
 - **Nhãn nhị phân đổi 80%** (Target Accuracy, HIGGS, λ = 0,8): nhãn gần như bị đảo ngược chứ không phải nhiễu hơn. Vì train và test bẩn cùng mức (Scenario 3), mô hình học được quan hệ đảo và F1 có thể **tăng trở lại** so với λ = 0,5 (mức nhiễu tối đa với 2 lớp).
 - **Class Balance trên dữ liệu nhiều lớp**: với công thức `ε` của bài gốc, điểm Balance không nhất thiết giảm khi xóa bớt các lớp nhỏ. Đo thật trên Covertype (7 lớp): điểm **tăng** 0,254 → 0,303 / 0,377 / 0,451 khi λ = 0,2 / 0,5 / 0,8; trên HIGGS (2 lớp) điểm giảm đúng hướng 0,889 → 0,711 / 0,444 / 0,178. Nguyên nhân: `ε` coi "một nửa số lớp đầy, một nửa rỗng" là xấu nhất, còn polluter đẩy dữ liệu về "một lớp lớn, các lớp còn lại nhỏ đều". *Đã chốt: vẫn chạy Class Balance cho clustering (312 lượt); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.*
@@ -124,6 +133,8 @@ Bài gốc mô tả `n_cmax` là "số dòng tối đa một lớp có thể có
 | Số cụm (clustering) | — | Bằng số lớp thật của target | Theo tài liệu thiết kế |
 
 **Điểm cần nói rõ khi trình bày:** vì ô thiếu được điền bằng trung vị thay vì placeholder, ảnh hưởng của Completeness lên mô hình có thể khác bài gốc (placeholder ngoài miền giá trị cho mô hình cây một tín hiệu "ô này thiếu", trung vị thì không).
+
+**Lợi ích cho báo cáo (điểm cộng):** mọi lựa chọn cấu hình đều **có số đo đi kèm** (Random Forest: F1 chỉ giảm 0,008 mà nhanh gấp 6,6; GMM: độ lệch chuẩn theo seed giảm 0,045 → 0,010). Đây là các đánh đổi có chủ đích và có bằng chứng, nhờ vậy 312 lượt chạy vừa trong ~7 giờ Colab và nhãn ΔAMI đủ ổn định để học.
 
 **Giới hạn của việc lấy mẫu con cho Random Forest (cần nêu trong báo cáo):**
 - Cây học trên ít dòng hơn thì nông hơn và ít học thuộc nhiễu hơn, nên ΔF1 đo được (nhất là với Target Accuracy) có thể **nhỏ hơn** so với Random Forest mặc định. Kết quả là của "Random Forest có lấy mẫu con". *Chưa đo — đo được thì phải chạy bản mặc định trên dữ liệu bẩn, quay lại bài toán thời gian.*
@@ -146,9 +157,91 @@ Bài gốc (Mohammed et al.) không mô hình hóa ΔPerformance, chỉ vẽ đ�
 | Phương án không chọn | Trung bình 3 seed | Đơn giản hơn, nhưng nhiễu seed dồn vào nhãn của meta-model. Vẫn tính lại được từ `raw_performance` và `baseline_performance.csv` mà không phải chạy lại |
 | Dấu của Δ | `baseline − raw`, nên Δ > 0 nghĩa là hiệu năng giảm | Theo `thiet-ke-thi-nghiem-chi-tiet.md` mục 4 |
 
+**Lợi ích cho báo cáo (điểm cộng):** nhãn sạch hơn cho meta-model (Δ = 0 tuyệt đối ở λ = 0, kiểm chứng max |Δ| = 1,1e-16). Phần nhiễu do seed (mô hình không thể học được) được tách khỏi phần do ô nhiễm, nên sai số còn lại của meta-model phản ánh đúng khả năng dự đoán.
+
 **Giới hạn cần nêu khi trình bày:** seed còn điều khiển cả cách làm bẩn, nên hai lượt cùng seed không khớp hoàn toàn. Ở λ cao, dữ liệu đổi nhiều và cùng seed có thể không còn giữ tương quan, nên lợi thế của cách ghép theo seed giảm dần. Chỉ ảnh hưởng đáng kể tới k-Means, GMM (và rất ít tới Random Forest); bốn thuật toán còn lại có độ lệch theo seed ≈ 0 nên hai cách cho gần như cùng kết quả.
 
 *Trạng thái: **Đã cài** (`src/experiment_runner/run_experiment.py`; 100 passed; đã chạy đủ 312 lượt trên Colab ngày 2026-10-23).*
+
+### 4.3 Cách chia train/test cho meta-model và 3 baseline
+
+Mohammed et al. không huấn luyện mô hình dự đoán nên không có quy ước này. Thiết kế ban đầu của đề tài (`kien-truc-mo-hinh-va-ky-thuat.md` mục 4) ghi "chia ngẫu nhiên 80/20, stratify theo task". Sau khi có bảng 312 dòng thì thấy cách đó bị **rò rỉ dữ liệu**:
+- 3 run của cùng (task, thuật toán, dimension, λ) có profile gần như giống nhau, và Δ lệch chuẩn ≤ 0,006 (trừ k-Means). Nếu một run nằm ở train và run khác nằm ở test, mô hình chỉ cần "nhớ".
+- Các dòng λ = 0 là bản chép giống hệt nhau giữa các dimension (mục 4.2, Giai đoạn 5). Ngoài ra, 2 thuật toán của cùng một mức bẩn có chung vector profile.
+
+| Thành phần | Đề tài (người dùng chốt ngày 2026-10-26) | Lý do |
+|---|---|---|
+| **Đánh giá chính (A)** | `StratifiedGroupKFold` 5 fold, nhóm = (task, dimension, λ); riêng λ = 0 gộp thành **1 nhóm mỗi task**. Có 42 nhóm (regression 13, classification 16, clustering 13), stratify theo task, lặp lại 3 lần với seed lấy từ `configs/seeds.yaml` | Kiểm tra đúng mục đích sử dụng: "gặp một mức bẩn chưa thấy, đoán Δ có đúng không". Không còn rò rỉ qua run lặp, qua bản chép λ = 0, hay qua thuật toán còn lại. Mọi dòng đều có dự đoán out-of-fold, nên H5–H7 vẽ được trên đủ 312 dòng; báo cáo dạng trung bình ± độ lệch chuẩn qua các lần lặp |
+| **Thí nghiệm phụ (C)** | Leave-one-λ-out: train trên λ ∈ {0; 0,2; 0,8}, test trên λ = 0,5 | Kiểm tra khả năng **nội suy** theo mức bẩn; rất rẻ. Không giấu λ = 0,8 vì đó là ngoại suy, mô hình cây chắc chắn không làm được |
+| Baseline có tham số | Weighted score (hệ số hồi quy) và DQSOps-PCA (z-score, PCA, hồi quy) được **fit lại trên đúng fold train** rồi dự đoán fold test. Rule-based có ngưỡng cố định nên không cần fit | So sánh công bằng: fit PCA trên cả 312 dòng thì baseline cũng bị rò rỉ |
+| SHAP (H8) | Tính trên meta-model huấn luyện lại bằng **toàn bộ** 312 dòng | Mục đích là giải thích chứ không phải đánh giá |
+| Phương án không chọn | Chia ngẫu nhiên theo dòng; leave-one-dimension-out | Chia ngẫu nhiên thì rò rỉ (như trên). Leave-one-dimension-out thì feature của dimension bị giấu luôn ≈ 1 trong train, nên cả 4 phương pháp cùng thất bại, không phân biệt được phương pháp nào tốt hơn |
+
+**Giới hạn cần nêu khi trình bày:** mỗi fold test chỉ có khoảng 8 nhóm nên số liệu dao động giữa các fold, vì vậy phải báo kèm độ lệch chuẩn. Meta-model dạng cây không ngoại suy ra ngoài khoảng λ đã thấy.
+
+**Lợi ích cho báo cáo (điểm cộng):**
+- **Kết quả đáng tin hơn:** con số MAE/R² không bị thổi phồng bởi rò rỉ. Đây là lỗi phổ biến trong các bài meta-learning trên bảng kết quả thí nghiệm có lượt lặp.
+- **Trả lời trước câu hỏi của hội đồng** ("3 run giống nhau thì chia thế nào?"), cho thấy nhóm hiểu bản chất dữ liệu chứ không chỉ gọi `train_test_split`.
+- **Hai góc đánh giá bổ trợ nhau:** A đo khả năng tổng quát sang mức bẩn mới, C đo khả năng nội suy theo λ. C còn cho thấy điểm yếu của baseline tuyến tính (PCA, weighted) khi quan hệ giữa profile và Δ phi tuyến.
+- **So sánh công bằng giữa 4 phương pháp:** cùng fold, cùng dữ liệu train, nên chênh lệch phản ánh phương pháp chứ không phải cách chia.
+
+*Trạng thái: Thiết kế (Giai đoạn 6 chưa có code).*
+
+### 4.4 Nhãn của meta-model: Δ tuyệt đối (chính) và Δ tương đối (phụ)
+
+Mohammed et al. chỉ vẽ hiệu năng thô theo mức ô nhiễm, không định nghĩa nhãn Δ. DQSOps dùng quality score tự định nghĩa, cũng không có Δ. Thiết kế ban đầu của đề tài chỉ dùng Δ tuyệt đối (`baseline − raw`, mục 4.2).
+
+**Vấn đề phát hiện sau Giai đoạn 5:** ba tác vụ có thang đo rất khác nhau, nên cùng một con số Δ mang nghĩa khác nhau.
+
+| Tác vụ | Baseline sạch | Δ lớn nhất đo được | Δ = 0,13 nghĩa là |
+|---|---|---|---|
+| Regression (R²) | 0,86–0,92 | ~0,54 | mất ~15% hiệu năng |
+| Classification (F1) | 0,63–0,73 | ~0,18 | mất ~19% hiệu năng |
+| Clustering (AMI) | 0,17–0,20 | ~0,19 (chạm trần: AMI về ≈ 0) | mất ~70% hiệu năng |
+
+Thêm vào đó, Feature Accuracy làm AMI sụp về ≈ 0 từ λ = 0,5, nên ΔAMI bị chặn bởi baseline (hiệu ứng trần, `ket-qua-thuc-nghiem.md` mục 5.5 phát hiện 4).
+
+| Thành phần | Đề tài (người dùng chốt ngày 2026-10-26) | Lý do |
+|---|---|---|
+| **Nhãn chính** | Δ tuyệt đối = `delta_performance` (đúng schema) | Dễ diễn giải ("F1 giảm 0,1"), khớp schema, khớp cách trình bày đường cong của bài gốc |
+| **Nhãn phụ** | Δ tương đối = `delta_performance / baseline_performance`, tính lúc chạy, **không thêm cột vào parquet** | Đưa 3 tác vụ về cùng thang "tỷ lệ hiệu năng bị mất" (≈ 0–1), giảm ảnh hưởng của hiệu ứng trần |
+| Cách chạy | Meta-model và 3 baseline chạy **hai lần**, mỗi lần một nhãn; cùng code, chỉ đổi tham số chọn target; cùng cách chia ở mục 4.3 | Chi phí thêm gần như bằng 0 |
+| Cách báo cáo | Bảng chính (H5) luôn báo MAE / R² / Spearman **theo từng tác vụ**, kèm số gộp. Bản Δ tương đối đặt ở bảng phụ | Báo theo từng tác vụ thì MAE gộp bị regression chi phối cũng không làm sai kết luận |
+| Phương án không chọn | Chỉ Δ tuyệt đối; chỉ Δ tương đối | Chỉ tuyệt đối: MAE gộp bị regression chi phối, clustering bị đánh giá thấp. Chỉ tương đối: khó diễn giải, và baseline AMI nhỏ làm nhiễu bị phóng đại |
+
+**Lợi ích cho báo cáo (điểm cộng):**
+- **Kiểm tra độ bền của kết luận (robustness check):** nếu meta-model thắng 3 baseline ở cả hai thang đo thì kết luận không phụ thuộc vào cách chuẩn hóa. Đây là bằng chứng mạnh hơn một con số đơn lẻ.
+- **Trả lời trước câu hỏi "sao không chuẩn hóa theo baseline?"** và cho thấy nhóm nhận ra vấn đề thang đo khi gộp nhiều tác vụ, điều bài gốc không phải đối mặt vì không gộp.
+- **Liên kết với SHAP:** SHAP trên Δ tương đối cho phép so sánh trực tiếp "dimension này làm mất bao nhiêu phần trăm hiệu năng" giữa các tác vụ, củng cố luận điểm task-aware.
+- **Nhất quán với H4** (heatmap), vốn đã dùng Δ tương đối.
+
+**Giới hạn cần nêu khi trình bày:** với clustering, baseline AMI nhỏ nên Δ tương đối khuếch đại nhiễu. Ví dụ độ lệch chuẩn ΔAMI 0,041 của k-Means tương ứng ~24% trên thang tương đối. Kết quả clustering trên thang tương đối cần đọc thận trọng.
+
+*Trạng thái: Thiết kế (Giai đoạn 6 chưa có code).*
+
+### 4.5 Đầu vào của meta-model và cấu hình 3 baseline
+
+Bài gốc không có các chi tiết này: Mohammed et al. không có meta-model; DQSOps chỉ có PCA composite trên một use case, không có rule-based hay weighted score. Người dùng chốt cả 5 điểm ngày 2026-10-26. Tham số nằm trong `configs/metamodel.yaml`.
+
+| # | Thành phần | Đề tài | Lý do | Phương án không chọn |
+|---|---|---|---|---|
+| 1 | Dimension không áp dụng (Class Balance của regression, NaN ở 96 dòng) | **Meta-model và DQSOps-PCA:** điền 1,0 chỉ trong ma trận đầu vào; parquet giữ NaN. **Weighted score:** trung bình trên các dimension áp dụng được (regression: 4). **Rule-based:** bỏ qua NaN. **SHAP:** dimension không thuộc ma trận thí nghiệm của tác vụ (Class Balance của regression, Target Accuracy của clustering) đánh dấu "không áp dụng" và không tính vào tỷ trọng | `GradientBoostingRegressor` và PCA không nhận NaN. Trong regression giá trị này là hằng số nên không mang thông tin; one-hot task đã tách regression riêng. 1,0 nghĩa là "không có vấn đề mất cân bằng" | Đổi sang `HistGradientBoostingRegressor` (nhận NaN): lệch thiết kế mô hình; điền trung bình cột: bịa ra một mức mất cân bằng không có thật |
+| 2 | Đặc trưng thuật toán | **One-hot 6 thuật toán** (thay `algo_family` linear/tree), giữ one-hot 3 task. Tổng 14 đặc trưng: 5 profile + 3 task + 6 thuật toán | k-Means và GMM không thuộc họ "tuyến tính" hay "cây"; gán họ cho chúng là tùy tiện. One-hot thuật toán chính xác hơn, SHAP vẫn gộp được theo task | Giữ linear/tree và gán clustering vào một họ: mất thông tin, khó bảo vệ |
+| 3 | Class Balance của Covertype đi ngược (điểm tăng khi dữ liệu xấu đi, mục 4) | **Không sửa ở baseline nào.** Weighted score và DQSOps-PCA dùng một công thức chung cho mọi tác vụ (không biết task), đúng tinh thần DQSOps | Đây chính là điểm yếu của điểm chất lượng cố định mà đề tài muốn chỉ ra; meta-model biết task nên học được chiều ngược này. Giai đoạn 7 báo cáo cả 312 và 288 lượt | Đảo dấu điểm Balance riêng cho Covertype: can thiệp thủ công, che mất đúng hiện tượng cần chứng minh |
+| 4 | Rule-based | Ngưỡng **mọi dimension < 0,9 → Bad**, cố định theo ví dụ của thiết kế, không tinh chỉnh. "Bad" thật: **Δ tương đối > 10%** (mất trên 10% hiệu năng); phân tích độ nhạy với 5% và 20%. Meta-model được rời rạc hóa bằng dự đoán Δ tương đối với cùng ngưỡng | Δ tương đối cho phép một ngưỡng chung cho cả 3 tác vụ. Tinh chỉnh ngưỡng thì rule-based thành một mô hình học, không còn là baseline "luật cố định" | Ngưỡng trên Δ tuyệt đối: một con số không phù hợp cả R² ~0,9 lẫn AMI ~0,2 |
+| 5 | Siêu tham số meta-model | Cố định theo thiết kế: `n_estimators = 100`, `max_depth = 3`, `learning_rate = 0.1`; seed từ `seeds.yaml`. **Không tinh chỉnh** | 312 dòng mà tinh chỉnh thì phải dùng nested CV, dễ overfit lên chính tập đánh giá; giữ cố định cho số liệu trung thực | Grid search trong CV thường: số liệu bị lạc quan giả tạo |
+
+**Hệ quả cần biết khi đọc kết quả rule-based:** Class Balance của Covertype ở baseline sạch đã là 0,254 < 0,9, nên rule-based báo **Bad cho mọi lượt Covertype, kể cả λ = 0**. Đây là điểm yếu thật của luật cố định khi dữ liệu mất cân bằng tự nhiên, nên giữ nguyên và nêu trong báo cáo.
+
+**Lợi ích cho báo cáo (điểm cộng):**
+- **Mỗi lựa chọn đều có lý do và phương án thay thế đã cân nhắc**, nên trả lời được câu hỏi "sao không làm cách khác?" cho từng điểm.
+- **Baseline được cài trung thực, không bị làm yếu đi có chủ đích:** công thức của từng baseline đúng như thiết kế, chỉ khác ở những gì bài gốc không quy định. Nếu meta-model thắng thì là thắng công bằng.
+- **Điểm 3 biến một "lỗi" thành một minh họa:** cùng một điểm Balance tăng, công thức cố định đoán sai hướng, còn mô hình theo ngữ cảnh đoán đúng. Đây là ví dụ cụ thể, dễ hiểu cho luận điểm task-aware.
+- **Không tinh chỉnh siêu tham số** cho thấy kết quả không đến từ việc "vặn" mô hình trên tập đánh giá.
+
+**Giới hạn cần nêu khi trình bày:** điền 1,0 cho Class Balance của regression làm cột này có phương sai gắn với tác vụ khi PCA gộp cả 3 tác vụ, nên PC1 của DQSOps phần nào phản ánh "đây là tác vụ nào". Đây là hệ quả của việc dùng một điểm chung cho mọi tác vụ, đúng như DQSOps làm.
+
+*Trạng thái: Đã viết (code Giai đoạn 6, chưa chạy test trên Colab).*
 
 ---
 
@@ -161,6 +254,8 @@ Bài gốc (Mohammed et al.) không mô hình hóa ΔPerformance, chỉ vẽ đ�
 | HIGGS: lấy mẫu 1.000.000 / 11.000.000 dòng | Stratified theo target, seed 42 | Tỷ lệ nhãn giữ nguyên 52,99% / 47,01% |
 | HIGGS mẫu có 2.281 dòng trùng (0,23%) | Giữ nguyên, không xóa | Uniqueness của baseline hơi nhỏ hơn 1; ΔPerformance luôn tính so với baseline thật |
 | Covertype mất cân bằng tự nhiên | Lớp nhỏ nhất 2.747 dòng, lớp lớn nhất 283.301 dòng | Class Balance của baseline đã thấp sẵn |
+
+**Lợi ích cho báo cáo (điểm cộng):** dữ liệu lớn hơn bài gốc 15–40 lần (382K–1M so với 1–25K dòng) mà vẫn có bản sạch rõ ràng, tách được missing tự nhiên khỏi missing do làm bẩn, và tránh rò rỉ theo thời gian ở Beijing.
 
 *Trạng thái: Đã cài (đã chạy và kiểm tra trên Colab ở Giai đoạn 1).*
 
@@ -175,6 +270,8 @@ Bài gốc (Mohammed et al.) không mô hình hóa ΔPerformance, chỉ vẽ đ�
 
 Kết quả: 12/12 test passed; pandas và PySpark khớp trên mẫu 50.000 dòng của cả 3 dataset.
 
+**Lợi ích cho báo cáo (điểm cộng):** một file công thức dùng chung đảm bảo hai engine **cho cùng kết quả toán học** (khớp tới sai số tương đối 1e-9), nên phần scalability so sánh tốc độ một cách công bằng. Đây là nền cho đóng góp "quy mô lớn" mà cả hai bài gốc đều không có.
+
 *Trạng thái: Đã cài.*
 
 ---
@@ -184,3 +281,4 @@ Kết quả: 12/12 test passed; pandas và PySpark khớp trên mẫu 50.000 dò
 - **Giữa kỳ:** mục 1 (định vị đề tài), mục 2 (phạm vi), mục 5 (dữ liệu đã chuẩn bị), và mục 3.1 như một phát hiện khi mở rộng sang dữ liệu lớn.
 - **Cuối kỳ:** thêm mục 4 (sau khi polluter đã chốt) và kết quả thực nghiệm; mục 3 và 4 đưa vào phần "Giới hạn và điều chỉnh so với bài gốc".
 - Câu hỏi dễ bị hỏi nhất: *"Vì sao không dùng đúng công thức của bài gốc?"* — trả lời bằng bảng ví dụ ở mục 3.1 và ý "trùng với bài gốc trên cột dương".
+- **Cuối kỳ, phần phương pháp đánh giá meta-model:** mục 4.3 (chia theo nhóm, chống rò rỉ) và mục 4.4 (hai thang Δ, kiểm tra độ bền). Mỗi mục đã có sẵn phần "Lợi ích cho báo cáo" để chuyển thành slide.

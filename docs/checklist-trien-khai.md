@@ -4,22 +4,19 @@
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
-> ## ▶ BẮT ĐẦU PHIÊN SAU TỪ ĐÂY (ghi ngày 2026-10-23, cuối phiên)
+> ## ▶ BẮT ĐẦU PHIÊN SAU TỪ ĐÂY (ghi ngày 2026-10-26)
 >
-> **Đang dừng ở:** Giai đoạn 0–5 đã xong, đã commit và push (commit cuối `ff996aa`). `results/experiment_results.parquet` (312 dòng, 14 cột đúng schema) nằm trên Drive tại `MyDrive/data-quality-project/results/` — **file này không có trong git** (bị `.gitignore`); nên tải một bản dự phòng về máy. Kết quả và nhận xét: `ket-qua-thuc-nghiem.md` mục 5 (5 phát hiện đáng đưa vào báo cáo ở mục 5.5).
+> **Đang dừng ở:** Giai đoạn 6 đã chốt thiết kế (7 quyết định, `khac-biet-so-voi-bai-goc.md` mục 4.3–4.5) và **đã viết code, chưa chạy** (`src/metamodel/`, `src/baselines/`, `configs/metamodel.yaml`, `tests/test_metamodel.py`, notebook mục 13). Chi tiết: `cach-trien-khai-chi-tiet-tung-giai-doan.md`, mục Giai đoạn 6.
 >
-> **Việc tiếp theo: Giai đoạn 6 — meta-model và 3 baseline** (`src/metamodel/`, `src/baselines/`).
+> **Việc tiếp theo:**
+> 1. Người dùng chạy notebook mục 1, 2, 9.1 rồi **13.1 → 13.3** trên Colab (CPU), gửi output dạng văn bản. Sửa nếu test lỗi.
+> 2. Ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 6, tick các mục Giai đoạn 6, cập nhật `.md` liên quan.
+> 3. Sang Giai đoạn 7: tính MAE / R² / Spearman và ma trận Good/Bad từ `results/metamodel_cv_predictions.parquet`; quyết định 312 hay 288 lượt.
+> 4. Còn treo: sửa cell 10.2 để lưu CSV cho H1.
 >
-> 1. **Nhắc người dùng đổi model/mức** (Giai đoạn 6 nặng thiết kế, vd Opus/High) trước khi làm, theo `CLAUDE.md`.
-> 2. **Hỏi người dùng trước khi viết code:** cách chia train/test cho meta-model. 3 run của cùng (task, algorithm, dimension, λ) rất giống nhau nên không được chia rời (rò rỉ); trình bày được/mất của các phương án nhóm (theo (dimension, λ), leave-one-dimension-out...).
-> 3. Các điểm còn mở cần quyết khi thiết kế (ghi ở `ket-qua-thuc-nghiem.md` mục 5.5): có dùng thêm Δ tương đối (Δ / baseline) bên cạnh Δ tuyệt đối khi gộp 3 tác vụ không; Class Balance của Covertype điểm tăng nhưng hiệu năng giảm sẽ ảnh hưởng 3 baseline thế nào; clustering (nhất là k-Means) nhiễu nên khó dự đoán nhất.
-> 4. Quyết định ở Giai đoạn 7: 24 lượt Class Balance × clustering vào bảng chính hay không (ΔAMI 0,02–0,10 — rõ rệt); báo cáo chính tính trên 312 hay 288 lượt.
-> 5. Chuẩn bị biểu đồ: cell 10.2 của notebook chỉ in kết quả, cần sửa để lưu CSV (dữ liệu cho H1); danh mục H1–H10 ở `ket-qua-thuc-nghiem.md` mục 9 và Giai đoạn 9 bên dưới.
->
-> **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** (bảng rộng chụp ảnh dễ bị cắt cột) → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
->
-> Xóa khung này khi Giai đoạn 6 bắt đầu có code.
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Tiếp theo: Giai đoạn 6 (meta-model + 3 baseline). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+> **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
+
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Giai đoạn 6 (meta-model + 3 baseline): **đã chốt thiết kế và viết code ngày 2026-10-26, chưa chạy test trên Colab.** **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -96,12 +93,14 @@
 
 ## Giai đoạn 6 — Meta-model & Baselines
 
-- [ ] Viết `metamodel/train_metamodel.py` (Gradient Boosting Regressor dự đoán ΔPerformance)
-- [ ] Viết `metamodel/explain_shap.py` (tính SHAP, xuất bảng trọng số theo task) → `results/shap_importance.csv`
-- [ ] Viết `baselines/rule_based.py`
-- [ ] Viết `baselines/weighted_score.py`
-- [ ] Viết `baselines/dqsops_pca.py` (baseline quan trọng nhất — PCA composite theo đúng cách DQSOps)
-- [ ] Lưu mô hình đã huấn luyện → `results/metamodel.pkl`
+*Trạng thái: đã chốt thiết kế (2026-10-26) và viết code + 16 test (kỳ vọng tổng `116 passed`); **chưa chạy trên Colab** nên chưa tick. Chạy notebook mục 13.*
+
+- [ ] Viết `metamodel/train_metamodel.py` (Gradient Boosting Regressor dự đoán ΔPerformance) — *đã viết; kèm đánh giá chéo Group K-Fold + nội suy, ghi `metamodel_cv_predictions.parquet`*
+- [ ] Viết `metamodel/explain_shap.py` (tính SHAP, xuất bảng trọng số theo task) → `results/shap_importance.csv` — *đã viết*
+- [ ] Viết `baselines/rule_based.py` — *đã viết*
+- [ ] Viết `baselines/weighted_score.py` — *đã viết*
+- [ ] Viết `baselines/dqsops_pca.py` (baseline quan trọng nhất — PCA composite theo đúng cách DQSOps) — *đã viết; trọng số PC1 → `dqsops_pca_weights.csv`*
+- [ ] Lưu mô hình đã huấn luyện → `results/metamodel.pkl` — *code đã có (cell 13.2)*
 
 ## Giai đoạn 7 — Đánh giá & So sánh
 

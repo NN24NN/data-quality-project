@@ -21,7 +21,8 @@ data-quality-project/
 │   ├── pollution_levels.yaml        # [0.0, 0.2, 0.5, 0.8]
 │   ├── experiment_matrix.yaml       # ma trận dataset × dimension × thuật toán (từ file thiết kế chi tiết)
 │   ├── datasets.yaml                # cột target, loại target, tiền tố one-hot của từng bản sạch
-│   └── algorithms.yaml              # siêu tham số của 6 thuật toán downstream
+│   ├── algorithms.yaml              # siêu tham số của 6 thuật toán downstream
+│   └── metamodel.yaml               # Giai đoạn 6: meta-model, cách chia, ngưỡng rule-based
 │
 ├── data/
 │   ├── raw/                         # dữ liệu tải về, giữ nguyên bản gốc, KHÔNG sửa trực tiếp
@@ -76,7 +77,9 @@ data-quality-project/
 ├── results/
 │   ├── baseline_performance.csv     # hiệu năng trên dữ liệu sạch (dataset × thuật toán × seed)
 │   ├── experiment_results.parquet   # output chính của Experiment Runner (schema đã định)
+│   ├── metamodel_cv_predictions.parquet  # dự đoán out-of-fold của meta-model + 3 baseline (cho Giai đoạn 7)
 │   ├── metamodel.pkl                # mô hình đã huấn luyện
+│   ├── dqsops_pca_weights.csv       # trọng số PC1 của baseline DQSOps (cho H9)
 │   ├── shap_importance.csv          # bảng trọng số theo task
 │   ├── scalability_benchmark.csv    # runtime/memory theo kích thước
 │   └── figures/                     # toàn bộ biểu đồ xuất ra (.png)

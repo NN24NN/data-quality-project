@@ -132,16 +132,18 @@ Toàn bộ dùng **scikit-learn**, không cần deep learning (khác bài gốc 
 **Đặc trưng đầu vào (feature vector):**
 ```
 [profile_completeness, profile_feature_accuracy, profile_target_accuracy,
- profile_uniqueness, profile_class_balance,
+ profile_uniqueness, profile_class_balance,                  # NaN (không áp dụng) -> 1.0
  task_classification, task_regression, task_clustering,     # one-hot
- algo_family_linear, algo_family_tree]                        # one-hot
+ algo_logistic_regression, algo_random_forest, algo_ridge,
+ algo_gradient_boosting, algo_kmeans, algo_gmm]              # one-hot 6 thuật toán
 ```
+*(Chốt 2026-10-26: one-hot 6 thuật toán thay cho `algo_family` linear/tree vì k-Means/GMM không thuộc họ nào; điền 1,0 cho dimension không áp dụng. Lý do ở `khac-biet-so-voi-bai-goc.md` mục 4.5. Siêu tham số trong `configs/metamodel.yaml`, cố định, không tinh chỉnh.)*
 
 **Quy trình huấn luyện:**
-1. Chia bảng kết quả (312 dòng) thành train/validation theo tỷ lệ 80/20, stratify theo `task` để mỗi tập đều có đủ 3 tác vụ
-2. Huấn luyện Gradient Boosting Regressor dự đoán `delta_performance`
-3. Đánh giá trên validation bằng MAE và R² (xem Bước 8 trong pipeline)
-4. Dùng thư viện `shap` để tính SHAP value cho từng dimension, tách riêng theo từng `task` → ra bảng "dimension nào quan trọng nhất cho task nào" — đây chính là phần đóng góp "task-aware weighting" của đề tài
+1. Chia bảng kết quả (312 dòng) bằng `StratifiedGroupKFold` 5 fold, nhóm = (task, dimension, λ), riêng λ = 0 là 1 nhóm mỗi task (42 nhóm), stratify theo `task`, lặp lại 3 lần với seed từ `configs/seeds.yaml`. *(Chốt 2026-10-26, thay cho cách chia ngẫu nhiên 80/20 ban đầu vì cách đó rò rỉ qua 3 run gần giống nhau và các dòng λ = 0 chép giữa các dimension; lý do đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.3.)* Thí nghiệm phụ: leave-one-λ-out (train λ ∈ {0; 0,2; 0,8}, test λ = 0,5)
+2. Huấn luyện Gradient Boosting Regressor dự đoán `delta_performance` trên từng fold train. Chạy hai lần: nhãn chính là Δ tuyệt đối (`delta_performance`), nhãn phụ là Δ tương đối (`delta_performance / baseline_performance`, tính lúc chạy). *(Chốt 2026-10-26, lý do ở `khac-biet-so-voi-bai-goc.md` mục 4.4.)*
+3. Đánh giá bằng MAE, R² và Spearman trên dự đoán out-of-fold (xem Bước 8 trong pipeline). Weighted score và DQSOps-PCA cũng fit lại trên cùng fold train để so sánh công bằng
+4. Huấn luyện lại trên toàn bộ 312 dòng, dùng thư viện `shap` để tính SHAP value cho từng dimension, tách riêng theo từng `task` → ra bảng "dimension nào quan trọng nhất cho task nào" — đây chính là phần đóng góp "task-aware weighting" của đề tài
 
 **Lưu ý về cỡ mẫu nhỏ:** với ~250 dòng train, cần giới hạn độ sâu cây (`max_depth=3`) và dùng `n_estimators` vừa phải (50-100) để tránh overfit; nên dùng k-fold cross-validation (vd 5-fold) thay vì 1 lần chia train/val duy nhất để đánh giá ổn định hơn.
 
@@ -150,6 +152,8 @@ Toàn bộ dùng **scikit-learn**, không cần deep learning (khác bài gốc 
 ## 5. Baseline Layer
 
 ### 5.1 Rule-based
+**Đã chốt (2026-10-26):** Bad nếu **bất kỳ** dimension áp dụng được < 0,9; nhãn thật Bad nếu Δ tương đối > 10% (độ nhạy 5%, 20%). Weighted score lấy trung bình trên các dimension áp dụng được. Cả weighted score và DQSOps-PCA dùng một công thức chung cho mọi tác vụ. Chi tiết: `khac-biet-so-voi-bai-goc.md` mục 4.5.
+
 **Kỹ thuật:** đặt ngưỡng cố định trên từng profile score (vd `completeness < 0.9` → "Bad"). Không dự đoán giá trị ΔPerformance liên tục mà chỉ phân loại Good/Bad — khi so sánh với meta-model (dự đoán số liên tục), cần rời rạc hóa `delta_performance` thực tế thành Good/Bad theo cùng ngưỡng để so sánh công bằng (dùng accuracy/F1 cho baseline này thay vì MAE/R²).
 
 ### 5.2 Weighted score

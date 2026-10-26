@@ -9,3 +9,4 @@ Tham số tách khỏi code. Xem `docs/cau-truc-thu-muc-project.md` mục 2.4.
 | `experiment_matrix.yaml` | Ma trận dataset × dimension × thuật toán (312 lượt) | Đã tạo |
 | `datasets.yaml` | Cột target, loại target, tiền tố nhóm one-hot của từng bản sạch | Đã tạo |
 | `algorithms.yaml` | Siêu tham số của 6 thuật toán downstream | Đã tạo (có thể chỉnh sau khi đo thời gian chạy) |
+| `metamodel.yaml` | Giai đoạn 6: siêu tham số meta-model (cố định), giá trị điền NaN, 2 nhãn, số fold, mức λ nội suy, ngưỡng rule-based | Đã tạo (2026-10-26) |

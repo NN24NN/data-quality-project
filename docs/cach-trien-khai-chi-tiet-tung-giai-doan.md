@@ -389,3 +389,45 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 **Kết quả chạy thật — classification (Colab, ngày 2026-10-23):** 120/120 dòng trong 147,8 phút; kiểm tra 12.4 đạt, **tổng 312/312 dòng**. Số liệu đầy đủ và nhận xét ở `ket-qua-thuc-nghiem.md` mục 5.4 và tổng kết ở mục 5.5. Điểm đáng chú ý: Target Accuracy (HIGGS) cho ΔF1 hình chữ U ngược (đỉnh ở λ = 0,5, hạ về mức λ = 0,2 ở λ = 0,8 vì nhãn bị đảo nhất quán ở cả train lẫn test); Uniqueness gần như không ảnh hưởng ở cả 3 tác vụ; Random Forest nhạy với Feature Accuracy hơn Logistic Regression.
 
 **Kết luận Giai đoạn 5:** 312/312 dòng, tổng 414,5 phút (≈ 6,9 giờ) trên Colab CPU. Việc mở sang Giai đoạn 6: chọn cách chia train/test cho meta-model (3 run của cùng một (dimension, λ) rất giống nhau nên không được chia rời, tránh rò rỉ), và tính cột còn thiếu cho H1.
+
+## Giai đoạn 6 — Meta-model và 3 baseline (đã viết code ngày 2026-10-26, **chưa chạy test trên Colab**)
+
+**Quyết định thiết kế của người dùng (2026-10-26)**, lý do và lợi ích đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.3–4.5:
+1. **Chia train/test:** `StratifiedGroupKFold` 5 fold, nhóm = (task, dimension, λ), λ = 0 gộp 1 nhóm mỗi task (42 nhóm), lặp lại với 3 seed của `seeds.yaml`. Thí nghiệm phụ: nội suy (train λ ∈ {0; 0,2; 0,8}, test λ = 0,5). Bỏ phương án leave-one-dimension-out.
+2. **Nhãn:** Δ tuyệt đối làm chính, Δ tương đối (Δ / baseline) làm phụ; chạy mọi thứ hai lần.
+3. **NaN của Class Balance (regression):** điền 1,0 cho meta-model và PCA; weighted score lấy trung bình các dimension áp dụng được; rule-based bỏ qua NaN.
+4. **Đặc trưng thuật toán:** one-hot 6 thuật toán thay cho `algo_family`.
+5. **Class Balance của Covertype:** không sửa ở baseline nào.
+6. **Rule-based:** Bad nếu bất kỳ dimension < 0,9; nhãn thật Bad nếu Δ tương đối > 10% (độ nhạy 5%, 20%).
+7. **Siêu tham số meta-model:** cố định (100 cây, sâu 3, learning rate 0,1), không tinh chỉnh.
+
+**Đã làm:**
+
+| File | Nội dung |
+|---|---|
+| `configs/metamodel.yaml` | Siêu tham số, giá trị điền NaN, 2 nhãn, số fold, mức λ của thí nghiệm nội suy, ngưỡng rule-based |
+| `src/baselines/rule_based.py` | `RuleBased`: nhãn 1 (Bad) / 0 (Good) theo ngưỡng cố định |
+| `src/baselines/weighted_score.py` | `WeightedScore`: Q = trung bình profile (bỏ NaN), hồi quy tuyến tính Q → Δ |
+| `src/baselines/dqsops_pca.py` | `DQSOpsPCA`: z-score → PCA → PC1 → hồi quy tuyến tính; `weights()` trả trọng số PC1 cho H9 |
+| `src/metamodel/train_metamodel.py` | Dựng đặc trưng, nhóm, 2 cách chia; `MetaModel` (GradientBoostingRegressor); `cross_validate` ra dự đoán out-of-fold của 4 phương pháp × 2 nhãn; `fit_final`; ghi `metamodel_cv_predictions.parquet`, `metamodel.pkl`, `dqsops_pca_weights.csv` |
+| `src/metamodel/explain_shap.py` | Trung bình \|SHAP\| theo tác vụ, tỷ trọng (`share`) trên các dimension áp dụng được → `shap_importance.csv` |
+| `tests/test_metamodel.py` | 16 test trên bảng giả lập cùng cấu trúc 312 dòng |
+| Notebook mục 13 | 13.1 test; 13.2 đánh giá chéo + mô hình cuối; 13.3 SHAP |
+
+**Làm như thế nào:**
+- **Một giao diện chung cho 4 phương pháp:** mỗi phương pháp có `fit(results, y)` / `predict(results)` và nhận thẳng bảng kết quả. Vòng đánh giá chéo vì vậy gọi cả 4 giống nhau, và **mỗi phương pháp được tạo mới, fit lại trên đúng phần train của mỗi fold**. Nhờ đó PCA/scaler/hồi quy của baseline không bao giờ thấy dữ liệu test.
+- **Nhóm chống rò rỉ:** `make_groups` ghép (task, dimension, λ); ở λ = 0 thay dimension bằng `*` nên các bản chép giống hệt nhau giữa các dimension rơi vào một nhóm. Cả 3 run và 2 thuật toán của một mức bẩn luôn nằm cùng phía.
+- **Bảng dự đoán dạng dài** (`metamodel_cv_predictions.parquet`): mỗi dòng là một dự đoán (khóa lượt chạy, cách chia, seed lặp, fold, nhãn, phương pháp, `y_true`, `y_pred`). Giai đoạn 7 tính MAE/R²/Spearman, ma trận Good/Bad và vẽ H5–H7 từ file này mà không phải huấn luyện lại. Rule-based ghi `y_pred` = 1/0 (Bad/Good); `y_true` vẫn là Δ liên tục để Giai đoạn 7 tự rời rạc hóa theo ngưỡng trong config.
+- **Mô hình cuối và SHAP:** `fit_final` huấn luyện meta-model trên cả 312 dòng cho từng nhãn. `explain_shap` tính trung bình |SHAP| trên các dòng của từng tác vụ. `share` chỉ tính trên các dimension có trong ma trận thí nghiệm của tác vụ đó (theo `experiment_matrix.yaml`), nên Class Balance của regression và Target Accuracy của clustering bị đánh dấu `applicable = False`.
+- **Trọng số PC1** fit trên cả 312 dòng (PCA không phụ thuộc nhãn), đảo dấu để tổng trọng số dương (điểm cao = chất lượng cao), kèm tỷ lệ phương sai PC1 giải thích được.
+- **Pickle:** script tự gọi lại chính nó qua tên module `metamodel.train_metamodel`, để lớp `MetaModel` trong `metamodel.pkl` không mang tên `__main__` và `explain_shap.py` nạp lại được.
+- Bảng MAE in ra ở cuối 13.2 chỉ để xem nhanh; số liệu chính tính ở Giai đoạn 7.
+
+**Test kiểm tra gì** (bảng giả lập 312 dòng, Δ = λ × hệ số riêng theo (task, dimension), Uniqueness không ảnh hưởng, λ = 0 giống nhau giữa các dimension):
+- Đặc trưng: đủ 14 cột, không NaN, one-hot đúng, Class Balance của regression bằng giá trị điền; Δ tương đối đúng công thức.
+- Nhóm: đúng 42 nhóm, λ = 0 cùng nhóm trong một tác vụ. Group K-Fold với cả 3 seed: mỗi dòng được dự đoán đúng 1 lần, không nhóm nào bị tách giữa train và test, train luôn đủ 3 tác vụ. Thí nghiệm nội suy: test đúng λ = 0,5.
+- Baseline: rule-based bỏ qua NaN; weighted score lấy trung bình đúng các dimension áp dụng được; scaler của DQSOps-PCA chỉ học từ dữ liệu train.
+- Đánh giá chéo: đủ số dòng dự đoán, không trùng; meta-model có MAE thấp hơn weighted score và DQSOps-PCA trên dữ liệu có ảnh hưởng phụ thuộc tác vụ; chạy hai lần cho kết quả giống hệt.
+- SHAP: tỷ trọng cộng lại bằng 1 ở mỗi (nhãn, tác vụ); dimension không áp dụng được đánh dấu; Completeness quan trọng hơn Uniqueness ở regression.
+
+**Chưa làm / chưa kiểm chứng:** chưa chạy test và các cell 13.1–13.3 trên Colab (máy local không có Python), nên chưa tick checklist. Chưa có số liệu meta-model/SHAP thật.
