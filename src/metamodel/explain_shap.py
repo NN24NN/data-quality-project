@@ -10,7 +10,7 @@ Theo docs/kien-truc-mo-hinh-va-ky-thuat.md mục 4 bước 4. Đầu vào: metam
 
 Chạy trên Colab (sau train_metamodel.py):
     python src/metamodel/explain_shap.py --project-dir /content/drive/MyDrive/data-quality-project
-Ghi ra <project-dir>/results/shap_importance.csv
+Ghi ra <project-dir>/results/shap_importance.csv và shap_by_row_dimension.csv (chẩn đoán, Giai đoạn 7)
 """
 import argparse
 import os
@@ -56,6 +56,25 @@ def shap_importance(bundle, results):
     return pd.DataFrame(rows, columns=COLUMNS)
 
 
+def shap_by_row_dimension(bundle, results):
+    """Chẩn đoán (Giai đoạn 7): trung bình |SHAP| của từng điểm profile, tách theo dimension đang bị làm bẩn của dòng.
+
+    Cho biết độ quan trọng của một dimension đến từ chính các lượt làm bẩn nó, hay "mượn" từ lượt của dimension khác.
+    Các dòng λ = 0 (giống nhau giữa các dimension) gom thành một nhóm riêng 'lambda_0'.
+    """
+    results = results.reset_index(drop=True)
+    row_dim = results['dimension'].where(results['pollution_level'] != 0, 'lambda_0')
+    parts = []
+    for target, model in bundle['models'].items():
+        X = model.features(results)
+        values = np.abs(np.asarray(shap.TreeExplainer(model.model_).shap_values(X)))
+        df = pd.DataFrame(values, columns=X.columns)[PROFILE_KEYS]
+        df = df.assign(target=target, task=results['task'], row_dimension=row_dim)
+        parts.append(df.groupby(['target', 'task', 'row_dimension'], sort=False)[PROFILE_KEYS].mean()
+                       .assign(n_rows=df.groupby(['target', 'task', 'row_dimension'], sort=False).size()))
+    return pd.concat(parts).reset_index()
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument('--project-dir', required=True, help='thư mục chứa results/ (Drive)')
@@ -68,12 +87,20 @@ def main(argv=None):
     out = os.path.join(out_dir, 'shap_importance.csv')
     imp.to_csv(out, index=False)
     print("Đã lưu", out)
+    diag = shap_by_row_dimension(bundle, results)
+    diag_out = os.path.join(out_dir, 'shap_by_row_dimension.csv')
+    diag.to_csv(diag_out, index=False)
+    print("Đã lưu", diag_out)
 
     pd.set_option('display.width', 250, 'display.float_format', '{:.3f}'.format)
     prof = imp[imp['kind'] == 'profile']
     for target, part in prof.groupby('target', sort=False):
         print(f"\nTỷ trọng SHAP của từng dimension theo tác vụ — nhãn {target} (NaN = không áp dụng):")
         print(part.pivot(index='feature', columns='task', values='share').to_string())
+
+    print("\nChẩn đoán: trung bình |SHAP| theo dimension đang bị làm bẩn của dòng — classification, nhãn absolute")
+    print(diag.query("task == 'classification' and target == 'absolute'")
+              .drop(columns=['target', 'task']).set_index('row_dimension').to_string(float_format='{:.4f}'.format))
 
 
 if __name__ == '__main__':

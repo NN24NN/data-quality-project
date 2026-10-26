@@ -245,6 +245,30 @@ Bài gốc không có các chi tiết này: Mohammed et al. không có meta-mode
 
 *Trạng thái: **Đã cài** (`src/baselines/`, `src/metamodel/`; `116 passed`; chạy trên Colab ngày 2026-10-26).*
 
+### 4.6 Cách đánh giá và so sánh 4 phương pháp (Giai đoạn 7)
+
+Hai bài gốc không có bước này: Mohammed et al. không có mô hình dự đoán; DQSOps chỉ báo sai số dự đoán điểm chất lượng trên một use case, không so với baseline nào. Thiết kế ban đầu của đề tài (`pipeline-thi-nghiem.md` mục 8) chỉ ghi "MAE, R², Spearman, phân tích theo tác vụ". Người dùng chốt 6 điểm dưới đây ngày 2026-10-26. Tham số nằm trong `configs/metamodel.yaml`, mục `evaluation`.
+
+| # | Thành phần | Đề tài | Lý do | Phương án không chọn |
+|---|---|---|---|---|
+| 1 | Nơi đặt code | `src/metamodel/evaluate_methods.py`, đọc `metamodel_cv_predictions.parquet`, **không huấn luyện lại** | Không đổi cấu trúc thư mục đã chốt; tách tính toán (Giai đoạn 7) khỏi huấn luyện (Giai đoạn 6) nên chạy lại rất rẻ | Thư mục mới `src/evaluation/`: rõ hơn nhưng đổi cấu trúc đã chốt |
+| 2 | Gộp chỉ số | MAE, R², Spearman tính riêng từng lần lặp (seed 42/43/44), báo **trung bình ± độ lệch chuẩn**. **Bảng chính tách theo tác vụ**; cột "tất cả" là phụ | Với Δ tuyệt đối, R²/Spearman gộp 3 tác vụ chủ yếu đo "phân biệt regression với clustering" (thang Δ khác nhau), không đo khả năng dự đoán | Chỉ báo số gộp: đẹp giả tạo, che mất tác vụ mà phương pháp thua |
+| 3 | **Ý nghĩa thống kê (mới)** | **Bootstrap theo nhóm**: lấy mẫu lại có hoàn lại 42 nhóm (task, dimension, λ), giữ nguyên số nhóm của mỗi tác vụ, 1.000 lần, seed từ `seeds.yaml`. Báo khoảng tin cậy 95% của hiệu MAE (meta-model − từng baseline), theo tác vụ | Độ lệch chuẩn qua 3 seed chỉ phản ánh dao động do cách chia fold, không trả lời "hơn có thật không". Lấy mẫu theo nhóm (không theo dòng) vì các dòng trong một nhóm phụ thuộc nhau; lấy theo dòng sẽ cho khoảng tin cậy hẹp giả tạo | Chỉ báo trung bình ± độ lệch chuẩn: không kết luận được về ý nghĩa; kiểm định t: giả định độc lập và phân phối chuẩn không hợp với 42 nhóm |
+| 4 | Good/Bad (H7) | Nhãn thật: Bad nếu Δ tương đối > 10%. Rule-based dùng nhãn 0/1 của nó; **cả 3 phương pháp hồi quy** rời rạc hóa từ dự đoán của bản chạy nhãn Δ tương đối, cùng ngưỡng. Chỉ số: accuracy, **F1 lớp Bad**, balanced accuracy, precision, recall, kèm tỷ lệ Bad thật và ma trận nhầm lẫn. Độ nhạy: ngưỡng 5% và 20% | Lớp Bad dự kiến là thiểu số (λ = 0 và Uniqueness gần như luôn Good), nên accuracy đơn thuần đẹp giả tạo; F1 lớp Bad và balanced accuracy không bị ảnh hưởng. So cả 4 phương pháp trên cùng một thước đo phân loại cho so sánh công bằng với rule-based | Chỉ accuracy: thiên vị phương pháp luôn đoán Good |
+| 5 | 312 hay 288 lượt | **Bảng chính 312 lượt**; bảng phụ 288 lượt (bỏ 24 lượt Class Balance × clustering) chỉ **lọc phần đánh giá**, không huấn luyện lại | Bỏ đúng 24 lượt mà baseline đoán sai hướng thì giống chọn dữ liệu có lợi; ΔAMI ở đó có thật (0,02–0,10) và meta-model học được nhờ biết tác vụ — chính là luận điểm cần chứng minh. Bảng 288 cho thấy kết luận có đứng vững khi bỏ phần gây tranh cãi | Bảng chính 288: an toàn hơn về mặt số đo nhưng mất một minh họa tốt và có thể bị xem là né tránh |
+| 6 | Chẩn đoán SHAP | Trung bình \|SHAP\| của từng dimension, **tách theo dimension đang bị làm bẩn của dòng** → `shap_by_row_dimension.csv` | Giải thích vì sao Uniqueness ở classification có tỷ trọng 0,107 dù ΔF1 ≈ 0 (`ket-qua-thuc-nghiem.md` mục 6.5) | Bỏ qua: để lại một con số khó giải thích trong báo cáo |
+
+**Lợi ích cho báo cáo (điểm cộng):**
+- **Kết luận có khoảng tin cậy**, không chỉ là "số này nhỏ hơn số kia": nói được meta-model hơn baseline ở tác vụ nào là có ý nghĩa, ở đâu thì chưa đủ bằng chứng. Ít đồ án môn học làm bước này.
+- **Bootstrap theo nhóm nhất quán với cách chia train/test** (mục 4.3): cùng đơn vị độc lập là nhóm (task, dimension, λ), nên toàn bộ phần đánh giá dùng một quan điểm thống nhất về tính độc lập của dữ liệu.
+- **So sánh công bằng với rule-based:** cả 4 phương pháp được chấm trên cùng thang Good/Bad, với thước đo không bị lệch do lớp thiểu số.
+- **Bảng phụ 288 lượt** chặn trước câu hỏi "có phải meta-model thắng nhờ 24 lượt Class Balance kỳ lạ?".
+- **Báo cáo theo tác vụ** giữ đúng tinh thần task-aware của đề tài và không che chỗ meta-model thua (mục 6.3 của `ket-qua-thuc-nghiem.md` đã thấy weighted score thắng ở classification với Δ tương đối).
+
+**Giới hạn cần nêu khi trình bày:** 42 nhóm là ít cho bootstrap, khoảng tin cậy chỉ mang tính tham khảo. Thí nghiệm nội suy chỉ có 13 nhóm ở λ = 0,5 nên khoảng tin cậy ở đó rất rộng. Lỗi tuyệt đối của mỗi dòng được lấy trung bình qua 3 lần lặp trước khi bootstrap.
+
+*Trạng thái: Đã viết (`src/metamodel/evaluate_methods.py`, chẩn đoán trong `explain_shap.py`; chưa chạy trên Colab).*
+
 ---
 
 ## 5. Khác biệt về chuẩn bị dữ liệu
@@ -283,4 +307,4 @@ Kết quả: 12/12 test passed; pandas và PySpark khớp trên mẫu 50.000 dò
 - **Giữa kỳ:** mục 1 (định vị đề tài), mục 2 (phạm vi), mục 5 (dữ liệu đã chuẩn bị), và mục 3.1 như một phát hiện khi mở rộng sang dữ liệu lớn.
 - **Cuối kỳ:** thêm mục 4 (sau khi polluter đã chốt) và kết quả thực nghiệm; mục 3 và 4 đưa vào phần "Giới hạn và điều chỉnh so với bài gốc".
 - Câu hỏi dễ bị hỏi nhất: *"Vì sao không dùng đúng công thức của bài gốc?"* — trả lời bằng bảng ví dụ ở mục 3.1 và ý "trùng với bài gốc trên cột dương".
-- **Cuối kỳ, phần phương pháp đánh giá meta-model:** mục 4.3 (chia theo nhóm, chống rò rỉ) và mục 4.4 (hai thang Δ, kiểm tra độ bền). Mỗi mục đã có sẵn phần "Lợi ích cho báo cáo" để chuyển thành slide.
+- **Cuối kỳ, phần phương pháp đánh giá meta-model:** mục 4.3 (chia theo nhóm, chống rò rỉ), mục 4.4 (hai thang Δ, kiểm tra độ bền) và mục 4.6 (bootstrap theo nhóm, bảng chính 312 / phụ 288). Mỗi mục đã có sẵn phần "Lợi ích cho báo cáo" để chuyển thành slide.

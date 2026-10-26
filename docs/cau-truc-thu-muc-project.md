@@ -59,7 +59,8 @@ data-quality-project/
 │   │
 │   ├── metamodel/
 │   │   ├── train_metamodel.py       # Gradient Boosting Regressor
-│   │   └── explain_shap.py          # tính SHAP, xuất bảng trọng số theo task
+│   │   ├── explain_shap.py          # tính SHAP, xuất bảng trọng số theo task
+│   │   └── evaluate_methods.py      # Giai đoạn 7: MAE/R²/Spearman, bootstrap, Good/Bad (không huấn luyện lại)
 │   │
 │   ├── baselines/
 │   │   ├── rule_based.py
@@ -81,6 +82,10 @@ data-quality-project/
 │   ├── metamodel.pkl                # mô hình đã huấn luyện
 │   ├── dqsops_pca_weights.csv       # trọng số PC1 của baseline DQSOps (cho H9)
 │   ├── shap_importance.csv          # bảng trọng số theo task
+│   ├── shap_by_row_dimension.csv    # chẩn đoán SHAP theo dimension của dòng (Giai đoạn 7)
+│   ├── method_comparison.csv        # MAE/R²/Spearman 4 phương pháp (Giai đoạn 7, cho H5)
+│   ├── method_bootstrap.csv         # CI bootstrap của hiệu MAE (Giai đoạn 7)
+│   ├── goodbad_comparison.csv       # phân loại Good/Bad (Giai đoạn 7, cho H7)
 │   ├── scalability_benchmark.csv    # runtime/memory theo kích thước
 │   └── figures/                     # toàn bộ biểu đồ xuất ra (.png)
 │

@@ -188,6 +188,8 @@ Baseline DQSOps-style là baseline quan trọng nhất cần làm đúng, vì đ
 
 **Output:** 1 bảng so sánh tổng hợp — chính là Bảng so sánh baseline đã phác thảo trong đề cương ban đầu.
 
+**Đã chốt (2026-10-26, chi tiết ở `khac-biet-so-voi-bai-goc.md` mục 4.6):** code ở `src/metamodel/evaluate_methods.py`, đọc dự đoán out-of-fold của Giai đoạn 6 (không huấn luyện lại). Chỉ số báo trung bình ± độ lệch chuẩn qua 3 seed, theo tác vụ; thêm bootstrap theo nhóm (khoảng tin cậy 95% của hiệu MAE); Good/Bad (ngưỡng Δ tương đối 10%, độ nhạy 5%/20%) cho cả 4 phương pháp; bảng chính 312 lượt, bảng phụ 288 lượt. Biểu đồ H5–H7 vẽ ở Giai đoạn 9.
+
 ---
 
 ## 9. Scalability study (Vai trò B — Spark)

@@ -442,3 +442,35 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 - SHAP: Uniqueness thấp nhất ở cả 3 tác vụ; dimension đứng đầu khác nhau theo tác vụ (Feature Accuracy với classification/clustering, Completeness với regression).
 
 **Chưa làm:** R², Spearman, ma trận Good/Bad và độ lệch chuẩn theo seed thuộc Giai đoạn 7. Chưa giải thích được tỷ trọng SHAP 0,107 của Uniqueness ở classification.
+
+## Giai đoạn 7 — Đánh giá & so sánh (đã viết code ngày 2026-10-26, **chưa chạy trên Colab**)
+
+**Quyết định của người dùng (2026-10-26)**, lý do và lợi ích đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.6:
+1. Code ở `src/metamodel/evaluate_methods.py`, đọc dự đoán out-of-fold của Giai đoạn 6, không huấn luyện lại.
+2. Chỉ số tính riêng từng lần lặp, báo trung bình ± độ lệch chuẩn; bảng chính theo từng tác vụ.
+3. Bootstrap theo nhóm (42 nhóm, 1.000 lần, CI 95%) cho hiệu MAE meta-model − baseline.
+4. Good/Bad (ngưỡng Δ tương đối 10%; độ nhạy 5%, 20%) cho cả 4 phương pháp, chỉ số chính F1 lớp Bad và balanced accuracy.
+5. Bảng chính 312 lượt, bảng phụ 288 lượt (chỉ lọc phần đánh giá).
+6. Chẩn đoán SHAP theo dimension đang bị làm bẩn của dòng.
+7. Biểu đồ (kể cả H5–H7) để Giai đoạn 9.
+
+**Đã làm:**
+
+| File | Nội dung |
+|---|---|
+| `configs/metamodel.yaml` mục `evaluation` | Số lần bootstrap, mức tin cậy, tập bị bỏ ở bảng phụ |
+| `src/metamodel/evaluate_methods.py` | `method_comparison`, `bootstrap_mae_diff`, `goodbad_comparison` → `method_comparison.csv`, `method_bootstrap.csv`, `goodbad_comparison.csv`; in các bảng tóm tắt |
+| `src/metamodel/explain_shap.py` | Thêm `shap_by_row_dimension` → `shap_by_row_dimension.csv` |
+| `tests/test_evaluate_methods.py` | 8 test |
+| Notebook mục 14 | 14.1 test; 14.2 đánh giá; 14.3 chạy lại SHAP kèm chẩn đoán |
+
+**Làm như thế nào:**
+- **Chỉ số hồi quy:** với mỗi (bảng, cách chia, nhãn, phương pháp, tác vụ), tính MAE / R² / Spearman riêng cho từng `repeat_seed` rồi lấy trung bình và độ lệch chuẩn. Spearman trả NaN khi dự đoán là hằng số (không xếp hạng được). Thí nghiệm nội suy có 1 lần chia nên độ lệch chuẩn là NaN.
+- **Bootstrap theo nhóm:** lỗi tuyệt đối của mỗi dòng được lấy trung bình qua 3 lần lặp, rồi tính hiệu (meta-model − baseline) cho từng dòng. Mỗi lần bootstrap lấy lại có hoàn lại **các nhóm** (task, dimension, λ) trong từng tác vụ, giữ nguyên số nhóm của tác vụ, và tính hiệu MAE có trọng số theo số dòng. Báo điểm ước lượng, CI 95% (phân vị) và `p_not_better` = tỷ lệ lần bootstrap mà meta-model không tốt hơn. Nhóm dùng lại `make_groups` của Giai đoạn 6 nên cùng định nghĩa với cách chia train/test.
+- **Good/Bad:** nhãn thật = Δ tương đối > ngưỡng. Ba phương pháp hồi quy dùng dự đoán của bản nhãn Δ tương đối, Bad nếu dự đoán > ngưỡng; rule-based dùng nhãn 0/1. Tự tính tp/fp/fn/tn rồi suy ra các chỉ số; tỷ lệ có mẫu số 0 trả NaN thay vì cảnh báo của scikit-learn.
+- **Bảng phụ:** lọc bỏ các dòng (clustering, class_balance) của bảng dự đoán trước khi tính; mô hình không huấn luyện lại.
+- **Chẩn đoán SHAP:** trung bình |SHAP| của 5 điểm profile, tách theo (nhãn, tác vụ, dimension của dòng); dòng λ = 0 gom thành `lambda_0`.
+
+**Test kiểm tra gì:** chỉ số hồi quy và phân loại khớp đáp án tính tay (kể cả trường hợp không có Bad); bootstrap lấy lại theo nhóm chứ không theo dòng và tái lập được với cùng seed; bảng phụ bỏ đúng 24 dòng; trên dự đoán out-of-fold của bảng giả lập: đủ số dòng ở cả 3 bảng, một ô MAE khớp tính tay, CI chứa điểm ước lượng, nhãn thật không phụ thuộc phương pháp, tp+fp+fn+tn = số dòng; chẩn đoán SHAP đủ dòng và Completeness của regression đến chủ yếu từ chính lượt Completeness.
+
+**Chưa làm / chưa kiểm chứng:** chưa chạy trên Colab (kỳ vọng `124 passed`), chưa có số liệu, chưa tick checklist.

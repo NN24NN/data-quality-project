@@ -20,3 +20,11 @@ rule_based:
   profile_threshold: 0.9            # Bad nếu bất kỳ dimension áp dụng được < ngưỡng
   bad_relative_delta: 0.10          # nhãn thật Bad nếu Δ tương đối > 10% (dùng ở Giai đoạn 7)
   sensitivity_relative_delta: [0.05, 0.20]
+
+# Giai đoạn 7 — đánh giá và so sánh (docs/khac-biet-so-voi-bai-goc.md mục 4.6)
+evaluation:
+  n_bootstrap: 1000         # bootstrap theo nhóm (task, dimension, λ); seed = base_seed trong seeds.yaml
+  ci: 0.95
+  secondary_subset_exclude: # bảng phụ 288 lượt: bỏ các lượt này khỏi phần đánh giá (không huấn luyện lại)
+    task: clustering
+    dimension: class_balance

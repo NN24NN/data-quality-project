@@ -9,3 +9,5 @@
 - Tham số: `configs/metamodel.yaml`. Lý do thiết kế: `docs/khac-biet-so-voi-bai-goc.md` mục 4.3–4.5. Chạy: notebook mục 13.
 
 *Trạng thái: xong, đã chạy trên Colab ngày 2026-10-26 (`116 passed`). Kết quả: `docs/ket-qua-thuc-nghiem.md` mục 6.*
+
+**Giai đoạn 7 — `evaluate_methods.py`:** đọc `metamodel_cv_predictions.parquet` (không huấn luyện lại), ghi `method_comparison.csv` (MAE / R² / Spearman, trung bình ± độ lệch chuẩn qua 3 seed), `method_bootstrap.csv` (hiệu MAE meta-model − baseline, CI bootstrap theo nhóm), `goodbad_comparison.csv` (Good/Bad của 4 phương pháp, 3 ngưỡng). Mỗi bảng có cột `subset`: `all` (312 lượt, bảng chính) và `excl_clustering_class_balance` (288 lượt). `explain_shap.py` ghi thêm `shap_by_row_dimension.csv` (chẩn đoán). Chạy: notebook mục 14. *Đã viết, chưa chạy trên Colab.*
