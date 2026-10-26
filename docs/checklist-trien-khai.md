@@ -10,13 +10,16 @@
 >
 > **Giai đoạn 7 xong** (Colab 2026-10-26, commit `755bf48`, `124 passed`). Kết quả và 10 kết luận: `ket-qua-thuc-nghiem.md` mục 7.
 >
-> **Việc tiếp theo: Giai đoạn 8 — Scalability (Spark)**, rồi Giai đoạn 9 (biểu đồ + báo cáo).
-> 1. Giai đoạn 8 cần **HIGGS full (~2,8GB)** — tải trên Colab, không tải về máy Windows; hỏi người dùng trước khi tải. Chốt thiết kế đo (mốc 1M/3M/6M/11M dòng, đo runtime và memory thế nào, pandas chạy tới mốc nào) trước khi viết `src/scalability/spark_scale_study.py`.
-> 2. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
+> **Giai đoạn 8 đã chốt thiết kế (7 điểm, `khac-biet-so-voi-bai-goc.md` mục 4.7) và viết code ngày 2026-10-26, chưa chạy:** `src/scalability/spark_scale_study.py`, `configs/scalability.yaml`, `tests/test_scalability.py`, notebook mục 15. Người dùng đã đồng ý tải HIGGS full trên Colab và lưu parquet (~1,2GB) lên Drive.
+>
+> **Việc tiếp theo:**
+> 1. Người dùng chạy mục 1, 2, 9.1 rồi **15.1 → 15.3** trên Colab (runtime CPU tiêu chuẩn, không High-RAM; kỳ vọng `132 passed`; 15.3 khoảng 45–90 phút), gửi output dạng văn bản.
+> 2. Ghi số liệu vào `ket-qua-thuc-nghiem.md` mục 8, tick Giai đoạn 8 (và mục HIGGS full của Giai đoạn 1), cập nhật `.md` liên quan. Sau khi xong, hỏi người dùng có xóa `higgs_full_raw.parquet` trên Drive để giải phóng dung lượng không.
+> 3. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
 >
 > **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
 
-**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Giai đoạn 6 (meta-model + 3 baseline): **đã xong ngày 2026-10-26** (`116 passed`; Δ tuyệt đối, Group K-Fold: MAE meta-model 0,055 so với 0,077 weighted score và 0,084 DQSOps-PCA). Giai đoạn 7 (đánh giá & so sánh): **đã xong ngày 2026-10-26** (`124 passed`; meta-model hơn DQSOps-PCA có ý nghĩa thống kê, hơn weighted score chưa có ý nghĩa ở tổng thể). Tiếp theo: Giai đoạn 8 (Spark, cần HIGGS full), rồi Giai đoạn 9 (biểu đồ + báo cáo). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
+**Trạng thái tổng quan:** Giai đoạn 0, 1 (trừ HIGGS full, làm sau), 2 (module Profiling), 3 (module Pollution) và 4 (module ML downstream) đã xong. Giai đoạn 5 (Experiment Runner): **đã xong: 312/312 dòng (regression 140 + clustering 126 + classification 148 phút, tổng ~6,9 giờ), kiểm tra đạt.** λ = 0 chỉ huấn luyện thật một lần cho mỗi (thuật toán, run), chép sang các dimension khác, nên chỉ 252 trong 312 dòng được huấn luyện thật. Giai đoạn 6 (meta-model + 3 baseline): **đã xong ngày 2026-10-26** (`116 passed`; Δ tuyệt đối, Group K-Fold: MAE meta-model 0,055 so với 0,077 weighted score và 0,084 DQSOps-PCA). Giai đoạn 7 (đánh giá & so sánh): **đã xong ngày 2026-10-26** (`124 passed`; meta-model hơn DQSOps-PCA có ý nghĩa thống kê, hơn weighted score chưa có ý nghĩa ở tổng thể). Giai đoạn 8 (Spark scalability): **đã chốt thiết kế và viết code ngày 2026-10-26, chưa chạy trên Colab.** Sau đó: Giai đoạn 9 (biểu đồ + báo cáo). **Đã chốt (2026-10-09):** giữ Class Balance cho clustering (Covertype) khi chạy thí nghiệm — vẫn 312 lượt — dù điểm Balance đo được tăng khi λ tăng (0,254 → 0,451); đến Giai đoạn 7 mới quyết định có đưa 24 lượt này vào bảng so sánh baseline không.
 
 **Ghi chú Giai đoạn 1:** nhóm A (3 file config) đã xong; 3 dataset (Beijing, HIGGS mẫu, Covertype) đã tải xong trên Google Drive qua notebook Colab (đã kiểm tra shape). Nhóm D (3 bản sạch) đã chạy và kiểm tra xong. Còn lại của Giai đoạn 1: HIGGS full (làm sau, trước Giai đoạn 8) và mục cài `requirements.txt` ở local (có thể bỏ qua vì chạy trên Colab).
 
@@ -42,7 +45,7 @@
 - [x] Xác nhận và tải Beijing Multi-Site Air Quality (12 trạm, UCI) vào `data/raw/beijing_air_quality/` — *12 file CSV `PRSA_Data_*.csv`, mỗi file 35.064 dòng × 18 cột (đã có sẵn cột `station`)*
 - [x] Xác nhận và tải mẫu HIGGS (~500K-1M dòng) vào `data/raw/higgs_sample/` — *`higgs_sample_raw.parquet`, 1.000.000 × 29, target 1: 52,99% / 0: 47,01% (seed 42)*
 - [x] Xác nhận và tải Covertype full (581K dòng) vào `data/raw/covertype/` — *`covertype_raw.parquet`, 581.012 × 55, 7 lớp (lớp 4 chỉ 2.747 dòng)*
-- [ ] (Có thể làm sau) Tải HIGGS full (11M dòng, ~2.8GB) vào `data/raw/higgs_full/` — chỉ cần trước khi làm Giai đoạn 6
+- [ ] (Có thể làm sau) Tải HIGGS full (11M dòng, ~2.8GB) vào `data/raw/higgs_full/` — chỉ cần cho Giai đoạn 8 — *làm bằng cell 15.2 (lưu parquet `higgs_full_raw.parquet` trên Drive)*
 - [x] Gộp 12 file trạm Beijing thành 1 bảng, thêm cột `station` — *420.768 × 18 (cột `station` đã có sẵn trong từng file)*
 - [x] Tạo bản "baseline" sạch cho Beijing (xử lý missing tự nhiên, one-hot `wd`/`station`) → `data/processed/beijing_clean.parquet` — *382.168 × 42 (bỏ 38.600 dòng missing = 9,2%), NaN = 0, trùng = 0*
 - [x] Tạo bản sạch cho HIGGS sample (lấy mẫu stratified theo target) → `data/processed/higgs_sample_clean.parquet` — *1.000.000 × 29; có 2.281 dòng trùng (0,23%), giữ nguyên*
@@ -114,9 +117,11 @@
 
 ## Giai đoạn 8 — Scalability study (Spark, có thể làm song song từ Giai đoạn 2)
 
-- [ ] Viết `scalability/spark_scale_study.py`
-- [ ] Chạy `spark_profiler.py` trên các mốc kích thước tăng dần của HIGGS full (1M, 3M, 6M, 11M dòng)
-- [ ] Đo runtime/memory, đối chiếu với bản pandas ở các mốc nhỏ
+*Trạng thái: đã chốt thiết kế (2026-10-26: thêm mốc 0,1M; profile bản sạch so với chính nó; mỗi lần đo một tiến trình con, 3 lần, trung vị; chỉ đo bộ nhớ pandas, Spark giới hạn 4g; lưu HIGGS full parquet lên Drive) và viết code + 8 test; **chưa chạy trên Colab** nên chưa tick. Chạy notebook mục 15.*
+
+- [ ] Viết `scalability/spark_scale_study.py` — *đã viết*
+- [ ] Chạy `spark_profiler.py` trên các mốc kích thước tăng dần của HIGGS full (1M, 3M, 6M, 11M dòng) — *thêm mốc 0,1M*
+- [ ] Đo runtime/memory, đối chiếu với bản pandas ở các mốc nhỏ — *bộ nhớ: chỉ đo pandas; đối chiếu điểm profile ở mọi mốc cả hai cùng chạy được*
 - [ ] Lưu kết quả → `results/scalability_benchmark.csv`
 
 ## Giai đoạn 9 — Báo cáo & Biểu đồ

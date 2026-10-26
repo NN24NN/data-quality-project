@@ -486,3 +486,36 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 **Hai điểm thực tế khác dự kiến:** tỷ lệ Bad thật là 51,6% chứ không phải thiểu số; giả thuyết về SHAP của Uniqueness sai. Cả hai đã ghi trung thực trong `ket-qua-thuc-nghiem.md` mục 7.6.
 
 **Chưa làm:** biểu đồ H5–H7 (để Giai đoạn 9).
+
+## Giai đoạn 8 — Scalability (đã viết code ngày 2026-10-26, **chưa chạy trên Colab**)
+
+**Quyết định của người dùng (2026-10-26)**, lý do và lợi ích đầy đủ ở `khac-biet-so-voi-bai-goc.md` mục 4.7:
+1. Profile bản sạch so với chính nó (không làm bẩn 11M dòng, không ghi dữ liệu bẩn ra đĩa).
+2. Thêm mốc 0,1M: 0,1M / 1M / 3M / 6M / 11M dòng.
+3. Thời gian = đọc parquet + profile; 3 lần mỗi mốc, báo trung vị; Spark khởi động một lần trước khi bấm giờ.
+4. **Chỉ đo bộ nhớ pandas** (đỉnh RSS); Spark chạy với giới hạn cố định `spark.driver.memory = 4g`. Người dùng hỏi có cần đo bộ nhớ không; đã giải thích bỏ hẳn thì mất phần "vì sao pandas thất bại", chọn phương án ở giữa.
+5. Mỗi lần đo là một tiến trình con riêng: hết RAM → `oom`, quá 20 phút → `timeout`, notebook không chết; engine thất bại thì mốc lớn hơn `skipped`.
+6. Đối chiếu điểm profile pandas và PySpark ở mọi mốc cả hai cùng chạy được.
+7. Lưu HIGGS full dạng parquet (~1,2GB) lên Drive; lúc đo luôn đọc từ `/content`. Người dùng hỏi về chi phí: đã xác nhận Giai đoạn 8 hoàn toàn miễn phí (PySpark mã nguồn mở, chạy local trong Colab miễn phí); "chi phí cố định" của Spark là thời gian khởi động, không phải tiền.
+
+**Đã làm:**
+
+| File | Nội dung |
+|---|---|
+| `configs/scalability.yaml` | Nguồn dữ liệu, đường dẫn trên Drive, các mốc, số lần đo, giới hạn thời gian, cấu hình Spark, ngưỡng đối chiếu |
+| `src/scalability/spark_scale_study.py` | `prepare` (tải + đổi parquet), `run` (cắt mốc, đo, ghi CSV), `worker` (một lần đo trong tiến trình con) |
+| `src/scalability/__init__.py` | Để test import được |
+| `tests/test_scalability.py` | 8 test |
+| Notebook mục 15 | 15.1 test; 15.2 chuẩn bị HIGGS full; 15.3 đo |
+
+**Làm như thế nào:**
+- **Chuẩn bị:** đọc `HIGGS.csv.gz` (target → int8, feature float32, cùng tên cột với HIGGS mẫu ở cell 7.3), ghi parquet lên Drive qua file tạm + `os.replace`. File parquet giữ nguyên nội dung gốc; cột `row_id` chỉ thêm vào các file mốc ở `/content` (Spark cần nó để ghép bản đo với ground truth; pandas ghép theo index nên đọc bỏ cột này).
+- **Một lần đo:** script tự gọi lại chính nó với lệnh `worker` trong tiến trình con có nhóm tiến trình riêng (`start_new_session=True`). Kết quả trả về qua một dòng `RESULT {json}` trên stdout. Quá giờ thì `killpg` cả nhóm — giết luôn JVM của Spark. Tiến trình bị hệ điều hành giết (SIGKILL, thường do hết RAM), `MemoryError` của Python hoặc `OutOfMemoryError` của JVM → `oom`; lỗi khác → `error` kèm 500 ký tự cuối của stderr.
+- **Pandas:** đọc parquet 2 lần (bản cần đo và ground truth, như khi dùng thật), gọi `pandas_profiler.compute_profile`, đo đỉnh RSS bằng `resource.getrusage` (KB → MB).
+- **Spark:** tạo SparkSession với `spark.driver.memory` từ config (phải đặt trước khi JVM khởi động — mỗi lần đo là một tiến trình mới nên luôn đúng), tắt Spark UI; chạy profile trên mốc nhỏ nhất một lần không tính giờ, rồi bấm giờ cho mốc cần đo. `compute_profile` của Spark đã gọi `.first()`/`.count()`/`.collect()` bên trong nên phép đo bao trọn phần tính toán thật.
+- **Cả nghiên cứu:** lặp mốc tăng dần × engine × lần; ghi lại cả CSV sau mỗi lần đo (file tạm + `os.replace`); chạy lại thì bỏ qua các lần đã có; engine đã thất bại thì các lần còn lại ghi `skipped`. Mỗi dòng kèm cấu hình máy (số nhân, RAM) và giới hạn bộ nhớ.
+- **Cuối lệnh `run`:** in bảng trung vị thời gian và đỉnh RAM pandas theo mốc, và bảng đối chiếu điểm profile hai engine.
+
+**Test kiểm tra gì** (HIGGS giả lập 400 dòng, mốc 100 và 300): chuẩn bị đúng kiểu dữ liệu, mốc nhỏ là phần đầu của mốc lớn, `row_id` đúng; pandas chạy được trong tiến trình con và đo được RAM, điểm profile đúng (có 1 dòng trùng); phân loại thất bại; pandas `oom` ở mốc đầu thì các lần sau `skipped` và không chạy thử; chạy tiếp không đo lại; hàm đối chiếu phát hiện được chênh lệch; pandas và PySpark khớp đầu-cuối qua tiến trình con; quá giờ trả `timeout`.
+
+**Chưa làm / chưa kiểm chứng:** chưa chạy trên Colab (kỳ vọng `132 passed`), chưa tải HIGGS full, chưa có số liệu.

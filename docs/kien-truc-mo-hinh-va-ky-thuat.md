@@ -183,6 +183,8 @@ Sau đó tính tương quan tuyến tính (hồi quy đơn biến) giữa `Q` v�
 
 **Cấu hình Spark đề xuất cho máy cá nhân/Colab:** local mode (`local[*]`), không cần cluster thật — đủ để minh họa xu hướng runtime tăng tuyến tính/sub-tuyến tính theo kích thước dữ liệu, đúng tinh thần "khả năng mở rộng" mà không cần hạ tầng cloud thật.
 
+**Đã chốt (2026-10-26, thay cho phần "Đo lường" ở trên; lý do ở `khac-biet-so-voi-bai-goc.md` mục 4.7):** thêm mốc 0,1M; profile bản sạch so với chính nó; mỗi lần đo chạy trong tiến trình con riêng (hết RAM → `oom`, quá giờ → `timeout`, notebook không chết), 3 lần mỗi mốc, báo trung vị; Spark chạy khởi động một lần trước khi bấm giờ. **Bộ nhớ: chỉ đo đỉnh RSS của pandas** (`resource.getrusage`); Spark chạy với **giới hạn cố định** `spark.driver.memory`, không đo bộ nhớ JVM. Tham số trong `configs/scalability.yaml`; code ở `src/scalability/spark_scale_study.py`.
+
 ---
 
 ## 7. Bảng tổng hợp công nghệ/thư viện

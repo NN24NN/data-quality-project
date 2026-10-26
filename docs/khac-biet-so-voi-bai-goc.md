@@ -276,6 +276,30 @@ Hai bài gốc không có bước này: Mohammed et al. không có mô hình d�
 
 *Trạng thái: **Đã cài** (`src/metamodel/evaluate_methods.py`, chẩn đoán trong `explain_shap.py`; `124 passed`; chạy trên Colab ngày 2026-10-26).*
 
+### 4.7 Cách đo khả năng mở rộng (Giai đoạn 8)
+
+Cả hai bài gốc đều không có phần này: Mohammed et al. dùng dữ liệu 1.000–25.000 dòng; DQSOps chạy trên một use case công nghiệp, không đo theo quy mô. Đây là đóng góp "quy mô lớn" của đề tài (mục 1). Thiết kế ban đầu (`kien-truc-mo-hinh-va-ky-thuat.md` mục 6) chỉ ghi các mốc 1M–11M và gợi ý đo bộ nhớ qua Spark UI hoặc `/proc`. Người dùng chốt các điểm dưới đây ngày 2026-10-26; tham số trong `configs/scalability.yaml`.
+
+| # | Thành phần | Đề tài | Lý do | Phương án không chọn |
+|---|---|---|---|---|
+| 1 | Dữ liệu đem profile | **Bản sạch so với chính nó** (đọc parquet 2 lần: một bản làm dữ liệu cần đo, một bản làm ground truth) | Thời gian profiling phụ thuộc khối lượng phép tính (quét ô thiếu, ghép theo `row_id` cho Accuracy, băm dòng tìm trùng, đếm lớp), không phụ thuộc dữ liệu có bẩn hay không. Làm bẩn 11M dòng phải dùng polluter pandas — tự nó có thể hết RAM — và phải ghi dữ liệu bẩn ra đĩa, trái quy tắc "không persist dữ liệu bẩn" của project | Profile dữ liệu bẩn: cần viết polluter bằng Spark (ngoài phạm vi), lẫn chi phí làm bẩn vào số đo |
+| 2 | Các mốc | **0,1M**, 1M, 3M, 6M, 11M dòng (mốc nhỏ là phần đầu của mốc lớn; HIGGS đã xáo sẵn) | Spark có thời gian khởi động cố định cho mỗi truy vấn (lập kế hoạch, chia việc); mốc 0,1M cho thấy vùng pandas nhanh hơn, và thêm một điểm so sánh được nếu pandas hết RAM sớm | Chỉ 4 mốc thiết kế: có thể chỉ còn 2 điểm cả hai engine cùng chạy được |
+| 3 | Thời gian | Tổng **đọc parquet + profile**; 3 lần mỗi mốc, báo **trung vị**; Spark chạy khởi động một lần trên mốc nhỏ nhất (bỏ kết quả) trước khi bấm giờ | Spark đọc dữ liệu kiểu lười nên không tách được phần đọc một cách công bằng; trung vị ít nhạy với một lần chạy bất thường; bỏ thời gian khởi JVM vì đó không phải chi phí của profiling | Đo một lần; tính cả khởi JVM |
+| 4 | Bộ nhớ | **Chỉ đo đỉnh RSS của pandas** (`resource.getrusage`, không tốn thêm gì); **Spark chạy với giới hạn cố định** `spark.driver.memory = 4g` | Thông điệp cần chứng minh là "pandas cần bộ nhớ tăng theo dữ liệu đến khi chạm trần RAM; Spark chạy hết 11M dòng trong một giới hạn cố định". Bộ nhớ đo được của JVM phản ánh vùng heap đã giữ trước, khó diễn giải | Đo cả hai bằng `psutil`: phức tạp, số của Spark dễ gây hiểu nhầm; bỏ hẳn: mất phần giải thích *vì sao* pandas thất bại |
+| 5 | An toàn khi đo | **Mỗi lần đo là một tiến trình con riêng** (cả nhóm tiến trình, gồm JVM). Hết RAM → `oom`; quá 20 phút → `timeout`; notebook vẫn chạy. Engine đã thất bại ở một mốc thì các mốc lớn hơn ghi `skipped`. Ghi kết quả sau mỗi lần đo, chạy lại thì bỏ qua lần đã xong | Pandas hết RAM trong chính notebook sẽ làm chết cả phiên Colab; mốc lớn hơn chắc chắn cũng thất bại nên không tốn thời gian thử | Đo trong notebook: mất phiên khi pandas hết RAM |
+| 6 | Kiểm tra đúng đắn | Ở mọi mốc cả hai engine cùng chạy được, đối chiếu kết quả profile, sai số tương đối ≤ 1e-9 | Mở rộng phép đối chiếu Giai đoạn 2 (50.000 dòng) lên quy mô triệu dòng | — |
+| 7 | Lưu dữ liệu | HIGGS full đổi sang parquet một lần, lưu Drive `data/raw/higgs_full/higgs_full_raw.parquet` (~1,2GB, giữ nguyên nội dung gốc); các mốc kèm cột `row_id` cắt ra ổ tạm `/content` đầu mỗi phiên; lúc đo luôn đọc từ `/content` | Phiên sau không phải tải lại 2,8GB từ UCI; đọc từ Drive chậm và dao động theo mạng nên làm sai số đo | Không lưu: mỗi phiên tải lại 10–15 phút |
+
+**Lợi ích cho báo cáo (điểm cộng):**
+- **Kết luận trung thực về Spark:** thiết kế chấp nhận trước khả năng Spark chậm hơn pandas trên máy 2 nhân, và đo đúng thứ Spark mang lại (chạy được khi dữ liệu vượt RAM, trong giới hạn bộ nhớ cố định). Thông điệp "pandas cho dữ liệu nhỏ, Spark cho dữ liệu lớn" thuyết phục hơn "Spark luôn nhanh hơn".
+- **Điểm gãy của pandas là số đo thật** (`oom` cùng bộ nhớ đỉnh tăng dần), không phải ước tính trên giấy.
+- **Cùng công thức, khác engine được kiểm chứng ở quy mô lớn** (điểm 6), nên so sánh thời gian là công bằng.
+- **Tái lập được:** cùng một bản dữ liệu trên Drive, các mốc cắt xác định (phần đầu), tham số trong config.
+
+**Giới hạn cần nêu khi trình bày:** Spark ở chế độ local trên một máy ảo Colab (khoảng 2 nhân) không phản ánh cluster phân tán thật — đây là minh họa xu hướng (thiết kế mục 8 của `kien-truc`). Kết quả profile ở Giai đoạn 8 gần như bằng 1 (dữ liệu sạch); khả năng phát hiện bẩn đã kiểm chứng ở Giai đoạn 3. Pandas đọc dữ liệu 2 lần (bản cần đo và ground truth) như cách dùng thật, nên bộ nhớ của nó gấp đôi so với chỉ profile một bảng không cần Accuracy.
+
+*Trạng thái: Đã viết (`src/scalability/spark_scale_study.py`; chưa chạy trên Colab).*
+
 ---
 
 ## 5. Khác biệt về chuẩn bị dữ liệu

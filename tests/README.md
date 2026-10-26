@@ -9,4 +9,6 @@
 
 - `test_evaluate_methods.py` — chỉ số hồi quy/phân loại khớp tính tay; bootstrap lấy lại theo nhóm, tái lập được; bảng phụ bỏ đúng 24 lượt; đủ dòng ở 3 bảng kết quả; chẩn đoán SHAP. Dùng bảng giả lập của `test_metamodel.py`.
 
-Chạy tất cả: `python -m pytest tests/ -q` (trên Colab: cell 14.1; Giai đoạn 6 đạt `116 passed`, Giai đoạn 7 thêm 8 test, đạt `124 passed` ngày 2026-10-26).
+- `test_scalability.py` — chuẩn bị dữ liệu và cắt mốc đúng; đo pandas trong tiến trình con; phân loại thất bại (`oom`/`error`); engine thất bại thì mốc lớn hơn `skipped`; chạy tiếp được; pandas và PySpark khớp đầu-cuối; quá giờ thì giết tiến trình. Chỉ chạy trên Linux; phần PySpark cần Java.
+
+Chạy tất cả: `python -m pytest tests/ -q` (trên Colab: cell 15.1; Giai đoạn 7 đạt `124 passed` ngày 2026-10-26, Giai đoạn 8 thêm 8 test, kỳ vọng `132 passed`).

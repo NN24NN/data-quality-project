@@ -22,7 +22,8 @@ data-quality-project/
 │   ├── experiment_matrix.yaml       # ma trận dataset × dimension × thuật toán (từ file thiết kế chi tiết)
 │   ├── datasets.yaml                # cột target, loại target, tiền tố one-hot của từng bản sạch
 │   ├── algorithms.yaml              # siêu tham số của 6 thuật toán downstream
-│   └── metamodel.yaml               # Giai đoạn 6: meta-model, cách chia, ngưỡng rule-based
+│   ├── metamodel.yaml               # Giai đoạn 6: meta-model, cách chia, ngưỡng rule-based
+│   └── scalability.yaml             # Giai đoạn 8: các mốc, số lần đo, cấu hình Spark
 │
 ├── data/
 │   ├── raw/                         # dữ liệu tải về, giữ nguyên bản gốc, KHÔNG sửa trực tiếp
