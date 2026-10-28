@@ -1,6 +1,6 @@
 # Thiết kế thí nghiệm chi tiết
 
-**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh, gắn với hiệu năng mô hình downstream
+**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết tác vụ, dự đoán mức suy giảm hiệu năng mô hình downstream
 
 **File này dựa trên:** `pipeline-thi-nghiem.md` (các quyết định đã chốt) và `tong-quan-bai-goc.md` (định nghĩa dimension/polluter từ Mohammed et al.)
 

@@ -1,6 +1,6 @@
 # Tổng quan hai bài báo gốc và khoảng trống nghiên cứu
 
-**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh, gắn với hiệu năng mô hình downstream
+**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết tác vụ, dự đoán mức suy giảm hiệu năng mô hình downstream
 
 **Tài liệu này dùng để:** giúp các thành viên trong nhóm hiểu đề tài đang dựa trên nền tảng nào, điểm mới nằm ở đâu, và vì sao thiết kế thí nghiệm sẽ đi theo hướng đã chọn.
 

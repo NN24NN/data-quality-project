@@ -1,0 +1,35 @@
+% Hình 2 — kiến trúc meta-model và ba baseline: cùng đầu vào profile, khác cách biến thành dự đoán
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=2pt,align=center,font=\footnotesize,minimum height=0.9cm,inner sep=3pt},
+  arr/.style={-{Stealth[length=2mm]},thick}]
+
+% Đầu vào
+\node[box,fill=blue!12,text width=3.3cm]  (prof) at (0,2.7)  {\textbf{Profile}\\5 điểm chất lượng};
+\node[box,fill=gray!12,text width=3.3cm]  (task) at (0,0.9)  {\textbf{Tác vụ}\\one-hot (3)};
+\node[box,fill=gray!12,text width=3.3cm]  (algo) at (0,-0.6) {\textbf{Thuật toán}\\one-hot (6)};
+
+% Meta-model
+\node[box,fill=green!18,text width=3.4cm,minimum height=1.5cm] (gb) at (5.1,0.9)
+  {\textbf{Meta-model}\\Gradient Boosting\\14 đặc trưng, 100 cây,\\độ sâu 3};
+\node[box,fill=red!10,text width=2.4cm] (d1) at (8.9,0.9) {$\hat\Delta$ theo tác vụ};
+\node[box,fill=green!10,text width=2.4cm] (shap) at (8.9,-0.65) {SHAP: trọng số\\từng chiều theo tác vụ};
+\draw[arr] (prof.east) -- ++(0.5,0) |- (gb.west);
+\draw[arr] (task.east) -- (gb.west);
+\draw[arr] (algo.east) -- ++(0.5,0) |- (gb.west);
+\draw[arr] (gb) -- (d1);
+\draw[arr] (gb.south east) -- ++(0,-0.4) |- (shap.west);
+
+% Baseline
+\node[font=\footnotesize\bfseries,anchor=west] at (-1.65,-1.75) {Ba baseline (chỉ nhận profile, không biết tác vụ):};
+\node[box,fill=orange!15,text width=3.3cm] (r1) at (0,-3.0)  {Rule-based\\có chiều nào $<0{,}9$?};
+\node[box,fill=red!10,text width=2.4cm]    (o1) at (4.6,-3.0) {Good / Bad};
+\node[box,fill=orange!15,text width=3.3cm] (r2) at (0,-4.35) {Weighted score\\$Q$ = trung bình 5 điểm};
+\node[box,fill=gray!12,text width=2.4cm]   (l2) at (4.6,-4.35) {linear regression\\$Q \to \Delta$};
+\node[box,fill=red!10,text width=2.4cm]    (o2) at (8.9,-4.35) {$\hat\Delta$ chung\\cho mọi tác vụ};
+\node[box,fill=orange!15,text width=3.3cm] (r3) at (0,-5.7)  {DQSOps-PCA\\z-score $\to$ PCA $\to$ PC1};
+\node[box,fill=gray!12,text width=2.4cm]   (l3) at (4.6,-5.7)  {linear regression\\PC1 $\to \Delta$};
+\node[box,fill=red!10,text width=2.4cm]    (o3) at (8.9,-5.7)  {$\hat\Delta$ chung\\cho mọi tác vụ};
+\draw[arr] (r1) -- (o1);
+\draw[arr] (r2) -- (l2); \draw[arr] (l2) -- (o2);
+\draw[arr] (r3) -- (l3); \draw[arr] (l3) -- (o3);
+\end{tikzpicture}

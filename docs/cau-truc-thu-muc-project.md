@@ -1,6 +1,6 @@
 # Cấu trúc thư mục project
 
-**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh, gắn với hiệu năng mô hình downstream
+**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết tác vụ, dự đoán mức suy giảm hiệu năng mô hình downstream
 
 **File này dựa trên:** `pipeline-thi-nghiem.md` (10 module), `thiet-ke-thi-nghiem-chi-tiet.md` (ma trận thí nghiệm), `kien-truc-mo-hinh-va-ky-thuat.md` (kỹ thuật từng module)
 

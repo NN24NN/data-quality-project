@@ -1,6 +1,6 @@
 # Checklist triển khai đề tài
 
-**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh, gắn với hiệu năng mô hình downstream
+**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết tác vụ, dự đoán mức suy giảm hiệu năng mô hình downstream
 
 **Mục đích file này:** danh sách các việc cần làm theo thứ tự, dùng để theo dõi tiến độ — tick dần khi hoàn thành từng việc. Tham chiếu chi tiết kỹ thuật cho mỗi việc nằm trong 4 file thiết kế: `pipeline-thi-nghiem.md`, `thiet-ke-thi-nghiem-chi-tiet.md`, `kien-truc-mo-hinh-va-ky-thuat.md`, `cau-truc-thu-muc-project.md`.
 
@@ -14,9 +14,9 @@
 >
 > **Kết thúc phiên ngày 2026-10-26** (commit cuối của phiên được ghi trong `git log`). Người dùng quyết định **giữ** `higgs_full_raw.parquet` (0,69 GB) trên Drive. Mọi file kết quả nằm trên Drive `results/`, không có trong git: `experiment_results.parquet`, `baseline_performance.csv`, `metamodel_cv_predictions.parquet`, `metamodel.pkl`, `dqsops_pca_weights.csv`, `shap_importance.csv`, `shap_by_row_dimension.csv`, `method_comparison.csv`, `method_bootstrap.csv`, `goodbad_comparison.csv`, `scalability_benchmark.csv`.
 >
-> **Cập nhật 2026-10-28:** biểu đồ H1–H10 đã vẽ xong trên Colab (code `src/visualization/plots.py`, notebook `03_visualize_results.ipynb`, hình ở `results/figures/` trên Drive). **Bản nháp báo cáo LaTeX đã viết** ở `report/` (tiếng Việt, XeLaTeX, một cột kiểu ACL, hai file chính cho hai giảng viên, chi tiết ở `cach-trien-khai-chi-tiet-tung-giai-doan.md` Giai đoạn 9) — **chưa biên dịch trên Overleaf, chưa kiểm tra số trang** (mục tiêu 14–15 trang thân bài).
+> **Cập nhật 2026-10-28:** biểu đồ H1–H10 đã vẽ xong trên Colab (code `src/visualization/plots.py`, notebook `03_visualize_results.ipynb`, hình ở `results/figures/` trên Drive). **Bản nháp báo cáo LaTeX đã viết** ở `report/` (tiếng Việt, XeLaTeX, một cột kiểu ACL, hai file chính cho hai giảng viên, chi tiết ở `cach-trien-khai-chi-tiet-tung-giai-doan.md` Giai đoạn 9) — **đã build được bằng Tectonic ở máy local (Overleaf free bị timeout): thân bài 15 trang, không lỗi; PDF ở `report/build/`**.
 >
-> **Việc tiếp theo:** người dùng tạo project Overleaf trống, upload thư mục `report/` và 13 ảnh `.png` vào `figures/`, chọn compiler XeLaTeX, biên dịch → báo lỗi/số trang → chỉnh nội dung cho vừa 14–15 trang → tick dòng "Viết báo cáo". Viết báo cáo nên dùng Opus.
+> **Việc tiếp theo:** người dùng đọc duyệt PDF (`report/build/main_*.pdf`), góp ý → chỉnh → build lại → tick dòng "Viết báo cáo".
 >
 > **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
 

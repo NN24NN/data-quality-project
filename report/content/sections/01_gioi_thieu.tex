@@ -1,26 +1,28 @@
 \section{Giới thiệu}
 \label{sec:gioi-thieu}
 
-Dữ liệu dùng để huấn luyện mô hình học máy trong thực tế hiếm khi sạch: cảm biến mất tín hiệu để lại ô trống, nhập liệu sai làm lệch giá trị, gán nhãn nhầm, bản ghi bị nhân đôi khi gộp nguồn, hay một số lớp quá ít mẫu. Vì vậy, trước khi huấn luyện, người làm dữ liệu cần trả lời một câu hỏi rất thực dụng: \emph{dữ liệu này có đủ tốt cho mô hình mình định dùng không, và nếu không thì sẽ tệ đi bao nhiêu?}
+Dữ liệu dùng để huấn luyện mô hình học máy trong thực tế hiếm khi sạch: cảm biến mất tín hiệu để lại ô trống, nhập liệu sai làm lệch giá trị, gán nhãn nhầm, bản ghi bị nhân đôi khi gộp nguồn, hay một số lớp có quá ít mẫu. Vì vậy, trước khi huấn luyện, người làm dữ liệu cần trả lời một câu hỏi rất thực tế: \emph{dữ liệu này có đủ tốt cho mô hình mình định dùng không, và nếu không thì hiệu năng sẽ giảm bao nhiêu?}
 
-Các công cụ đánh giá chất lượng dữ liệu hiện nay thường trả lời bằng cách đo từng chiều chất lượng (độ đầy đủ, độ chính xác, độ duy nhất...) rồi gộp lại thành một điểm số. DQSOps \citep{bayram2023dqsops} là ví dụ tiêu biểu: điểm chất lượng là thành phần chính thứ nhất (PC1) của phân tích PCA trên các chiều. Cách làm này có hai hạn chế. Thứ nhất, điểm số \emph{giống nhau cho mọi tác vụ}, trong khi cùng một lỗi có thể rất hại với tác vụ này nhưng vô hại với tác vụ khác. Thứ hai, điểm số \emph{không gắn với hiệu năng thật} của mô hình phía sau (downstream): một điểm 0,8 không cho biết F1 sẽ giảm bao nhiêu.
+Các công cụ đánh giá chất lượng dữ liệu hiện nay thường trả lời bằng cách đo từng chiều chất lượng (độ đầy đủ, độ chính xác, độ duy nhất...) rồi gộp lại thành một điểm số. DQSOps, được trình bày trong \bbDQS{}, là ví dụ tiêu biểu: điểm chất lượng là thành phần chính thứ nhất (PC1) của phân tích PCA trên các chiều. Cách làm này có hai hạn chế. Thứ nhất, điểm số \emph{giống nhau cho mọi tác vụ}, trong khi cùng một lỗi có thể gây hại nhiều cho tác vụ này nhưng gần như không ảnh hưởng đến tác vụ khác. Thứ hai, điểm số \emph{không gắn với hiệu năng thật} của mô hình phía sau (downstream): một điểm 0,8 không cho biết F1 sẽ giảm bao nhiêu.
 
-Ở chiều ngược lại, \citet{mohammed2025effects} đã chứng minh bằng thực nghiệm quy mô lớn rằng ảnh hưởng của chất lượng dữ liệu phụ thuộc vào tác vụ và thuật toán. Tuy nhiên công trình này dừng ở mức quan sát (vẽ đường cong hiệu năng theo mức ô nhiễm), không xây mô hình để dự đoán mức suy giảm cho một bộ dữ liệu mới.
+Ở chiều ngược lại, \bbMoh{} đã chứng minh bằng thực nghiệm quy mô lớn rằng ảnh hưởng của chất lượng dữ liệu phụ thuộc vào tác vụ và thuật toán. Tuy nhiên, công trình này dừng ở mức quan sát (vẽ đường cong hiệu năng theo mức ô nhiễm) và không xây dựng mô hình để dự đoán mức suy giảm cho một bộ dữ liệu mới.
 
-\paragraph{Khoảng trống nghiên cứu.} Chưa có công trình nào học một mô hình dự đoán \emph{mức suy giảm hiệu năng downstream thật} từ một profile chất lượng nhiều chiều, \emph{có phân biệt theo tác vụ}, và đánh giá được khả năng mở rộng khi dữ liệu lớn.
+\paragraph{Khoảng trống nghiên cứu.} Theo khảo sát của nhóm, hiện chưa có công trình nào học một mô hình dự đoán \emph{mức suy giảm hiệu năng downstream thật} từ một profile chất lượng nhiều chiều, \emph{có phân biệt theo tác vụ}, và đánh giá được khả năng mở rộng khi dữ liệu lớn.
+
+Trong báo cáo này, \emph{nhận biết tác vụ} nghĩa là kết quả đánh giá phụ thuộc vào mục đích sử dụng dữ liệu: loại tác vụ (classification, regression hay clustering) và thuật toán dự định dùng được đưa vào mô hình như một phần của đầu vào, bên cạnh profile chất lượng. Vì vậy, cùng một bộ dữ liệu có thể nhận các mức suy giảm dự đoán khác nhau cho các tác vụ khác nhau.
 
 \paragraph{Câu hỏi nghiên cứu.} Đề tài trả lời bốn câu hỏi, mỗi câu tương ứng một phần trong Mục~\ref{sec:ket-qua}:
 \begin{itemize}
   \item \RQ{1}: Ảnh hưởng của từng chiều chất lượng đến hiệu năng có thực sự phụ thuộc vào tác vụ và thuật toán không?
   \item \RQ{2}: Một meta-model học từ mức suy giảm thật có ước lượng hiệu năng tốt hơn các điểm chất lượng cố định (luật ngưỡng, trung bình có trọng số, PCA kiểu DQSOps) không?
-  \item \RQ{3}: Mức quan trọng của các chiều chất lượng mà meta-model học được có khác nhau theo tác vụ, và khác với trọng số cố định của PCA không?
+  \item \RQ{3}: Mức quan trọng của các chiều chất lượng mà meta-model học được có khác nhau theo tác vụ không, và có khác với trọng số cố định của PCA không?
   \item \RQ{4}: Bước profiling có mở rộng được khi dữ liệu vượt bộ nhớ của một máy không?
 \end{itemize}
 
 \paragraph{Đóng góp.}
 \begin{enumerate}
-  \item \textbf{Nhãn lấy từ downstream thật:} meta-model học $\Delta$F1 (phân loại), $\Delta$R$^2$ (hồi quy), $\Delta$AMI (phân cụm) so với baseline sạch, thay cho một điểm chất lượng tự định nghĩa.
-  \item \textbf{Mô hình có biết tác vụ, giải thích được:} Gradient Boosting kèm SHAP cho ra ``trọng số'' của từng chiều theo từng tác vụ, tường minh hơn trọng số ẩn của PCA.
+  \item \textbf{Nhãn lấy từ downstream thật:} meta-model học $\Delta$F1 (classification), $\Delta$R$^2$ (regression), $\Delta$AMI (clustering) so với baseline sạch, thay cho một điểm chất lượng tự định nghĩa.
+  \item \textbf{Mô hình nhận biết tác vụ, giải thích được:} Gradient Boosting kèm SHAP cho ra ``trọng số'' của từng chiều theo từng tác vụ, tường minh hơn trọng số ẩn của PCA.
   \item \textbf{Đánh giá chặt chẽ:} chia train/test theo nhóm để chống rò rỉ, bootstrap theo nhóm để kiểm tra ý nghĩa thống kê, so sánh với ba baseline.
-  \item \textbf{Profiling quy mô lớn:} cùng công thức cài trên pandas và PySpark, đo thời gian và bộ nhớ đến 22 triệu dòng.
+  \item \textbf{Profiling quy mô lớn:} cùng công thức được cài đặt trên pandas và PySpark, đo thời gian và bộ nhớ đến 22 triệu dòng.
 \end{enumerate}

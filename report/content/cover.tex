@@ -1,6 +1,7 @@
 % ============================================================
 % Trang bìa + mục lục (không tính vào giới hạn trang)
 % ============================================================
+\pagenumbering{Alph}   % số trang riêng cho bìa và mục lục, tránh trùng nhãn trang với thân bài (hyperref)
 \begin{titlepage}
 \centering
 {\large ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH\par}
@@ -20,8 +21,9 @@
 {\large\bfseries ĐỀ TÀI\par}
 \vspace{0.3cm}
 {\Large\bfseries XÂY DỰNG KHUNG ĐÁNH GIÁ CHẤT LƯỢNG DỮ LIỆU\\[2pt]
-QUY MÔ LỚN CÓ NHẬN BIẾT NGỮ CẢNH,\\[2pt]
-GẮN VỚI HIỆU NĂNG MÔ HÌNH DOWNSTREAM\par}
+QUY MÔ LỚN CÓ NHẬN BIẾT TÁC VỤ,\\[2pt]
+DỰ ĐOÁN MỨC SUY GIẢM HIỆU NĂNG\\[2pt]
+MÔ HÌNH DOWNSTREAM\par}
 \vspace{2cm}
 
 \begin{tabular}{@{}ll@{}}
@@ -34,5 +36,7 @@ GẮN VỚI HIỆU NĂNG MÔ HÌNH DOWNSTREAM\par}
 {\large Thành phố Hồ Chí Minh, năm 2026\par}
 \end{titlepage}
 
+\pagenumbering{roman}
 \tableofcontents
 \clearpage
+\pagenumbering{arabic}

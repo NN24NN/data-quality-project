@@ -3,93 +3,76 @@
 
 \subsection{Tổng quan khung đánh giá}
 
-Hình~\ref{fig:pipeline} tóm tắt toàn bộ khung. Có hai giai đoạn. Ở \emph{giai đoạn xây dựng} (làm một lần), dữ liệu sạch bị làm bẩn có kiểm soát theo từng chiều và từng mức $\lambda$. Mỗi bản bẩn được đo profile chất lượng và đem huấn luyện mô hình downstream để lấy mức suy giảm $\Delta$ so với bản sạch. Mỗi lượt cho một dòng (profile, tác vụ, thuật toán, $\Delta$); 312 lượt tạo thành bảng huấn luyện cho meta-model. Ở \emph{giai đoạn sử dụng}, với một bộ dữ liệu mới chỉ cần chạy profiling (bằng pandas, hoặc Spark nếu dữ liệu lớn) rồi đưa profile cùng tác vụ dự định vào meta-model để ước lượng hiệu năng sẽ giảm bao nhiêu, không cần huấn luyện mô hình downstream.
+Hình~\ref{fig:pipeline} mô tả kiến trúc của khung, gồm hai giai đoạn. Ở \emph{giai đoạn xây dựng} (làm một lần), dữ liệu sạch được làm bẩn có kiểm soát theo từng chiều chất lượng và từng mức $\lambda$. Mỗi bản dữ liệu bẩn được đo profile chất lượng và đem huấn luyện mô hình downstream để lấy mức suy giảm hiệu năng $\Delta$ so với bản sạch. Mỗi lượt cho một dòng (profile, tác vụ, thuật toán, $\Delta$); 312 lượt tạo thành bảng huấn luyện cho meta-model. Ở \emph{giai đoạn sử dụng}, với một bộ dữ liệu mới chỉ cần chạy profiling (bằng pandas, hoặc Spark nếu dữ liệu lớn), rồi đưa profile cùng tác vụ và thuật toán dự định dùng vào meta-model để ước lượng hiệu năng sẽ giảm bao nhiêu, mà không cần huấn luyện mô hình downstream.
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
 \centering
-\resizebox{\linewidth}{!}{%
-\begin{tikzpicture}[
-  box/.style={draw,rounded corners=2pt,align=center,font=\small,minimum height=0.95cm,inner sep=4pt,fill=#1},
-  box/.default=white,
-  arr/.style={-{Stealth[length=2.2mm]},thick},
-  node distance=0.55cm and 0.6cm]
-\node[box=gray!10] (clean) {Dữ liệu sạch\\(3 bộ)};
-\node[box=orange!15, right=of clean] (pollute) {Làm bẩn có kiểm soát\\5 chiều $\times$ 4 mức $\lambda$};
-\node[box=blue!10, above right=0.15cm and 0.6cm of pollute] (profile) {Profiling\\(pandas / Spark)};
-\node[box=blue!10, below right=0.15cm and 0.6cm of pollute] (down) {Huấn luyện downstream\\6 thuật toán $\to\ \Delta$};
-\node[box=gray!10, right=5.4cm of pollute] (table) {Bảng 312 lượt\\(profile, tác vụ,\\thuật toán, $\Delta$)};
-\node[box=green!15, right=of table] (meta) {Meta-model\\Gradient Boosting};
-\node[box=green!15, above=of meta] (shap) {SHAP: trọng số\\theo tác vụ};
-\node[box=red!10, below=of meta] (base) {So với 3 baseline\\rule / weighted / PCA};
-\draw[arr] (clean) -- (pollute);
-\draw[arr] (pollute) |- (profile);
-\draw[arr] (pollute) |- (down);
-\draw[arr] (profile) -| (table);
-\draw[arr] (down) -| (table);
-\draw[arr] (table) -- (meta);
-\draw[arr] (meta) -- (shap);
-\draw[arr] (meta) -- (base);
-\end{tikzpicture}}
-\caption{Khung đánh giá đề xuất. Nhánh trên đo chất lượng, nhánh dưới đo hiệu năng thật; meta-model học ánh xạ giữa hai nhánh.}
+\resizebox{\linewidth}{!}{\input{content/tikz/pipeline}}
+\caption{Kiến trúc tổng thể của khung đánh giá. Giai đoạn A tạo dữ liệu huấn luyện và huấn luyện meta-model; giai đoạn B dùng meta-model đã huấn luyện cho một bộ dữ liệu mới.}
 \label{fig:pipeline}
 \end{figure}
 
 \subsection{Profiling: đo chất lượng theo năm chiều}
 \label{sec:profiling}
 
-\textbf{Làm gì.} Mỗi bộ dữ liệu được tóm thành một vector năm điểm trong khoảng $[0,1]$, càng gần 1 càng sạch. Các chiều và công thức lấy từ \citet{mohammed2025effects}. Với $n$ dòng, $f$ cột đặc trưng:
+Mỗi bộ dữ liệu được tóm tắt thành một vector năm điểm trong khoảng $[0,1]$, gọi là profile; điểm càng gần 1 thì dữ liệu càng sạch. Các chiều và công thức lấy từ \bbMohRef{}. Đề tài chọn năm chiều này vì chúng phủ các lỗi phổ biến nhất của dữ liệu dạng bảng (ô trống, giá trị sai, nhãn sai, bản ghi trùng, mất cân bằng lớp), và mỗi chiều có một polluter tương ứng để làm bẩn dữ liệu theo mức điều khiển được. Chiều thứ sáu của bài gốc (Consistent Representation) được lược bỏ để thu gọn phạm vi; chiều này cũng không áp dụng được cho HIGGS vì bộ dữ liệu này toàn cột số. Với $n$ dòng và $f$ cột đặc trưng, năm điểm được tính như sau:
 \begin{itemize}
   \item \textbf{Completeness} $= 1 - \frac{1}{f}\sum_{i} \frac{\text{số ô thiếu của cột } i}{n}$.
-  \item \textbf{Feature Accuracy}: so từng ô với bản gốc (ground truth). Cột phân loại: tỷ lệ ô trùng bản gốc. Cột số: $\max\!\big(0,\ 1 - \overline{|x-x^{gt}|}\,/\,\overline{|x^{gt}|}\big)$. Điểm của bảng là trung bình qua các cột.
-  \item \textbf{Target Accuracy}: như trên nhưng áp dụng cho cột nhãn (phân loại) hoặc cột mục tiêu (hồi quy).
+  \item \textbf{Feature Accuracy}: so từng ô với bản gốc (ground truth). Cột categorical: tỷ lệ ô trùng bản gốc. Cột số: $\max\!\big(0,\ 1 - \overline{|x-x^{gt}|}\,/\,\overline{|x^{gt}|}\big)$. Điểm của bảng là trung bình qua các cột.
+  \item \textbf{Target Accuracy}: tính như trên nhưng áp dụng cho cột nhãn (classification) hoặc cột mục tiêu (regression).
   \item \textbf{Uniqueness} $= (\text{số dòng khác nhau} - 1)/(n-1)$.
-  \item \textbf{Class Balance} $= 1 - \sum_{i<j}|n_i-n_j| \,/\, \big(\lceil m/2\rceil \lfloor m/2\rfloor\, n_{\max}\big)$ với $m$ lớp có kích thước $n_i$. Với 2 lớp, điểm bằng $n_{\min}/n_{\max}$. Chiều này không áp dụng cho hồi quy.
+  \item \textbf{Class Balance} $= 1 - \sum_{i<j}|n_i-n_j| \,/\, \big(\lceil m/2\rceil \lfloor m/2\rfloor\, n_{\max}\big)$ với $m$ lớp có kích thước $n_i$. Với 2 lớp, điểm bằng $n_{\min}/n_{\max}$. Chiều này không áp dụng cho regression.
 \end{itemize}
-
-\textbf{Vì sao chọn.} Năm chiều này phủ các lỗi phổ biến nhất của dữ liệu bảng (ô trống, giá trị sai, nhãn sai, bản ghi trùng, mất cân bằng lớp). Mỗi chiều có polluter tương ứng nên đo được ``liều lượng'' lỗi. Chiều thứ sáu của bài gốc (Consistent Representation) được lược bỏ để thu gọn phạm vi; nó cũng không áp dụng được cho HIGGS vì bộ này toàn cột số. Đề tài sửa mẫu số của công thức accuracy cho cột số (Mục~\ref{sec:kb-cong-thuc}) và tự chốt một số quy ước bài gốc không nêu: mỗi nhóm cột one-hot tính là một đặc trưng phân loại; ô đang thiếu không bị tính thêm vào accuracy để một lỗi không bị đếm hai lần; chiều không áp dụng trả về NaN thay vì gán 1.
+Đề tài sửa mẫu số của công thức accuracy cho cột số (Mục~\ref{sec:kb-cong-thuc}) và tự chốt một số quy ước mà bài gốc không nêu: mỗi nhóm cột one-hot được tính là một đặc trưng categorical; ô đang thiếu không bị tính thêm vào accuracy, để một lỗi không bị đếm hai lần; chiều không áp dụng trả về NaN thay vì gán giá trị 1.
 
 \subsection{Làm bẩn dữ liệu có kiểm soát}
 \label{sec:pollution}
 
-\textbf{Làm gì.} Mỗi lượt chỉ làm bẩn \emph{một} chiều ở mức $\lambda \in \{0;\ 0{,}2;\ 0{,}5;\ 0{,}8\}$:
+Mỗi lượt chỉ làm bẩn \emph{một} chiều, ở mức $\lambda \in \{0;\ 0{,}2;\ 0{,}5;\ 0{,}8\}$ (polluter tương ứng của từng chiều được mô tả dưới đây):
 \begin{itemize}
   \item Completeness: xóa ngẫu nhiên hoàn toàn (MCAR) tỷ lệ $\lambda$ số ô.
-  \item Feature/Target Accuracy: mọi ô của cột số được cộng nhiễu $X\cdot\overline{|x^{gt}|}$ với $X\sim\mathcal{N}(0,\lambda)$; với cột phân loại và nhãn, tỷ lệ $\lambda$ số dòng bị đổi sang giá trị khác trong miền.
+  \item Feature/Target Accuracy: mọi ô của cột số được cộng nhiễu $X\cdot\overline{|x^{gt}|}$ với $X\sim\mathcal{N}(0,\lambda)$; với cột categorical và nhãn, tỷ lệ $\lambda$ số dòng bị đổi sang giá trị khác trong miền.
   \item Uniqueness: nhân bản dòng với hệ số $\rho = 1/(1-\lambda)$, nên dữ liệu lớn gấp 5 lần ở $\lambda = 0{,}8$.
   \item Class Balance: giữ nguyên lớp lớn nhất, xóa tỷ lệ $\lambda$ số dòng của mọi lớp còn lại.
 \end{itemize}
-
-\textbf{Vì sao chọn.} Làm bẩn có kiểm soát cho phép biết chính xác nguyên nhân của mức suy giảm. Đây là điều kiện để có nhãn huấn luyện đáng tin cho meta-model. Đề tài dùng \emph{Scenario 3} của bài gốc (làm bẩn cả train lẫn test) vì đó là tình huống thực tế nhất: dữ liệu lúc dùng mô hình thường bẩn giống dữ liệu lúc huấn luyện. Mọi chiều dùng chung một thang $\lambda$ để điểm đo được xấp xỉ $1-\lambda$, nhờ đó so sánh được giữa các chiều ở cùng mức bẩn. Dữ liệu bẩn được tạo trong bộ nhớ lúc chạy từ seed cố định nên tái lập được mà không cần lưu ra đĩa.
+Làm bẩn có kiểm soát cho phép biết chính xác nguyên nhân của mức suy giảm, đây là điều kiện để có nhãn huấn luyện đáng tin cho meta-model. Đề tài dùng \emph{Scenario 3} của bài gốc (làm bẩn cả tập train lẫn tập test) vì đó là tình huống thực tế nhất: dữ liệu lúc dùng mô hình thường bẩn giống dữ liệu lúc huấn luyện. Cả năm chiều dùng chung một thang $\lambda$ (mức bẩn tăng cùng chiều từ 0 đến 0,8), nên có thể so sánh tác động giữa các chiều ở cùng mức bẩn; điểm profile đo lại sau khi làm bẩn bám sát giá trị lý thuyết (Hình~\ref{fig:h1}). Dữ liệu bẩn được tạo trong bộ nhớ lúc chạy từ seed cố định, nên tái lập được mà không cần lưu ra đĩa.
 
 \subsection{Nhãn huấn luyện: mức suy giảm hiệu năng thật}
 
-\textbf{Làm gì.} Mỗi lượt huấn luyện mô hình downstream trên bản bẩn và đo hiệu năng \emph{raw}; nhãn là
+Mỗi lượt huấn luyện mô hình downstream trên bản dữ liệu bẩn và đo hiệu năng \emph{raw}; nhãn của meta-model là
 \[
 \Delta = \text{baseline}(\text{thuật toán}, s) - \text{raw}(\text{thuật toán}, s),
 \]
-trong đó baseline là hiệu năng trên bản sạch \emph{với cùng seed} $s$. $\Delta > 0$ nghĩa là hiệu năng giảm. Thước đo hiệu năng theo bài gốc: F1-macro (phân loại), R$^2$ (hồi quy), AMI \citep{vinh2010information} (phân cụm). Ngoài $\Delta$ tuyệt đối (nhãn chính), đề tài dùng thêm $\Delta$ tương đối $=\Delta/\text{baseline}$ để đưa ba tác vụ về cùng thang ``tỷ lệ hiệu năng bị mất''.
+trong đó baseline là hiệu năng trên bản sạch \emph{với cùng seed} $s$. $\Delta > 0$ nghĩa là hiệu năng giảm. Thước đo hiệu năng theo bài gốc: F1-macro (classification), R$^2$ (regression) và AMI \citep{vinh2010information} (clustering). Ngoài $\Delta$ tuyệt đối (nhãn chính), đề tài dùng thêm $\Delta$ tương đối $=\Delta/\text{baseline}$ để đưa ba tác vụ về cùng thang ``tỷ lệ hiệu năng bị mất''.
 
-\textbf{Vì sao chọn.} Đây là khác biệt cốt lõi so với DQSOps: nhãn đo đúng thứ người dùng quan tâm (mô hình tệ đi bao nhiêu) chứ không phải một điểm tự định nghĩa. Ghép baseline theo cùng seed khử phần dao động do seed, thứ mà meta-model không thể học vì không thấy seed. Nhờ vậy $\Delta = 0$ tuyệt đối ở $\lambda = 0$.
+Cách đặt nhãn này là khác biệt cốt lõi so với DQSOps: nhãn đo đúng thứ người dùng quan tâm (mô hình tệ đi bao nhiêu) chứ không phải một điểm tự định nghĩa. Việc ghép baseline theo cùng seed loại bỏ phần dao động do seed, thứ mà meta-model không thể học vì không nhìn thấy seed; nhờ vậy $\Delta = 0$ chính xác ở $\lambda = 0$.
 
 \subsection{Meta-model: Gradient Boosting kèm SHAP}
 \label{sec:metamodel}
 
-\textbf{Làm gì.} Đầu vào gồm 14 đặc trưng: 5 điểm profile, one-hot 3 tác vụ và one-hot 6 thuật toán. Chiều không áp dụng (Class Balance của hồi quy) được điền 1,0 trong ma trận đầu vào. Mô hình là \texttt{GradientBoostingRegressor} \citep{friedman2001greedy} với 100 cây, độ sâu 3, tốc độ học 0,1. Để giải thích, đề tài tính giá trị SHAP \citep{lundberg2017unified} bằng TreeExplainer. ``Tỷ trọng'' của một chiều trong một tác vụ là trung bình $|\text{SHAP}|$ của chiều đó chia cho tổng của các chiều áp dụng được cho tác vụ.
+Meta-model nhận 14 đặc trưng: 5 điểm profile, one-hot 3 tác vụ và one-hot 6 thuật toán; chiều không áp dụng (Class Balance của regression) được điền 1,0 trong ma trận đầu vào. Mô hình là Gradient Boosting Regressor \citep{friedman2001greedy} (cài đặt trong scikit-learn) với 100 cây, độ sâu 3, tốc độ học 0,1. Để giải thích mô hình, đề tài tính giá trị SHAP \citep{lundberg2017unified} bằng TreeExplainer. ``Tỷ trọng'' của một chiều trong một tác vụ là trung bình $|\text{SHAP}|$ của chiều đó chia cho tổng của các chiều áp dụng được cho tác vụ.
 
-\textbf{Vì sao chọn.} Quan hệ giữa profile và $\Delta$ là phi tuyến và có tương tác (cùng một điểm Completeness hại hồi quy nhiều hơn phân cụm), nên cần mô hình học được tương tác với đặc trưng tác vụ. Gradient Boosting trên cây phù hợp dữ liệu bảng nhỏ (312 dòng) và có TreeExplainer tính SHAP chính xác, nhanh. Đặc trưng tác vụ và thuật toán là thứ biến mô hình thành ``nhận biết ngữ cảnh''. Siêu tham số được giữ cố định, không tinh chỉnh: với 312 dòng, tinh chỉnh trên chính tập đánh giá sẽ làm kết quả lạc quan giả tạo.
+Gradient Boosting được chọn vì quan hệ giữa profile và $\Delta$ là phi tuyến và có tương tác (cùng một mức thiếu dữ liệu làm giảm hiệu năng của regression nhiều hơn của classification), nên mô hình cần học được tương tác giữa profile và đặc trưng tác vụ. Mô hình dựa trên cây phù hợp với dữ liệu dạng bảng nhỏ (312 dòng) và có TreeExplainer để tính SHAP chính xác, nhanh. Hai nhóm đặc trưng tác vụ và thuật toán chính là phần giúp mô hình nhận biết tác vụ. Siêu tham số được giữ cố định, không tinh chỉnh: với 312 dòng, tinh chỉnh trên chính tập đánh giá sẽ làm kết quả lạc quan giả tạo.
 
 \subsection{Ba baseline}
 \label{sec:baseline}
 
+Để biết meta-model có thật sự hữu ích hay không, đề tài so sánh nó với ba cách đánh giá chất lượng đơn giản hơn, đại diện cho những gì thường được dùng trong thực tế (Hình~\ref{fig:meta}). Cả ba chỉ nhận vector profile năm điểm, không nhận tác vụ hay thuật toán, và khác nhau ở cách biến năm điểm đó thành kết luận. Mọi tham số của các baseline (chuẩn hóa, PCA, linear regression) chỉ được học trên tập train của từng fold, để so sánh công bằng với meta-model.
 \begin{itemize}
-  \item \textbf{Rule-based}: dữ liệu là ``Bad'' nếu bất kỳ chiều áp dụng được nào dưới 0,9. Đây là kiểu luật ngưỡng hay gặp trong thực tế; chỉ cho nhãn Good/Bad.
-  \item \textbf{Weighted score}: điểm chất lượng là trung bình các chiều áp dụng được (trọng số bằng nhau), sau đó hồi quy tuyến tính từ điểm này sang $\Delta$.
-  \item \textbf{DQSOps-PCA}: chuẩn hóa z-score năm điểm, lấy PC1 làm điểm chất lượng như DQSOps \citep{bayram2023dqsops}, rồi hồi quy tuyến tính PC1 sang $\Delta$.
+  \item \textbf{Rule-based (luật ngưỡng).} Đặt một ngưỡng cố định cho điểm của từng chiều; nếu bất kỳ chiều nào thấp hơn ngưỡng thì kết luận dữ liệu là ``Bad'' (không đủ tốt), ngược lại là ``Good''. Đề tài dùng ngưỡng 0,9 theo ví dụ của thiết kế ban đầu và không tinh chỉnh. Ví dụ: một profile có Completeness 0,85 và bốn chiều còn lại bằng 1,0 bị kết luận Bad vì $0{,}85 < 0{,}9$. Luật này không cho ra một con số $\Delta$ nên chỉ được so sánh ở bài toán Good/Bad.
+  \item \textbf{Weighted score (điểm trung bình).} Gộp năm điểm thành một điểm chất lượng duy nhất $Q$ bằng trung bình cộng với trọng số bằng nhau (chiều không áp dụng được bỏ qua). Ví dụ, profile $(0{,}8;\ 1;\ 1;\ 1;\ 0{,}9)$ cho $Q = 0{,}94$. Sau đó một mô hình linear regression học quan hệ $Q \to \Delta$ trên tập train: $Q$ càng thấp thì dự đoán $\Delta$ càng lớn. Đây là cách làm trực quan nhất, coi mọi chiều quan trọng như nhau.
+  \item \textbf{DQSOps-PCA.} Tái hiện cách DQSOps \citep{bayram2023dqsops} tạo điểm chất lượng: chuẩn hóa z-score từng điểm trong năm điểm, chạy PCA rồi lấy thành phần chính thứ nhất (PC1) làm điểm chất lượng duy nhất. Khác với weighted score, trọng số của từng chiều không bằng nhau mà do PCA chọn theo phương sai của dữ liệu, không liên quan đến mức độ gây hại của chiều đó. Cũng như weighted score, một mô hình linear regression $\text{PC1} \to \Delta$ biến điểm này thành dự đoán. Đây là baseline quan trọng nhất vì là cách làm mà đề tài muốn cải thiện.
 \end{itemize}
-Hai baseline sau dùng \emph{một công thức chung cho mọi tác vụ}, đúng tinh thần của điểm chất lượng cố định mà đề tài muốn so sánh. Phần hồi quy giúp chúng dự đoán được $\Delta$ trên cùng thang với meta-model. Mọi tham số (chuẩn hóa, PCA, hồi quy) đều chỉ được fit trên fold train để so sánh công bằng.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{0.62\linewidth}{!}{\input{content/tikz/meta}}
+\caption{Kiến trúc của meta-model và ba baseline. Meta-model nhận thêm thông tin tác vụ và thuật toán; ba baseline chỉ nhận profile và cho cùng một dự đoán với mọi tác vụ.}
+\label{fig:meta}
+\end{figure}
 
 \subsection{Profiling quy mô lớn bằng PySpark}
 
-\textbf{Làm gì.} Công thức của năm chiều được viết một lần ở dạng hàm thuần, nhận các con số tổng hợp (số ô thiếu, tổng sai lệch, số dòng khác nhau, kích thước từng lớp). Hai engine chỉ khác cách tính các con số đó: pandas tính trong bộ nhớ, PySpark tính bằng phép tổng hợp phân tán và ghép với bản gốc qua khóa dòng.
+Công thức của năm chiều được viết một lần dưới dạng hàm thuần, nhận các con số tổng hợp (số ô thiếu, tổng sai lệch, số dòng khác nhau, kích thước từng lớp). Hai engine chỉ khác cách tính các con số này: pandas tính trong bộ nhớ, còn PySpark tính bằng các phép tổng hợp phân tán và ghép với bản gốc qua khóa dòng. Cách tách này đảm bảo hai bản cho \emph{cùng kết quả toán học}, và điều đó được kiểm chứng bằng số liệu ở Mục~\ref{sec:rq4}.
 
-\textbf{Vì sao chọn.} Profiling là bước duy nhất phải chạm toàn bộ dữ liệu khi dùng khung đánh giá; meta-model chỉ nhận 14 con số. Vì vậy chỉ cần bước này mở rộng được là cả khung mở rộng được. Tách công thức khỏi engine đảm bảo hai bản cho \emph{cùng kết quả toán học}, và điều này được kiểm chứng bằng số (Mục~\ref{sec:rq4}).
+Profiling là bước duy nhất phải đọc toàn bộ dữ liệu khi dùng khung đánh giá, vì meta-model chỉ nhận 14 con số. Do đó chỉ cần bước này mở rộng được thì cả khung mở rộng được, và đó là lý do đề tài tập trung đo khả năng mở rộng ở bước profiling.

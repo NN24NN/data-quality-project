@@ -297,7 +297,7 @@ def plot_h9(pca_weights, shap, target='absolute'):
     ax.tick_params(axis='x', rotation=25)
     ax.set_title('Meta-model: tỷ trọng SHAP theo tác vụ')
     ax.legend()
-    fig.suptitle('H9 — Trọng số cố định (DQSOps) so với trọng số theo ngữ cảnh (meta-model)', y=1.03)
+    fig.suptitle('H9 — Trọng số cố định (DQSOps) so với trọng số theo tác vụ (meta-model)', y=1.03)
     fig.tight_layout()
     return fig
 

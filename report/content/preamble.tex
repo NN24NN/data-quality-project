@@ -4,19 +4,26 @@
 % ============================================================
 \usepackage{amsmath,amssymb}
 \usepackage{fontspec}
-\setmainfont{TeX Gyre Termes}      % giống Times (font của ACL), đủ dấu tiếng Việt
-\setsansfont{TeX Gyre Heros}
-\setmonofont{TeX Gyre Cursor}
+% Gọi font theo tên file (chạy được cả Overleaf lẫn Tectonic); TeX Gyre Termes giống Times (font của ACL), đủ dấu tiếng Việt
+\setmainfont{texgyretermes}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\setsansfont{texgyreheros}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
+\setmonofont{texgyrecursor}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold,
+  ItalicFont=*-italic, BoldItalicFont=*-bolditalic]
 \usepackage{babel}
 \babelprovide[import,main]{vietnamese}   % cách khuyến nghị cho XeLaTeX
 
 \usepackage[a4paper,margin=2.5cm]{geometry}
 \usepackage{graphicx}
-\graphicspath{{figures/}}
+\graphicspath{{figures/}{../results/figures/}}   % Overleaf: figures/; build trong repo: lấy thẳng results/figures/
 \usepackage{booktabs,multirow,array,tabularx,makecell}
 \usepackage[table]{xcolor}
+\usepackage[section]{placeins}   % hình/bảng không trôi sang mục sau
 \usepackage{caption}
-\captionsetup{font=small,labelfont=bf,labelsep=period}
+% Chú thích bảng/hình: nhỏ hơn thân bài, in nghiêng, căn giữa
+\captionsetup{font={footnotesize,it},labelfont={footnotesize,bf,it},labelsep=period,
+  justification=centering,singlelinecheck=false,skip=6pt}
 \usepackage{enumitem}
 \setlist{itemsep=2pt,topsep=4pt}
 \usepackage{titlesec}
@@ -27,10 +34,13 @@
 \titlespacing*{\subsection}{0pt}{10pt}{4pt}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit}
-\usepackage[round,authoryear]{natbib}
+\usepackage[numbers,sort&compress]{natbib}   % trích dẫn dạng số [1]; không hiện tên tác giả trong câu
 \usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
 
-\setlength{\parskip}{3pt}
+% Đoạn văn kiểu khối: không thụt đầu dòng, cách nhau bằng khoảng trắng (đồng đều sau mọi tiêu đề)
+\setlength{\parindent}{0pt}
+\emergencystretch=3em   % tránh dòng tràn lề khi có từ/biểu thức dài không ngắt được
+\setlength{\parskip}{5pt plus 1pt}
 \renewcommand{\arraystretch}{1.15}
 
 % Tên chú thích tiếng Việt (đặt lại cho chắc, phòng khi babel không đổi)
@@ -46,7 +56,13 @@
 % Chèn hình; nếu chưa upload file .png lên Overleaf thì hiện khung báo thiếu thay vì lỗi biên dịch
 \newcommand{\hinh}[2][\linewidth]{%
   \IfFileExists{figures/#2}{\includegraphics[width=#1]{#2}}{%
-    \fbox{\parbox[c][3cm][c]{0.8\linewidth}{\centering\small Thiếu file \texttt{figures/#2}}}}}
+  \IfFileExists{../results/figures/#2}{\includegraphics[width=#1]{#2}}{%
+    \fbox{\parbox[c][3cm][c]{0.8\linewidth}{\centering\small Thiếu file \texttt{figures/\detokenize{#2}}}}}}}
 
 \newcommand{\RQ}[1]{\textbf{RQ#1}}
 \newcommand{\metamodel}{meta-model}
+
+% Trích dẫn bài báo theo tên bài (không dùng tên tác giả trong câu)
+\newcommand{\bbMoh}{bài báo \textit{The Effects of Data Quality on Machine Learning Performance on Tabular Data}~\cite{mohammed2025effects}}
+\newcommand{\bbMohRef}{bài báo gốc về ảnh hưởng của chất lượng dữ liệu~\cite{mohammed2025effects}}
+\newcommand{\bbDQS}{bài báo \textit{DQSOps: Data Quality Scoring Operations Framework for Data-Driven Applications}~\cite{bayram2023dqsops}}

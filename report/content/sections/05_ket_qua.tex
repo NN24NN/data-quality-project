@@ -6,29 +6,29 @@
 
 Hình~\ref{fig:h3} vẽ mức suy giảm theo $\lambda$ cho từng tác vụ và thuật toán; Hình~\ref{fig:h4} quy về tỷ lệ hiệu năng bị mất ở $\lambda = 0{,}8$ để so được giữa các tác vụ. Có bốn quan sát chính.
 
-\begin{figure}[p]
+\begin{figure}[htbp]
 \centering
-\hinh[0.82\linewidth]{h3_degradation_312.png}
+\hinh[0.62\linewidth]{h3_degradation_312.png}
 \caption{Mức suy giảm hiệu năng theo $\lambda$ (312 lượt). Hàng: tác vụ; cột: thuật toán; mỗi đường một chiều chất lượng; dải màu là độ lệch chuẩn qua 3 seed. Trục tung riêng cho từng tác vụ vì thang đo khác nhau.}
 \label{fig:h3}
 \end{figure}
 
 \begin{figure}[ht]
 \centering
-\hinh[0.8\linewidth]{h4_heatmap_312.png}
+\hinh[0.62\linewidth]{h4_heatmap_312.png}
 \caption{Tỷ lệ hiệu năng bị mất ($\Delta$/baseline) ở $\lambda = 0{,}8$. Ô ``n/a'': chiều không áp dụng cho tác vụ.}
 \label{fig:h4}
 \end{figure}
 
-\textbf{(1) Cùng một lỗi, mức hại rất khác nhau theo tác vụ.} Ở $\lambda = 0{,}8$, Completeness làm hồi quy mất 59--64\% hiệu năng (R$^2$ giảm khoảng 0,54), phân loại chỉ mất 21--23\%, còn phân cụm mất 73--75\%. Feature Accuracy gần như xóa sạch khả năng phân cụm (mất 99\%: AMI về xấp xỉ 0) nhưng chỉ làm hồi quy mất khoảng 30\%. Thứ tự các chiều cũng đổi theo tác vụ: Completeness hại nhất với hồi quy, Feature Accuracy hại nhất với phân cụm.
+\textbf{(1) Cùng một lỗi, mức ảnh hưởng rất khác nhau theo tác vụ.} Ở $\lambda = 0{,}8$, Completeness làm regression mất 59--64\% hiệu năng (R$^2$ giảm khoảng 0,54), classification chỉ mất 21--23\%, còn clustering mất 73--75\%. Feature Accuracy gần như xóa sạch khả năng clustering (mất 99\%: AMI về xấp xỉ 0) nhưng chỉ làm regression mất khoảng 30\%. Chiều có ảnh hưởng lớn nhất cũng đổi theo tác vụ: Completeness với regression, Feature Accuracy với clustering.
 
 \textbf{(2) Trong cùng tác vụ, thuật toán cũng quan trọng.} Random Forest nhạy với Feature Accuracy hơn hẳn Logistic Regression ($\Delta$F1 0,13--0,18 so với 0,07--0,10). Target Accuracy làm Gradient Boosting giảm nhiều hơn Ridge, trong khi Completeness thì ngược lại.
 
-\textbf{(3) Uniqueness gần như vô hại ở cả ba tác vụ.} Dù điểm Uniqueness giảm xuống 0,2 (dữ liệu nhân bản gấp 5 lần), $|\Delta|$ không vượt 0,022 và thường dưới 0,007, cùng cỡ dao động giữa các seed. Vì bản trùng có mặt ở cả train lẫn test, mô hình không bị lệch phân phối.
+\textbf{(3) Uniqueness gần như không ảnh hưởng đến hiệu năng ở cả ba tác vụ.} Dù điểm Uniqueness giảm xuống 0,2 (dữ liệu nhân bản gấp 5 lần), $|\Delta|$ không vượt 0,022 và thường dưới 0,007, cùng cỡ dao động giữa các seed. Vì bản trùng có mặt ở cả train lẫn test, mô hình không bị lệch phân phối.
 
 \textbf{(4) Quan hệ giữa điểm chất lượng và $\Delta$ không phải lúc nào cũng đơn điệu.} Target Accuracy trên HIGGS có dạng chữ U ngược: $\Delta$F1 của Random Forest đạt đỉnh 0,226 ở $\lambda = 0{,}5$ rồi giảm về 0,098 ở $\lambda = 0{,}8$, bằng mức ở $\lambda = 0{,}2$. Với hai lớp, đổi 80\% nhãn ở cả train lẫn test gần như đảo ngược nhãn một cách nhất quán, nên mô hình học lại được quy luật đảo; nhiễu tối đa là ở $\lambda = 0{,}5$. Giải thích này nhất quán với số liệu nhưng chưa được kiểm chứng bằng thí nghiệm riêng. Hệ quả: điểm Target Accuracy 0,8 và 0,2 cho cùng mức suy giảm, điều mà một điểm chất lượng tuyến tính không thể biểu diễn.
 
-\emph{Trả lời RQ1:} có. Mức hại của cùng một chiều chất lượng thay đổi theo cả tác vụ lẫn thuật toán, khớp kết luận của \citet{mohammed2025effects} trên dữ liệu lớn hơn nhiều. Đây là cơ sở để cần một mô hình biết ngữ cảnh thay vì một điểm chung.
+\emph{Trả lời RQ1:} có. Mức ảnh hưởng của cùng một chiều chất lượng thay đổi theo cả tác vụ lẫn thuật toán, khớp với kết luận của \bbMohRef{} dù dữ liệu ở đây lớn hơn nhiều. Đây là lý do cần một mô hình nhận biết tác vụ thay vì một điểm chất lượng chung.
 
 \subsection{RQ2: Meta-model ước lượng mức suy giảm tốt hơn điểm chất lượng cố định}
 \label{sec:rq2}
@@ -40,7 +40,7 @@ Bảng~\ref{tab:main} là kết quả chính. Với $\Delta$ tuyệt đối, met
 \small
 \begin{tabular}{@{}llcccc@{}}
 \toprule
-Chỉ số & Phương pháp & Phân loại & Phân cụm & Hồi quy & Tất cả \\
+Chỉ số & Phương pháp & Classification & Clustering & Regression & Tất cả \\
 \midrule
 \multirow{3}{*}{MAE $\downarrow$}
  & Meta-model     & \textbf{0,039 ± 0,008} & \textbf{0,037 ± 0,009} & \textbf{0,093 ± 0,013} & \textbf{0,055 ± 0,006} \\
@@ -64,8 +64,8 @@ Chỉ số & Phương pháp & Phân loại & Phân cụm & Hồi quy & Tất c�
 
 \begin{figure}[ht]
 \centering
-\hinh{h5_comparison_312.png}
-\caption{MAE, R$^2$ và Spearman của meta-model và hai baseline hồi quy, theo tác vụ (312 lượt).}
+\hinh[0.95\linewidth]{h5_comparison_312.png}
+\caption{MAE, R$^2$ và Spearman của meta-model và hai baseline có dự đoán số ($\Delta$), theo tác vụ (312 lượt).}
 \label{fig:h5}
 \end{figure}
 
@@ -74,28 +74,30 @@ Chỉ số & Phương pháp & Phân loại & Phân cụm & Hồi quy & Tất c�
 \begin{table}[ht]
 \centering
 \small
-\begin{tabular}{@{}lcccc@{}}
+\begin{tabular}{@{}lcc@{}}
 \toprule
-So với & Phân loại & Phân cụm & Hồi quy & Tất cả \\
+Tác vụ & So với DQSOps-PCA & So với weighted score \\
 \midrule
-DQSOps-PCA     & \textbf{$-$0,035 [$-$0,059; $-$0,001]} & $-$0,018 [$-$0,035; +0,007] & $-$0,034 [$-$0,084; +0,002] & \textbf{$-$0,029 [$-$0,048; $-$0,011]} \\
-Weighted score & $-$0,007 [$-$0,032; +0,031] & $-$0,034 [$-$0,063; +0,005] & $-$0,028 [$-$0,095; +0,030] & $-$0,022 [$-$0,047; +0,005] \\
+Classification & \textbf{$-$0,035 [$-$0,059; $-$0,001]} & $-$0,007 [$-$0,032; +0,031] \\
+Clustering  & $-$0,018 [$-$0,035; +0,007] & $-$0,034 [$-$0,063; +0,005] \\
+Regression   & $-$0,034 [$-$0,084; +0,002] & $-$0,028 [$-$0,095; +0,030] \\
+Tất cả    & \textbf{$-$0,029 [$-$0,048; $-$0,011]} & $-$0,022 [$-$0,047; +0,005] \\
 \bottomrule
 \end{tabular}
 \caption{Hiệu MAE (meta-model trừ baseline) và khoảng tin cậy 95\% từ bootstrap theo nhóm; âm nghĩa là meta-model tốt hơn. In đậm: khoảng tin cậy không chứa 0.}
 \label{tab:bootstrap}
 \end{table}
 
-\paragraph{Nhìn trực quan.} Hình~\ref{fig:h6} đặt dự đoán cạnh giá trị thật. Điểm của meta-model trải dọc đường chéo. Weighted score và DQSOps-PCA gần như nằm ngang quanh 0,05--0,2: chúng đoán gần như cùng một mức cho mọi lượt, nên sai nặng ở các lượt hồi quy có $\Delta$ lớn (tới 0,55). Rule-based báo Bad cho gần như mọi lượt.
+\paragraph{Nhìn trực quan.} Hình~\ref{fig:h6} đặt dự đoán cạnh giá trị thật. Điểm của meta-model trải dọc đường chéo. Weighted score và DQSOps-PCA gần như nằm ngang quanh 0,05--0,2: chúng đoán gần như cùng một mức cho mọi lượt, nên sai nặng ở các lượt regression có $\Delta$ lớn (tới 0,55). Rule-based báo Bad cho gần như mọi lượt.
 
 \begin{figure}[ht]
 \centering
-\hinh{h6_pred_vs_true.png}
+\hinh[0.95\linewidth]{h6_pred_vs_true.png}
 \caption{$\Delta$ dự đoán so với $\Delta$ thật (Group K-Fold, trung bình qua 3 lần lặp). Rule-based chỉ cho nhãn Good (0) / Bad (1).}
 \label{fig:h6}
 \end{figure}
 
-\paragraph{Bài toán Good/Bad.} Bảng~\ref{tab:goodbad} và Hình~\ref{fig:h7} so bốn phương pháp khi chỉ cần nói dữ liệu ``đủ tốt'' hay không. Rule-based báo Bad cho 92,3\% số lượt. Nguyên nhân là Class Balance của dữ liệu \emph{sạch} đã dưới ngưỡng 0,9 ở cả HIGGS (0,887) lẫn Covertype (0,256), nên balanced accuracy chỉ còn 0,500 ở phân loại và phân cụm. Một luật ngưỡng cố định không thích nghi được với mức nền tự nhiên của từng bộ dữ liệu. Điều đáng chú ý là weighted score thắng ở bài toán này (F1 lớp Bad 0,790 so với 0,746 của meta-model). Khi ngưỡng nâng lên 20\%, meta-model lại bền hơn (0,687 so với 0,560). Cách hiểu hợp lý: điểm trung bình đủ để nhận ra \emph{có} chiều nào đó bị bẩn, nhưng không đủ để biết bẩn \emph{hại đến đâu}. Phần đó cần biết tác vụ.
+\paragraph{Bài toán Good/Bad.} Bảng~\ref{tab:goodbad} và Hình~\ref{fig:h7} so bốn phương pháp khi chỉ cần nói dữ liệu ``đủ tốt'' hay không. Rule-based báo Bad cho 92,3\% số lượt. Nguyên nhân là Class Balance của dữ liệu \emph{sạch} đã dưới ngưỡng 0,9 ở cả HIGGS (0,887) lẫn Covertype (0,256), nên balanced accuracy chỉ còn 0,500 ở classification và clustering. Một luật ngưỡng cố định không thích nghi được với mức nền tự nhiên của từng bộ dữ liệu. Điều đáng chú ý là weighted score thắng ở bài toán này (F1 lớp Bad 0,790 so với 0,746 của meta-model). Khi ngưỡng nâng lên 20\%, meta-model lại bền hơn (0,687 so với 0,560). Cách hiểu hợp lý: điểm trung bình đủ để nhận ra \emph{có} chiều nào đó bị bẩn, nhưng không đủ để biết dữ liệu bẩn làm hiệu năng \emph{giảm bao nhiêu}. Phần đó cần biết tác vụ.
 
 \begin{table}[ht]
 \centering
@@ -110,47 +112,47 @@ Rule-based     & 0,717 & 0,579 & 0,923 & 0,782 & 0,542 \\
 DQSOps-PCA     & 0,645 & 0,463 & 0,955 & 0,724 & 0,338 \\
 \bottomrule
 \end{tabular}
-\caption{Phân loại Good/Bad (Bad nếu mất trên 10\% hiệu năng, trừ hai cột độ nhạy), 312 lượt. Tỷ lệ Bad thật là 51,6\%.}
+\caption{Kết quả bài toán Good/Bad (Bad nếu hiệu năng mất hơn 10\%; hai cột cuối đổi ngưỡng thành 5\% và 20\%), 312 lượt. Tỷ lệ Bad thật là 51,6\%.}
 \label{tab:goodbad}
 \end{table}
 
 \begin{figure}[ht]
 \centering
-\hinh[0.7\linewidth]{h7_confusion_goodbad.png}
+\hinh[0.5\linewidth]{h7_confusion_goodbad.png}
 \caption{Ma trận nhầm lẫn Good/Bad (trung bình qua 3 lần lặp), ngưỡng 10\%.}
 \label{fig:h7}
 \end{figure}
 
-\paragraph{Độ bền của kết luận.} Ba kiểm tra phụ cho cùng chiều kết luận (số liệu ở Phụ lục~\ref{app:phu}). (a) Bỏ 24 lượt Class Balance $\times$ phân cụm (còn 288 lượt): meta-model vẫn tốt nhất ở mọi tác vụ, MAE 0,057 so với 0,079 và 0,088. (b) Dùng nhãn $\Delta$ tương đối: meta-model vẫn có Spearman cao nhất ở cả ba tác vụ, nhưng weighted score có MAE thấp hơn ở phân loại (0,064 so với 0,082). (c) Thí nghiệm nội suy (train trên $\lambda \in \{0;\,0{,}2;\,0{,}8\}$, test trên $\lambda = 0{,}5$): meta-model tốt nhất ở hồi quy và tổng thể, nhưng DQSOps-PCA nhỉnh hơn ở phân loại và phân cụm, chênh lệch không có ý nghĩa thống kê.
+\paragraph{Độ bền của kết luận.} Ba kiểm tra phụ cho cùng chiều kết luận. (a) Bỏ 24 lượt Class Balance $\times$ clustering (còn 288 lượt): meta-model vẫn tốt nhất ở mọi tác vụ, MAE 0,057 so với 0,079 và 0,088. (b) Dùng nhãn $\Delta$ tương đối: meta-model vẫn có Spearman cao nhất ở cả ba tác vụ, nhưng weighted score có MAE thấp hơn ở classification (0,064 so với 0,082). (c) Thí nghiệm nội suy (train trên $\lambda \in \{0;\,0{,}2;\,0{,}8\}$, test trên $\lambda = 0{,}5$): meta-model tốt nhất ở regression và tổng thể, nhưng DQSOps-PCA nhỉnh hơn ở classification và clustering, chênh lệch không có ý nghĩa thống kê.
 
-R$^2$ trong từng tác vụ không ổn định (ví dụ meta-model ở phân cụm: $-0{,}098 \pm 1{,}068$). Lý do: mỗi fold giấu trọn một số nhóm (chẳng hạn mọi lượt $\lambda = 0{,}8$ của một chiều), trong khi phương sai của $\Delta$ trong một tác vụ nhỏ, nên vài lỗi lớn kéo R$^2$ xuống âm. MAE và Spearman vì vậy là thước đo chính.
+R$^2$ trong từng tác vụ không ổn định (ví dụ meta-model ở clustering: $-0{,}098 \pm 1{,}068$). Lý do: mỗi fold giấu trọn một số nhóm (chẳng hạn mọi lượt $\lambda = 0{,}8$ của một chiều), trong khi phương sai của $\Delta$ trong một tác vụ nhỏ, nên vài lỗi lớn kéo R$^2$ xuống âm. MAE và Spearman vì vậy là thước đo chính.
 
 \emph{Trả lời RQ2:} có, ở mức vừa phải. Meta-model ước lượng và xếp hạng mức suy giảm tốt nhất ở cả ba tác vụ. Nó hơn DQSOps-PCA rõ ràng và có ý nghĩa thống kê, hơn weighted score nhưng chưa đủ bằng chứng thống kê. Nếu chỉ cần câu trả lời Good/Bad, weighted score là baseline mạnh.
 
-\subsection{RQ3: Trọng số theo ngữ cảnh so với trọng số cố định}
+\subsection{RQ3: Trọng số theo tác vụ so với trọng số cố định}
 \label{sec:rq3}
 
-Hình~\ref{fig:h8} cho tỷ trọng SHAP của từng chiều theo tác vụ. Chiều đứng đầu khác nhau: Feature Accuracy với phân loại (0,274) và phân cụm (0,435), Completeness với hồi quy (0,359). Uniqueness có tỷ trọng thấp nhất ở cả ba tác vụ (0,04--0,11), khớp quan sát (3) ở RQ1. Hai thang nhãn (tuyệt đối và tương đối) cho cùng chiều đứng đầu ở mỗi tác vụ.
+Hình~\ref{fig:h8} cho tỷ trọng SHAP của từng chiều theo tác vụ. Chiều đứng đầu khác nhau: Feature Accuracy với classification (0,274) và clustering (0,435), Completeness với regression (0,359). Uniqueness có tỷ trọng thấp nhất ở cả ba tác vụ (0,04--0,11), khớp quan sát (3) ở RQ1. Hai thang nhãn (tuyệt đối và tương đối) cho cùng chiều đứng đầu ở mỗi tác vụ.
 
 \begin{figure}[ht]
 \centering
-\hinh[0.8\linewidth]{h8_shap_by_task.png}
+\hinh[0.6\linewidth]{h8_shap_by_task.png}
 \caption{Tỷ trọng SHAP của từng chiều chất lượng theo tác vụ (meta-model huấn luyện trên toàn bộ 312 lượt, nhãn $\Delta$ tuyệt đối).}
 \label{fig:h8}
 \end{figure}
 
-Có một điểm cần đọc cẩn thận: Uniqueness có tỷ trọng 0,107 ở phân loại dù gần như không gây hại. Phân tích SHAP tách theo chiều đang bị làm bẩn của từng dòng cho thấy điểm Uniqueness hầu như chỉ thay đổi ở chính các lượt làm bẩn Uniqueness, nơi $\Delta \approx 0$. Mô hình dùng nó như một tín hiệu \emph{loại trừ}: ``Uniqueness bình thường thì đây không phải lượt vô hại''. Tỷ trọng 0,107 vì vậy không có nghĩa là bản ghi trùng hại mô hình phân loại.
+Có một điểm cần đọc cẩn thận: Uniqueness có tỷ trọng 0,107 ở classification dù chiều này gần như không làm giảm hiệu năng. Phân tích SHAP tách theo chiều đang bị làm bẩn của từng dòng cho thấy điểm Uniqueness hầu như chỉ thay đổi ở chính các lượt làm bẩn Uniqueness, nơi $\Delta \approx 0$. Mô hình dùng nó như một tín hiệu \emph{loại trừ}: ``điểm Uniqueness bình thường nghĩa là đây không phải lượt làm bẩn Uniqueness, nên hiệu năng có thể đã giảm vì lỗi khác''. Tỷ trọng 0,107 vì vậy không có nghĩa là bản ghi trùng làm giảm hiệu năng của classification.
 
-Hình~\ref{fig:h9} đặt trọng số PC1 của DQSOps-PCA cạnh SHAP. PC1 chỉ giải thích 26,8\% phương sai, gần mức 20\% của năm cột độc lập, và bộ trọng số của nó khó dùng làm thước đo chất lượng. Feature Accuracy, chiều gây hại mạnh ở cả ba tác vụ, có trọng số xấp xỉ 0 ($-0{,}001$). Target Accuracy mang trọng số \emph{âm} ($-0{,}704$), nghĩa là dữ liệu có nhãn càng sai thì ``điểm chất lượng'' càng cao. Hai trọng số lớn nhất rơi vào Class Balance và Target Accuracy, hai cột có mức nền khác nhau theo tác vụ. PC1 vì thế chủ yếu nắm ``dòng này thuộc tác vụ nào'' chứ không nắm ``dữ liệu bẩn đến đâu''. Gốc rễ là mỗi lượt chỉ làm bẩn một chiều, nên các chiều gần như không tương quan và không có một ``trục chất lượng chung'' cho PCA bắt được. Điều này cũng giải thích vì sao DQSOps-PCA có Spearman xấp xỉ 0 ở Bảng~\ref{tab:main}.
+Hình~\ref{fig:h9} đặt trọng số PC1 của DQSOps-PCA cạnh SHAP. PC1 chỉ giải thích 26,8\% phương sai, gần mức 20\% của năm cột độc lập, và bộ trọng số của nó khó dùng làm thước đo chất lượng. Feature Accuracy, chiều làm giảm hiệu năng mạnh ở cả ba tác vụ, có trọng số xấp xỉ 0 ($-0{,}001$). Target Accuracy mang trọng số \emph{âm} ($-0{,}704$), nghĩa là dữ liệu có nhãn càng sai thì ``điểm chất lượng'' càng cao. Hai trọng số lớn nhất rơi vào Class Balance và Target Accuracy, hai cột có mức nền khác nhau theo tác vụ. PC1 vì thế chủ yếu nắm ``dòng này thuộc tác vụ nào'' chứ không nắm ``dữ liệu bẩn đến đâu''. Gốc rễ là mỗi lượt chỉ làm bẩn một chiều, nên các chiều gần như không tương quan và không có một ``trục chất lượng chung'' cho PCA bắt được. Điều này cũng giải thích vì sao DQSOps-PCA có Spearman xấp xỉ 0 ở Bảng~\ref{tab:main}.
 
 \begin{figure}[ht]
 \centering
-\hinh{h9_pca_vs_shap.png}
+\hinh[0.95\linewidth]{h9_pca_vs_shap.png}
 \caption{Trái: trọng số PC1 của DQSOps-PCA, một bộ chung cho mọi tác vụ. Phải: tỷ trọng SHAP của meta-model, khác nhau theo tác vụ.}
 \label{fig:h9}
 \end{figure}
 
-\emph{Trả lời RQ3:} có. Meta-model gán mức quan trọng khác nhau cho từng chiều theo tác vụ, và các mức này khớp với mức hại quan sát được ở RQ1. Trọng số cố định của PCA không phản ánh mức hại, thậm chí ngược chiều với Target Accuracy.
+\emph{Trả lời RQ3:} có. Meta-model gán mức quan trọng khác nhau cho từng chiều theo tác vụ, và các mức này khớp với mức ảnh hưởng quan sát được ở RQ1. Trọng số cố định của PCA không phản ánh mức ảnh hưởng này, thậm chí còn ngược dấu với Target Accuracy.
 
 \subsection{RQ4: Khả năng mở rộng của bước profiling}
 \label{sec:rq4}
@@ -178,7 +180,7 @@ Số dòng & pandas (giây) & PySpark (giây) & PySpark / pandas & RAM đỉnh c
 
 \begin{figure}[ht]
 \centering
-\hinh[0.9\linewidth]{h10_scalability.png}
+\hinh[0.85\linewidth]{h10_scalability.png}
 \caption{Thời gian và bộ nhớ đỉnh theo số dòng (trục log). Đường chấm đánh dấu mốc pandas hết RAM. Bộ nhớ chỉ đo cho pandas; Spark chạy trong giới hạn heap 4 GB.}
 \label{fig:h10}
 \end{figure}

@@ -1,6 +1,6 @@
-# Pipeline thí nghiệm — Khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh
+# Pipeline thí nghiệm — Khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết tác vụ
 
-**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh, gắn với hiệu năng mô hình downstream
+**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết tác vụ, dự đoán mức suy giảm hiệu năng mô hình downstream
 
 **Mục đích file này:** mô tả toàn bộ pipeline từ bước đầu đến bước cuối, để cả nhóm có thể triển khai song song theo từng module mà không giẫm chân nhau. Thiết kế thí nghiệm chi tiết (bảng tham số, công thức) và cấu trúc thư mục sẽ là hai file riêng, làm sau file này.
 

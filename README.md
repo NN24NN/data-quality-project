@@ -1,6 +1,6 @@
 # Data Quality Project
 
-**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết ngữ cảnh, gắn với hiệu năng mô hình downstream
+**Đề tài:** Xây dựng khung đánh giá chất lượng dữ liệu quy mô lớn có nhận biết tác vụ, dự đoán mức suy giảm hiệu năng mô hình downstream
 
 Đồ án môn Xử Lý Data. Toàn bộ tài liệu thiết kế nằm trong `docs/`, bắt đầu từ `docs/checklist-trien-khai.md` để theo dõi tiến độ từng bước.
 

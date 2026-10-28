@@ -1,0 +1,35 @@
+% Hình 1 — kiến trúc tổng thể của khung: giai đoạn xây dựng (làm một lần) và giai đoạn sử dụng
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=2pt,align=center,font=\footnotesize,minimum height=1.0cm,
+              text width=2.55cm,inner sep=3pt},
+  arr/.style={-{Stealth[length=2mm]},thick},
+  lab/.style={font=\footnotesize\bfseries,anchor=west}]
+
+% ---- Giai đoạn xây dựng (một lần) ----
+\node[lab] at (0,2.55) {A. Giai đoạn xây dựng (làm một lần)};
+\node[box,fill=gray!12]   (clean)   at (1.4,0.8)  {Dữ liệu sạch\\(3 bộ dữ liệu)};
+\node[box,fill=orange!18] (pollute) at (4.6,0.8)  {Làm bẩn có kiểm soát\\5 chiều $\times$ 4 mức $\lambda$};
+\node[box,fill=blue!12]   (profile) at (8.0,1.55) {Profiling\\vector 5 điểm chất lượng};
+\node[box,fill=blue!12]   (down)    at (8.0,0.05) {Huấn luyện mô hình downstream\\$\to$ mức suy giảm $\Delta$};
+\node[box,fill=gray!12]   (table)   at (11.4,0.8) {Bảng 312 lượt\\(profile, tác vụ,\\thuật toán, $\Delta$)};
+\node[box,fill=green!18]  (meta)    at (14.8,0.8) {Meta-model\\Gradient Boosting\\(+ SHAP)};
+\draw[arr] (clean) -- (pollute);
+\draw[arr] (pollute.east) -- ++(0.35,0) |- (profile.west);
+\draw[arr] (pollute.east) -- ++(0.35,0) |- (down.west);
+\draw[arr] (profile.east) -- ++(0.35,0) |- (table.west);
+\draw[arr] (down.east) -- ++(0.35,0) |- (table.west);
+\draw[arr] (table) -- (meta);
+
+% ---- Giai đoạn sử dụng ----
+\node[lab] at (0,-1.35) {B. Giai đoạn sử dụng (với dữ liệu mới)};
+\node[box,fill=gray!12]   (new)   at (1.4,-2.9)  {Dữ liệu mới};
+\node[box,fill=blue!12]   (prof2) at (4.6,-2.9)  {Profiling\\(pandas hoặc Spark)};
+\node[box,fill=green!18]  (meta2) at (8.0,-2.9)  {Meta-model\\đã huấn luyện};
+\node[box,fill=gray!12]   (task)  at (8.0,-4.45) {Tác vụ và thuật toán\\dự định dùng};
+\node[box,fill=red!12]    (out)   at (11.4,-2.9) {$\hat\Delta$: hiệu năng\\sẽ giảm bao nhiêu};
+\draw[arr] (new) -- (prof2);
+\draw[arr] (prof2) -- (meta2);
+\draw[arr] (task) -- (meta2);
+\draw[arr] (meta2) -- (out);
+\draw[arr,dashed] (meta.south) -- ++(0,-1.5) -| (meta2.north east) node[pos=0.2,above,font=\scriptsize,xshift=1.2cm] {dùng lại mô hình};
+\end{tikzpicture}

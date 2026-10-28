@@ -13,3 +13,7 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .claude/
+
+# Báo cáo LaTeX: ảnh tải từ Drive và file build cục bộ (Tectonic)
+report/figures/
+report/build/
