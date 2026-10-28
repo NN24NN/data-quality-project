@@ -536,7 +536,7 @@ Biểu đồ vẽ bằng matplotlib và lưu `.png` vào `results/figures/`. Not
 
 ### 9.1 Trạng thái vẽ (Colab 2026-10-28, commit `db03b4a`)
 
-Đã vẽ và xem: H2, H3 (312 và 288 lượt), H4 (312 và 288 lượt), H5 (312 và 288 lượt), H7, H8, H9, H10; test `tests/test_visualization.py` `4 passed`. H1 và H6 đã vẽ được nhưng có hai lỗi bố cục (thiếu tiêu đề cột class_balance ở H1, thang trục bị kéo bởi rule-based ở H6), đã sửa trong code, **chờ chạy lại**. Hình lưu ở `results/figures/` trên Drive.
+Đã vẽ và xem cả 10 hình (H1 và H6 sau khi sửa bố cục, commit `6265b20`): H1, H2, H3 (312 và 288 lượt), H4 (312 và 288 lượt), H5 (312 và 288 lượt), H7, H8, H9, H10; test `tests/test_visualization.py` `4 passed`. H1 và H6 ban đầu có hai lỗi bố cục (thiếu tiêu đề cột class_balance, thang trục bị kéo bởi rule-based), đã sửa và chạy lại đạt. Hình lưu ở `results/figures/` trên Drive.
 
 Nhận xét khi xem hình (đối chiếu số liệu mục 6–8, chưa có số mới):
 - H1: đường đo được bám đường lý thuyết; Feature Accuracy của Beijing và Covertype thấp hơn công thức ở λ = 0,2 (đã nêu ở Giai đoạn 3).
