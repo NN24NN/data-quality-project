@@ -68,8 +68,11 @@ data-quality-project/
 │   │   ├── weighted_score.py
 │   │   └── dqsops_pca.py
 │   │
-│   └── scalability/
-│       └── spark_scale_study.py     # chạy spark_profiler.py trên các mốc kích thước HIGGS full
+│   ├── scalability/
+│   │   └── spark_scale_study.py     # chạy spark_profiler.py trên các mốc kích thước HIGGS full
+│   │
+│   └── visualization/               # thêm ở Giai đoạn 9 (người dùng chốt 2026-10-28)
+│       └── plots.py                 # hàm vẽ H1–H10, đọc DataFrame từ results/, lưu .png vào results/figures/
 │
 ├── notebooks/
 │   ├── 01_explore_datasets.ipynb    # khám phá dữ liệu, kiểm tra phân phối

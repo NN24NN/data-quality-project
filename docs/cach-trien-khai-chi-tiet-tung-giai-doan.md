@@ -531,3 +531,19 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 **Kết luận Giai đoạn 8** (đầy đủ ở `ket-qua-thuc-nghiem.md` mục 8.4): điểm gãy của pandas đo được thật (hết RAM ở 22M dòng trên máy 13,6 GB, bộ nhớ tăng ~0,65 GB/triệu dòng), PySpark chạy được 22M trong giới hạn 4 GB; PySpark chậm hơn ở mọi mốc pandas còn chạy được nhưng khoảng cách thu hẹp từ 38 lần xuống 4 lần. Phương án B (thêm mốc 22M) đã cho đúng bằng chứng cần cho đóng góp "quy mô lớn".
 
 **Dữ liệu HIGGS full:** người dùng quyết định **giữ** `higgs_full_raw.parquet` (0,69 GB) trên Drive (2026-10-26), để đo lại được nếu cần.
+
+---
+
+## Giai đoạn 9 — Biểu đồ và báo cáo (đang làm; phần biểu đồ đã viết code ngày 2026-10-28, **chưa chạy trên Colab**)
+
+**Quyết định đã chốt với người dùng (2026-10-28):** code vẽ để trong `src/visualization/plots.py` (thư mục mới, thêm vào `cau-truc-thu-muc-project.md`), notebook `03_visualize_results.ipynb` chỉ gọi hàm; thứ tự vẽ H10, H2, H8, H9 → H3, H4 → H5, H6, H7 → H1. Cấu trúc báo cáo còn để thảo luận sau.
+
+**Đã làm:**
+- `src/visualization/plots.py`: một hàm cho mỗi hình (`plot_h1` … `plot_h10`), `save_fig`, `drop_secondary` (bảng phụ 288 lượt), `h5_table`. Bảng màu cố định theo dimension / tác vụ / phương pháp. Hàm nhận DataFrame đọc từ file kết quả, không chép số.
+- `notebooks/03_visualize_results.ipynb`: cell 0 mount Drive, kéo code, nạp module; mỗi hình một cell. H3, H4, H5 vẽ hai phiên bản (312 và 288 lượt). Ngưỡng Good/Bad của H7 đọc từ `configs/metamodel.yaml`.
+- Cell 10.2 của notebook setup được sửa để ghi `results/pollution_check.csv` (dữ liệu H1).
+- `tests/test_visualization.py`: smoke test với dữ liệu giả đúng schema.
+
+**Cách làm đáng ghi:** đường lý thuyết ở H1 là 1 − λ (Completeness, Uniqueness, Target Accuracy phân loại) và 1 − √λ·√(2/π) (accuracy số); Class Balance không có công thức nên không vẽ. Với Beijing và Covertype điểm Feature Accuracy đo được thấp hơn công thức (cột one-hot), cần chú thích khi viết báo cáo. Rule-based chỉ cho Good/Bad nên H6 vẽ dạng dải thay vì scatter.
+
+**Chưa làm / chưa kiểm chứng:** chưa chạy test và notebook trên Colab (máy local không có Python); chưa chạy lại cell 10.2; chưa xem hình thật nên bố cục có thể cần chỉnh; báo cáo chưa viết.

@@ -14,7 +14,9 @@
 >
 > **Kết thúc phiên ngày 2026-10-26** (commit cuối của phiên được ghi trong `git log`). Người dùng quyết định **giữ** `higgs_full_raw.parquet` (0,69 GB) trên Drive. Mọi file kết quả nằm trên Drive `results/`, không có trong git: `experiment_results.parquet`, `baseline_performance.csv`, `metamodel_cv_predictions.parquet`, `metamodel.pkl`, `dqsops_pca_weights.csv`, `shap_importance.csv`, `shap_by_row_dimension.csv`, `method_comparison.csv`, `method_bootstrap.csv`, `goodbad_comparison.csv`, `scalability_benchmark.csv`.
 >
-> **Việc tiếp theo: Giai đoạn 9 — biểu đồ và báo cáo** (người dùng chốt làm ở phiên sau).
+> **Cập nhật 2026-10-28 (Giai đoạn 9 đã bắt đầu):** đã viết `src/visualization/plots.py`, `notebooks/03_visualize_results.ipynb`, `tests/test_visualization.py`, và sửa cell 10.2 để ghi `pollution_check.csv`. **Chưa chạy trên Colab nên chưa tick mục nào.** Việc kế tiếp: commit/push (khi người dùng đồng ý) → chạy cell 0b (test), các cell hình, và cell 10.2 trên Colab → xem hình, chỉnh bố cục → tick H1–H10. Cấu trúc báo cáo còn để thảo luận.
+
+**Việc tiếp theo: Giai đoạn 9 — biểu đồ và báo cáo.**
 > 1. Gợi ý mức model: vẽ biểu đồ ít thiết kế → có thể dùng Sonnet; viết báo cáo/diễn giải kết quả → Opus. Nhắc người dùng trước khi bắt đầu, theo `CLAUDE.md`.
 > 2. Trước khi viết code: chốt với người dùng cách tổ chức `notebooks/03_visualize_results.ipynb` (đọc file kết quả từ Drive, lưu `.png` vào `results/figures/`), thứ tự vẽ, và cấu trúc báo cáo. Danh mục H1–H10 ở `ket-qua-thuc-nghiem.md` mục 9; dữ liệu nguồn của từng hình đã có đủ trừ H1.
 > 3. Giai đoạn 9: biểu đồ H1–H10 (người dùng chốt để dồn về Giai đoạn 9). Còn treo cho H1: sửa cell 10.2 để lưu CSV. H8 cần chú thích cách đọc tỷ trọng SHAP của Uniqueness ở classification (`ket-qua-thuc-nghiem.md` mục 7.6 ý 9).
