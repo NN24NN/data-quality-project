@@ -17,3 +17,6 @@ __pycache__/
 # Báo cáo LaTeX: ảnh tải từ Drive và file build cục bộ (Tectonic)
 report/figures/
 report/build/
+
+# Hình và bảng xuất ra từ notebook 03 (sinh lại được từ results/ trên Drive)
+results/figures/*
