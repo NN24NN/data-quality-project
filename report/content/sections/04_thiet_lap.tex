@@ -1,0 +1,57 @@
+\section{Thiết lập thí nghiệm}
+\label{sec:thiet-lap}
+
+\subsection{Dữ liệu và thuật toán}
+
+Mỗi tác vụ dùng một bộ dữ liệu công khai đủ lớn (Bảng~\ref{tab:datasets}). HIGGS được chọn vì có bản đầy đủ 11 triệu dòng, dùng cho phần scalability; Covertype là bộ duy nhất trùng với bài gốc. Bản ``sạch'' của Beijing bỏ 9,2\% số dòng có ô thiếu tự nhiên, để baseline có Completeness bằng 1 và ô thiếu tự nhiên không lẫn với ô thiếu do polluter tạo ra.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{@{}llrrll@{}}
+\toprule
+Tác vụ & Bộ dữ liệu & Số dòng & Số cột & Thuật toán & Thước đo \\
+\midrule
+Hồi quy    & Beijing Air Quality \citep{zhang2017cautionary}, mục tiêu PM2.5 & 382.168   & 42 & Ridge, Gradient Boosting & R$^2$ \\
+Phân loại  & HIGGS mẫu \citep{baldi2014searching}, 2 lớp                   & 1.000.000 & 29 & Logistic Regression, Random Forest & F1-macro \\
+Phân cụm   & Covertype \citep{blackard1999comparative}, 7 lớp              & 581.012   & 55 & k-Means, Gaussian Mixture & AMI \\
+\bottomrule
+\end{tabular}
+\caption{Dữ liệu và thuật toán theo tác vụ. Mỗi tác vụ có một mô hình tuyến tính (hoặc dựa trên tâm cụm) và một mô hình phi tuyến.}
+\label{tab:datasets}
+\end{table}
+
+Mỗi tác vụ dùng hai thuật toán khác họ để thấy ảnh hưởng của thuật toán ngay trong cùng tác vụ; tất cả cài bằng scikit-learn \citep{pedregosa2011scikit}. Trước khi huấn luyện, ô thiếu được điền bằng trung vị tập train và đặc trưng được chuẩn hóa z-score. Phân loại và hồi quy chia train/test 80/20. Phân cụm dùng số cụm bằng số lớp thật và so cụm với nhãn bằng AMI. Hai cấu hình được chốt bằng số đo thay vì dùng mặc định. Random Forest học mỗi cây trên 10\% số dòng: F1 chỉ giảm 0,008 mà nhanh gấp 6,6 lần. Gaussian Mixture dùng hiệp phương sai đường chéo với 10 lần khởi tạo, giúp độ lệch chuẩn AMI theo seed giảm từ 0,045 xuống 0,010 (chi tiết ở Phụ lục~\ref{app:cau-hinh}).
+
+\subsection{Ma trận thí nghiệm}
+
+Mỗi tác vụ chạy mọi tổ hợp (chiều chất lượng áp dụng được) $\times$ (2 thuật toán) $\times$ (4 mức $\lambda$) $\times$ (3 seed: 42, 43, 44). Hồi quy không có Class Balance, phân cụm không có Target Accuracy, nên tổng số lượt là $4{\cdot}2{\cdot}4{\cdot}3 + 5{\cdot}2{\cdot}4{\cdot}3 + 4{\cdot}2{\cdot}4{\cdot}3 = 96 + 120 + 96 = 312$. Toàn bộ 312 lượt chạy trên Google Colab (CPU 2 nhân, 13,6 GB RAM) hết 414,5 phút.
+
+Trước khi chạy, các polluter được kiểm tra bằng cách làm bẩn mẫu 100.000 dòng rồi đo lại bằng chính profiler (Hình~\ref{fig:h1}). Điểm đo được bám sát đường lý thuyết: $1-\lambda$ cho Completeness, Uniqueness và Target Accuracy phân loại; $1-\sqrt{\lambda}\sqrt{2/\pi}$ cho accuracy của cột số. Feature Accuracy của Beijing và Covertype lệch khỏi đường lý thuyết vì hai bộ này có nhóm cột one-hot, nơi điểm giảm theo $1-\lambda$ thay vì theo công thức nhiễu Gaussian. Ngoại lệ đáng chú ý là Class Balance của Covertype: điểm \emph{tăng} khi dữ liệu bị làm bẩn (thảo luận ở Mục~\ref{sec:kb-balance}).
+
+\begin{figure}[ht]
+\centering
+\hinh{h1_pollution_check.png}
+\caption{Điểm profile đo lại sau khi làm bẩn, theo $\lambda$ (đường liền) so với lý thuyết (đường đứt). Hàng: tác vụ; cột: chiều bị làm bẩn.}
+\label{fig:h1}
+\end{figure}
+
+Hiệu năng trên dữ liệu sạch (Hình~\ref{fig:h2}) là mốc để tính $\Delta$. Bốn trong sáu thuật toán gần như không đổi theo seed. Riêng k-Means dao động đáng kể (AMI $0{,}172 \pm 0{,}017$). Đây là lý do $\Delta$ được tính so với baseline cùng seed.
+
+\begin{figure}[ht]
+\centering
+\hinh[0.9\linewidth]{h2_baseline.png}
+\caption{Hiệu năng baseline trên dữ liệu sạch (trung bình $\pm$ độ lệch chuẩn qua 3 seed).}
+\label{fig:h2}
+\end{figure}
+
+\subsection{Cách đánh giá meta-model}
+\label{sec:danh-gia}
+
+\paragraph{Chia train/test theo nhóm.} Ba seed của cùng một cấu hình có profile gần như trùng nhau và $\Delta$ lệch nhau rất ít. Hai thuật toán cùng mức bẩn còn có chung profile. Chia ngẫu nhiên theo dòng vì thế sẽ để mô hình ``nhớ'' đáp án. Đề tài dùng \texttt{StratifiedGroupKFold} 5 fold với nhóm là (tác vụ, chiều, $\lambda$); các dòng $\lambda = 0$ của mỗi tác vụ gộp chung một nhóm, tổng cộng 42 nhóm. Cách chia lặp lại với 3 seed, và mọi phương pháp dùng đúng cùng các fold. Mỗi dòng nhờ vậy có một dự đoán out-of-fold, tức là dự đoán khi mô hình chưa từng thấy mức bẩn đó.
+
+\paragraph{Chỉ số.} MAE đo sai số tuyệt đối; Spearman đo khả năng xếp hạng đúng mức suy giảm (câu hỏi thực tế: bộ dữ liệu nào tệ hơn); R$^2$ báo kèm. Mọi chỉ số tính riêng từng lần lặp rồi báo trung bình $\pm$ độ lệch chuẩn, tách theo tác vụ.
+
+\paragraph{Ý nghĩa thống kê.} Độ lệch chuẩn qua 3 lần lặp chỉ phản ánh dao động do cách chia fold. Để biết meta-model hơn baseline có thật không, đề tài dùng \emph{bootstrap theo nhóm}: lấy mẫu lại có hoàn lại 42 nhóm (giữ số nhóm mỗi tác vụ), 1.000 lần, rồi lấy khoảng tin cậy 95\% của hiệu MAE. Đơn vị lấy mẫu là nhóm chứ không phải dòng, vì các dòng trong một nhóm phụ thuộc nhau.
+
+\paragraph{Bài toán Good/Bad.} Để so được với rule-based, mỗi lượt được gán nhãn thật ``Bad'' nếu hiệu năng mất trên 10\% ($\Delta$ tương đối $> 0{,}1$). Ba phương pháp hồi quy được rời rạc hóa theo cùng ngưỡng. Chỉ số chính là F1 của lớp Bad và balanced accuracy, kèm phân tích độ nhạy với ngưỡng 5\% và 20\%.

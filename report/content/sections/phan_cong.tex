@@ -1,0 +1,28 @@
+\section*{Phân công công việc}
+\addcontentsline{toc}{section}{Phân công công việc}
+
+Pipeline của đề tài gồm 10 giai đoạn (0 đến 9). Hai thành viên chia đôi pipeline: một người làm nửa đầu (từ thiết kế đến sinh dữ liệu thí nghiệm), người còn lại làm nửa sau (từ meta-model đến báo cáo). Mỗi thành viên đảm nhận khoảng 50\% khối lượng công việc.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}Xc@{}}
+\toprule
+Thành viên & Công việc & Tỷ lệ \\
+\midrule
+\makecell[l]{Nguyễn Hoàng Nam\\MSHV: 250201018} &
+\textbf{Giai đoạn 0 -- Thiết kế:} tổng quan hai bài gốc, xác định khoảng trống, pipeline, ma trận 312 lượt, cấu trúc project.\newline
+\textbf{Giai đoạn 1 -- Dữ liệu:} tải và làm sạch Beijing, HIGGS, Covertype; các file cấu hình (seed, mức ô nhiễm, ma trận).\newline
+\textbf{Giai đoạn 2 -- Profiling:} công thức năm chiều, bản pandas và PySpark, kiểm tra hai bản khớp nhau.\newline
+\textbf{Giai đoạn 3 -- Làm bẩn dữ liệu:} năm polluter, kiểm chứng liều lượng bằng profiler.\newline
+\textbf{Giai đoạn 4 -- Mô hình downstream:} sáu thuật toán, baseline sạch, chốt cấu hình Random Forest và GMM.\newline
+\textbf{Giai đoạn 5 -- Experiment Runner:} chạy 312 lượt, sinh bảng kết quả. & 50\% \\
+\midrule
+\makecell[l]{Vũ Đức Mạnh\\MSHV: 250201075} &
+\textbf{Giai đoạn 6 -- Meta-model và baseline:} meta-model Gradient Boosting, SHAP, ba baseline (rule-based, weighted score, DQSOps-PCA), chia train/test theo nhóm.\newline
+\textbf{Giai đoạn 7 -- Đánh giá và so sánh:} MAE, R$^2$, Spearman, bootstrap theo nhóm, bài toán Good/Bad, bảng 312 và 288 lượt.\newline
+\textbf{Giai đoạn 8 -- Scalability:} đo thời gian và bộ nhớ pandas so với PySpark đến 22 triệu dòng.\newline
+\textbf{Giai đoạn 9 -- Biểu đồ và báo cáo:} vẽ 10 biểu đồ, viết báo cáo. & 50\% \\
+\bottomrule
+\end{tabularx}
+\end{table}

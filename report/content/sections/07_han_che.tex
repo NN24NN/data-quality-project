@@ -1,0 +1,13 @@
+\section{Hạn chế và hướng phát triển}
+\label{sec:han-che}
+
+\paragraph{Hạn chế.}
+\begin{itemize}
+  \item \textbf{Mỗi tác vụ chỉ có một bộ dữ liệu.} Thông tin ``tác vụ'' trong meta-model vì thế lẫn với ``bộ dữ liệu''; chưa kiểm chứng được meta-model có tổng quát sang bộ dữ liệu mới cùng tác vụ hay không.
+  \item \textbf{Lỗi tổng hợp, từng chiều riêng lẻ.} Mỗi lượt chỉ làm bẩn một chiều với lỗi ngẫu nhiên hoàn toàn (MCAR, nhiễu Gaussian). Dữ liệu thật thường có nhiều lỗi cùng lúc và lỗi có cấu trúc.
+  \item \textbf{Meta-model học trên 312 dòng, 42 nhóm.} Khoảng tin cậy rộng, nên mức hơn weighted score chưa có ý nghĩa thống kê. Mô hình cây cũng không ngoại suy được ra ngoài khoảng $\lambda$ đã thấy.
+  \item \textbf{Đánh đổi cấu hình vì thời gian chạy.} Random Forest học mỗi cây trên 10\% số dòng, nên $\Delta$F1 đo được có thể nhỏ hơn so với bản mặc định. Gaussian Mixture dùng hiệp phương sai đường chéo.
+  \item \textbf{Scalability chỉ là minh họa xu hướng.} Spark chạy chế độ local trên 2 nhân, không phải cụm máy thật. Mốc 22 triệu dòng là HIGGS ghép hai lần. Bộ nhớ thật của Spark không được đo, chỉ biết nó chạy được trong giới hạn heap 4 GB.
+\end{itemize}
+
+\paragraph{Hướng phát triển.} (1) Thêm vài bộ dữ liệu cho mỗi tác vụ và đánh giá theo kiểu giấu cả một bộ dữ liệu, để kiểm tra khả năng tổng quát thật. (2) Làm bẩn nhiều chiều cùng lúc và dùng lỗi có cấu trúc (thiếu không ngẫu nhiên, nhiễu theo nhóm); đây cũng là điều kiện công bằng hơn cho baseline PCA. (3) Mở rộng ma trận thí nghiệm để có đủ nhóm cho kết luận thống kê chắc hơn, và thử mô hình nhận trực tiếp giá trị thiếu thay cho việc điền 1,0. (4) Chạy profiling trên cụm Spark thật với dữ liệu thật vượt RAM.

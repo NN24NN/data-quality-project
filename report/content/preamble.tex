@@ -1,0 +1,52 @@
+% ============================================================
+% Preamble chung cho cả hai bản báo cáo — biên dịch bằng XeLaTeX
+% Bố cục một cột, giữ font / lề / kiểu tiêu đề theo phong cách ACL
+% ============================================================
+\usepackage{amsmath,amssymb}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}      % giống Times (font của ACL), đủ dấu tiếng Việt
+\setsansfont{TeX Gyre Heros}
+\setmonofont{TeX Gyre Cursor}
+\usepackage{babel}
+\babelprovide[import,main]{vietnamese}   % cách khuyến nghị cho XeLaTeX
+
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{booktabs,multirow,array,tabularx,makecell}
+\usepackage[table]{xcolor}
+\usepackage{caption}
+\captionsetup{font=small,labelfont=bf,labelsep=period}
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}[runin]{\normalsize\bfseries}{\thesubsubsection}{0.5em}{}[.]
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit}
+\usepackage[round,authoryear]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\setlength{\parskip}{3pt}
+\renewcommand{\arraystretch}{1.15}
+
+% Tên chú thích tiếng Việt (đặt lại cho chắc, phòng khi babel không đổi)
+\addto\captionsvietnamese{%
+  \renewcommand{\figurename}{Hình}%
+  \renewcommand{\tablename}{Bảng}%
+  \renewcommand{\contentsname}{Mục lục}%
+  \renewcommand{\refname}{Tài liệu tham khảo}%
+  \renewcommand{\abstractname}{Tóm tắt}%
+  \renewcommand{\appendixname}{Phụ lục}%
+}
+
+% Chèn hình; nếu chưa upload file .png lên Overleaf thì hiện khung báo thiếu thay vì lỗi biên dịch
+\newcommand{\hinh}[2][\linewidth]{%
+  \IfFileExists{figures/#2}{\includegraphics[width=#1]{#2}}{%
+    \fbox{\parbox[c][3cm][c]{0.8\linewidth}{\centering\small Thiếu file \texttt{figures/#2}}}}}
+
+\newcommand{\RQ}[1]{\textbf{RQ#1}}
+\newcommand{\metamodel}{meta-model}

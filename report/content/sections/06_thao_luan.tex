@@ -1,0 +1,31 @@
+\section{Thảo luận}
+\label{sec:thao-luan}
+
+\subsection{Ba điểm khác biệt quan trọng nhất so với bài gốc}
+
+Khi áp dụng phương pháp của \citet{mohammed2025effects} lên dữ liệu lớn hơn và đưa thêm một mô hình dự đoán, đề tài phải điều chỉnh một số điểm. Mục này nêu ba điểm có tác động lớn nhất đến kết quả.
+
+\subsubsection{Mẫu số của công thức accuracy cho cột số}
+\label{sec:kb-cong-thuc}
+Bài gốc tính accuracy của cột số là $1 - \overline{|x-x^{gt}|}/\overline{x^{gt}}$, tức chia cho \emph{trung bình} của cột. Công thức này ngầm giả định cột dương và có trung bình xa 0. HIGGS có các cột góc đối xứng quanh 0, Beijing có nhiệt độ và điểm sương nhận cả giá trị âm. Với sai lệch trung bình 0,5 đơn vị, một cột có trung bình 0,001 sẽ có điểm $-499$; một cột trung bình $-2$ có điểm 1,25, tức càng bẩn điểm càng vượt 1. Đề tài đổi mẫu số thành $\overline{|x^{gt}|}$ và cắt điểm tại 0. Thang nhiễu của polluter được đổi tương ứng; nếu giữ nguyên thì cột có trung bình gần 0 sẽ gần như không bị làm bẩn. Với cột toàn giá trị dương, hai công thức trùng nhau, nên đây là một mở rộng tương thích ngược chứ không phải thay công thức.
+
+\emph{Tác động:} nếu không sửa, điểm Feature Accuracy của HIGGS và Beijing sẽ vô nghĩa, và meta-model sẽ học trên những con số sai. Đây là điều kiện tiên quyết để có Hình~\ref{fig:h1} và mọi kết quả phía sau.
+
+\subsubsection{Chia train/test theo nhóm để chống rò rỉ}
+Bài gốc không có mô hình dự đoán nên không có quy ước này, còn thiết kế ban đầu của đề tài là chia ngẫu nhiên 80/20. Khi đã có bảng 312 lượt, cách chia ngẫu nhiên bộc lộ rò rỉ. Ba seed của cùng một cấu hình gần như là ba bản sao. Các dòng $\lambda = 0$ giống hệt nhau giữa các chiều. Hai thuật toán cùng mức bẩn chung một profile. Đề tài chuyển sang chia theo nhóm (tác vụ, chiều, $\lambda$) và dùng cùng đơn vị nhóm cho bootstrap (Mục~\ref{sec:danh-gia}).
+
+\emph{Tác động:} câu hỏi đánh giá trở thành ``gặp một mức bẩn chưa từng thấy, mô hình đoán $\Delta$ đúng đến đâu'', đúng với cách khung được sử dụng. Các con số ở Bảng~\ref{tab:main} không bị thổi phồng bởi việc mô hình nhớ lại các lượt gần giống nhau, và khoảng tin cậy ở Bảng~\ref{tab:bootstrap} không hẹp giả tạo.
+
+\subsubsection{Class Balance trên dữ liệu nhiều lớp đi ngược chiều}
+\label{sec:kb-balance}
+Bài gốc không nêu cách tính $n_{\max}$; đề tài lấy kích thước lớp lớn nhất quan sát được. Polluter của bài gốc xếp các lớp thành bậc thang đều và cân bằng lại dữ liệu ngay ở $\lambda = 0$, nghĩa là mất baseline thật và phải bỏ phần lớn dữ liệu Covertype. Đề tài thay bằng cách giữ lớp lớn nhất và xóa bớt các lớp còn lại. Với HIGGS (2 lớp), điểm giảm đúng hướng: 0,889 xuống 0,178. Với Covertype (7 lớp), điểm lại \emph{tăng} từ 0,254 lên 0,451, trong khi AMI vẫn giảm ($\Delta$AMI 0,02 đến 0,10). Nguyên nhân: mẫu số của công thức coi ``một nửa số lớp đầy, một nửa rỗng'' là xấu nhất, còn polluter đẩy dữ liệu về ``một lớp lớn, các lớp còn lại nhỏ đều nhau''.
+
+\emph{Tác động và cách xử lý:} đề tài không sửa hiện tượng này mà dùng nó làm phép thử. Ba baseline coi ``điểm cao là dữ liệu tốt'' nên đoán sai hướng ở 24 lượt này; meta-model biết tác vụ nên học được chiều ngược. Bảng chính giữ đủ 312 lượt, vì bỏ đúng những lượt baseline đoán sai sẽ giống chọn dữ liệu có lợi. Bảng phụ 288 lượt cho thấy kết luận không phụ thuộc vào chúng: bỏ đi thì khoảng cách giữa meta-model và baseline ở phân cụm còn lớn hơn.
+
+\subsection{Những quan sát khác đáng lưu ý}
+
+\paragraph{Vì sao điểm chất lượng cố định thất bại ở đây.} Weighted score và DQSOps-PCA không biết tác vụ, nên với cùng một profile chúng phải đoán cùng một $\Delta$, trong khi $\Delta$ thật khác nhau tới vài lần giữa các tác vụ (RQ1). Chúng cũng tuyến tính, nên không biểu diễn được quan hệ chữ U ngược của Target Accuracy hay chiều ngược của Class Balance. Riêng DQSOps-PCA còn chịu thêm vấn đề thiết kế thí nghiệm: PCA cần các chiều tương quan để có một trục chung, nhưng làm bẩn từng chiều riêng lẻ tạo ra các chiều gần như độc lập. Trong thực tế, nơi nhiều loại lỗi thường xuất hiện cùng nhau, PCA có thể hoạt động tốt hơn. Đây là giới hạn của so sánh, cần nói rõ.
+
+\paragraph{Weighted score là baseline mạnh hơn dự kiến.} Ở phân loại và ở bài toán Good/Bad, trung bình đơn giản của các chiều cạnh tranh sát với meta-model. Điều này gợi ý một cách dùng thực tế: dùng điểm trung bình để \emph{phát hiện} dữ liệu có vấn đề, và dùng meta-model khi cần \emph{định lượng} hiệu năng sẽ giảm bao nhiêu cho một tác vụ cụ thể.
+
+\paragraph{Độ ổn định của nhãn khác nhau theo tác vụ.} $\Delta$F1 gần như không đổi giữa các seed (độ lệch chuẩn tối đa 0,0024), $\Delta$R$^2$ cũng ổn định (tối đa 0,006). $\Delta$AMI của k-Means thì dao động tới 0,041, có lượt âm. Ghép baseline theo seed đã giảm nhưng không loại hết phần nhiễu này, nên phân cụm là tác vụ khó dự đoán nhất. Điều này hiện rõ ở độ lệch chuẩn R$^2$ của phân cụm trong Bảng~\ref{tab:main}.

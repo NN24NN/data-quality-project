@@ -547,3 +547,13 @@ Tổng khoảng 7 giờ, chưa kể thời gian làm bẩn và profiling (chưa 
 **Cách làm đáng ghi:** đường lý thuyết ở H1 là 1 − λ (Completeness, Uniqueness, Target Accuracy phân loại) và 1 − √λ·√(2/π) (accuracy số); Class Balance không có công thức nên không vẽ. Với Beijing và Covertype điểm Feature Accuracy đo được thấp hơn công thức (cột one-hot), cần chú thích khi viết báo cáo. Rule-based chỉ cho Good/Bad nên H6 vẽ dạng dải thay vì scatter.
 
 **Chưa làm / chưa kiểm chứng:** chưa chạy test và notebook trên Colab (máy local không có Python); chưa chạy lại cell 10.2; chưa xem hình thật nên bố cục có thể cần chỉnh; báo cáo chưa viết.
+
+### Giai đoạn 9 — Báo cáo LaTeX (bản nháp 2026-10-28, chưa biên dịch)
+
+**Người dùng chốt:** tiếng Việt, XeLaTeX trên Overleaf, bố cục **một cột** giữ phong cách ACL (font Times-like TeX Gyre Termes, lề 2,5 cm); thân bài 14–15 trang (không tính bìa, mục lục, tài liệu tham khảo, phân công, phụ lục); mỗi giảng viên một file (không ghi chung hai tên); phân công: Nam giai đoạn 0–5, Mạnh giai đoạn 6–9; phần khác biệt so với bài gốc chỉ nêu 3 điểm tác động lớn nhất.
+
+**Cách tổ chức:** `report/main_<gv>.tex` chỉ định nghĩa `\gvhd` rồi `\input` nội dung chung (`content/preamble.tex`, `cover.tex`, `body.tex`, `sections/*.tex`), nên sửa một chỗ cả hai bản cùng đổi. Không phụ thuộc `acl.sty` (style ACL ép hai cột) — tự dựng kiểu ACL bằng `article` + `titlesec`, nên chỉ cần project Overleaf trống. Macro `\hinh` hiện khung "thiếu file" nếu chưa upload ảnh, thay vì lỗi biên dịch. Sơ đồ pipeline vẽ bằng TikZ.
+
+**Cấu trúc thân bài:** Tóm tắt; 1 Giới thiệu (RQ1–RQ4, 4 đóng góp); 2 Công trình liên quan; 3 Phương pháp và kỹ thuật (mỗi kỹ thuật: làm gì / vì sao chọn); 4 Thiết lập (H1, H2); 5 Kết quả theo RQ (H3–H10, 4 bảng); 6 Thảo luận (3 khác biệt: mẫu số công thức accuracy cột số, chia theo nhóm chống rò rỉ, Class Balance đa lớp đi ngược → 312/288); 7 Hạn chế; 8 Kết luận. Phụ lục: cấu hình thuật toán, bảng 288 lượt + H3/H4/H5 bản 288, nhãn Δ tương đối, thí nghiệm nội suy.
+
+**Chưa làm / chưa kiểm chứng:** chưa biên dịch (máy local không có TeX); chưa biết số trang thực tế — ước lượng thô có thể vượt 15 trang, sẽ cắt sau khi biên dịch; trang bìa có thêm dòng "ĐẠI HỌC QUỐC GIA TP. HCM" và tên môn theo từng bản: Kỹ thuật xử lý dữ liệu (IT2047, TS. Võ Phương Bình), Học máy tiên tiến và ứng dụng (IT2043, TS. Hà Minh Tân) — người dùng cung cấp 2026-10-28; dòng "ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH" giữ (người dùng xác nhận 2026-10-28).

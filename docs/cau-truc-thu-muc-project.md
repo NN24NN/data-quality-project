@@ -98,6 +98,13 @@ data-quality-project/
 │   ├── test_pollution.py            # kiểm tra polluted ở λ=0 ≈ dataset gốc
 │   └── test_downstream.py           # kiểm tra 6 thuật toán + chia train/test
 │
+├── report/                          # thêm ở Giai đoạn 9 (người dùng chốt 2026-10-28): báo cáo LaTeX, biên dịch XeLaTeX trên Overleaf
+│   ├── main_vo_phuong_binh.tex      # bản nộp TS. Võ Phương Bình — Kỹ thuật xử lý dữ liệu, IT2047
+│   ├── main_ha_minh_tan.tex         # bản nộp TS. Hà Minh Tân — Học máy tiên tiến và ứng dụng, IT2043 (cùng nội dung)
+│   ├── references.bib
+│   ├── content/                     # preamble, trang bìa, thân bài, sections/ (từng mục, phân công, phụ lục)
+│   └── figures/                     # .png tải từ results/figures/ trên Drive (không commit)
+│
 └── docs/
     ├── tong-quan-bai-goc.md         # đã có trong project
     ├── pipeline-thi-nghiem.md       # đã có trong project

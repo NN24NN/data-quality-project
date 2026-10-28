@@ -1,0 +1,6 @@
+\section{Kết luận}
+\label{sec:ket-luan}
+
+Đề tài xây dựng một khung đánh giá chất lượng dữ liệu gắn với hiệu năng thật của mô hình downstream và có biết loại tác vụ. Dữ liệu cho khung là 312 lượt làm bẩn có kiểm soát trên ba bộ dữ liệu, ba tác vụ và sáu thuật toán. Kết quả trả lời bốn câu hỏi nghiên cứu. Ảnh hưởng của chất lượng dữ liệu thay đổi rõ rệt theo tác vụ và thuật toán; có chiều gần như vô hại (Uniqueness) và có quan hệ không đơn điệu (Target Accuracy trên dữ liệu hai lớp). Meta-model Gradient Boosting ước lượng và xếp hạng mức suy giảm tốt nhất ở cả ba tác vụ (MAE 0,055, Spearman 0,66). Nó hơn baseline kiểu DQSOps có ý nghĩa thống kê, còn mức hơn weighted score chưa đủ bằng chứng. SHAP cho bộ trọng số khác nhau theo tác vụ và khớp với mức hại quan sát được, trong khi trọng số PCA cố định không phản ánh mức hại. Cuối cùng, bước profiling, phần duy nhất phải chạm toàn bộ dữ liệu, cho cùng kết quả trên pandas và PySpark, và PySpark vẫn chạy được ở quy mô mà pandas hết bộ nhớ.
+
+Thông điệp chính: \emph{một điểm chất lượng dữ liệu chỉ có ý nghĩa khi gắn với mục đích sử dụng.} Cùng một bộ dữ liệu có thể đủ tốt cho tác vụ này nhưng không đủ cho tác vụ khác, và khung đánh giá nên trả lời câu hỏi ``mô hình của tôi sẽ tệ đi bao nhiêu'' thay vì ``dữ liệu được bao nhiêu điểm''.
