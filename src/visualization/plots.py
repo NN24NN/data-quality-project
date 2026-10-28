@@ -78,7 +78,8 @@ def plot_h1(check, task_of_dataset):
             theory = theory_curve(dim, task, d['level'])
             if theory is not None:
                 ax.plot(d['level'], theory, '--', color='black', linewidth=1, label='lý thuyết')
-            if i == 0:
+            if i == min(k for k, t in enumerate(tasks)          # tiêu đề ở hàng đầu tiên có dimension này
+                        if not check[(check['task'] == t) & (check['dimension'] == dim)].empty):
                 ax.set_title(dim)
             if j == 0:
                 ax.set_ylabel(f'{task}\nđiểm profile')
@@ -217,8 +218,11 @@ def plot_h6(preds, scheme='group_kfold', target='absolute'):
             y = p['y_pred'] + (rng.normal(0, 0.02, len(p)) if method == 'rule_based' else 0)
             ax.scatter(p['y_true'], y, s=12, alpha=0.6, color=TASK_COLORS.get(task), label=task)
         if method != 'rule_based':
-            lim = [min(d['y_true'].min(), d['y_pred'].min()), max(d['y_true'].max(), d['y_pred'].max())]
+            scored = d[d['method'] != 'rule_based']          # rule-based là 0/1, không dùng để đặt thang trục
+            lim = [min(scored['y_true'].min(), scored['y_pred'].min()), max(scored['y_true'].max(), scored['y_pred'].max())]
             ax.plot(lim, lim, 'k--', linewidth=1)
+            ax.set_xlim(lim[0] - 0.02, lim[1] + 0.02)
+            ax.set_ylim(lim[0] - 0.02, lim[1] + 0.02)
         ax.set_title(METHOD_LABELS[method])
         ax.set_xlabel('Δ thật')
         ax.set_ylabel('Good (0) / Bad (1)' if method == 'rule_based' else 'Δ dự đoán')
