@@ -533,3 +533,14 @@ Biểu đồ vẽ bằng matplotlib và lưu `.png` vào `results/figures/`. Not
 | Phụ | Độ ổn định GMM theo seed (cell 11.5); thời gian chạy theo tác vụ | Cell 11.5, log Giai đoạn 5 | Phụ lục, giải thích lựa chọn cấu hình | Giai đoạn 4–5 |
 
 **Lưu ý khi vẽ:** H3, H4 và H5 cần hai phiên bản, có và không có 24 lượt Class Balance × clustering, cho tới khi Giai đoạn 7 chốt. Ngoài ra, ΔAMI nhỏ hơn nhiều so với ΔF1 và ΔR², nên H3 dùng trục y riêng cho từng tác vụ.
+
+### 9.1 Trạng thái vẽ (Colab 2026-10-28, commit `db03b4a`)
+
+Đã vẽ và xem: H2, H3 (312 và 288 lượt), H4 (312 và 288 lượt), H5 (312 và 288 lượt), H7, H8, H9, H10; test `tests/test_visualization.py` `4 passed`. H1 và H6 đã vẽ được nhưng có hai lỗi bố cục (thiếu tiêu đề cột class_balance ở H1, thang trục bị kéo bởi rule-based ở H6), đã sửa trong code, **chờ chạy lại**. Hình lưu ở `results/figures/` trên Drive.
+
+Nhận xét khi xem hình (đối chiếu số liệu mục 6–8, chưa có số mới):
+- H1: đường đo được bám đường lý thuyết; Feature Accuracy của Beijing và Covertype thấp hơn công thức ở λ = 0,2 (đã nêu ở Giai đoạn 3).
+- H3: Target Accuracy × classification đạt đỉnh ở λ = 0,5 rồi giảm lại (rõ ở random forest); giả thuyết (chưa kiểm chứng): nhãn bị đảo quá nửa thì phần nhãn đảo lại mang quy luật ngược.
+- H4: ở λ = 0,8 Feature Accuracy làm hại clustering nhiều nhất (Δ/baseline 0,99); Uniqueness gần như không ảnh hưởng regression và classification.
+- H6, H7: rule-based gần như luôn dự đoán Bad (recall 1,00, precision 0,56); meta-model recall 0,82, precision 0,69.
+- H10: pandas hết RAM ở 22M dòng; RAM chỉ đo cho pandas (thiết kế Giai đoạn 8), nên ô RAM không có đường Spark.

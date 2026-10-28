@@ -132,17 +132,17 @@
 
 Danh mục biểu đồ đã chốt ngày 2026-10-23, mô tả chi tiết ở `ket-qua-thuc-nghiem.md` mục 9. Vẽ trong `notebooks/03_visualize_results.ipynb`, lưu `.png` vào `results/figures/`.
 
-- [ ] Sửa cell 10.2 để lưu kết quả kiểm chứng polluter ra CSV (dữ liệu cho H1), chạy lại
-- [ ] H1 — điểm profile đo được theo λ, kèm đường lý thuyết
-- [ ] H2 — baseline sạch 6 thuật toán, thanh sai số theo 3 seed
-- [ ] H3 — đường cong suy giảm Δ theo λ, theo dimension, mỗi tác vụ một hàng (có và không có 24 lượt Class Balance × clustering)
-- [ ] H4 — heatmap Δ tương đối ở λ = 0,8 (dimension × thuật toán)
-- [ ] H5 — bảng + biểu đồ cột MAE / R² / Spearman: meta-model vs 3 baseline, theo tác vụ
-- [ ] H6 — scatter Δ dự đoán vs Δ thật, 4 phương pháp
-- [ ] H7 — ma trận nhầm lẫn Good/Bad: rule-based vs meta-model
-- [ ] H8 — SHAP importance theo tác vụ
-- [ ] H9 — trọng số PCA (DQSOps) đặt cạnh SHAP theo tác vụ
-- [ ] H10 — runtime/memory pandas vs PySpark theo số dòng
+- [x] Sửa cell 10.2 để lưu kết quả kiểm chứng polluter ra CSV (dữ liệu cho H1), chạy lại — *Colab 2026-10-28, commit `db03b4a`: `pollution_check.csv`*
+- [ ] H1 — điểm profile đo được theo λ, kèm đường lý thuyết — *đã vẽ được 2026-10-28; còn chạy lại sau khi sửa tiêu đề cột class_balance*
+- [x] H2 — baseline sạch 6 thuật toán, thanh sai số theo 3 seed — *vẽ trên Colab 2026-10-28*
+- [x] H3 — đường cong suy giảm Δ theo λ, theo dimension, mỗi tác vụ một hàng (có và không có 24 lượt Class Balance × clustering) — *vẽ trên Colab 2026-10-28, cả bản 312 và 288 lượt*
+- [x] H4 — heatmap Δ tương đối ở λ = 0,8 (dimension × thuật toán) — *vẽ trên Colab 2026-10-28, cả bản 312 và 288 lượt*
+- [x] H5 — bảng + biểu đồ cột MAE / R² / Spearman: meta-model vs 3 baseline, theo tác vụ — *vẽ trên Colab 2026-10-28, cả bản 312 và 288 lượt*
+- [ ] H6 — scatter Δ dự đoán vs Δ thật, 4 phương pháp — *đã vẽ được 2026-10-28; còn chạy lại sau khi sửa thang trục*
+- [x] H7 — ma trận nhầm lẫn Good/Bad: rule-based vs meta-model — *vẽ trên Colab 2026-10-28*
+- [x] H8 — SHAP importance theo tác vụ — *vẽ trên Colab 2026-10-28*
+- [x] H9 — trọng số PCA (DQSOps) đặt cạnh SHAP theo tác vụ — *vẽ trên Colab 2026-10-28*
+- [x] H10 — runtime/memory pandas vs PySpark theo số dòng — *vẽ trên Colab 2026-10-28*
 - [ ] Viết báo cáo đồ án hoàn chỉnh, tổng hợp toàn bộ kết quả
 
 ---
