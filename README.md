@@ -13,7 +13,7 @@ Giai đoạn 0–8 đã xong và đã kiểm chứng trên Google Colab (cập n
 - 7: đánh giá & so sánh — meta-model ước lượng và xếp hạng mức suy giảm tốt nhất ở cả 3 tác vụ; hơn DQSOps-PCA có ý nghĩa thống kê.
 - 8: scalability — pandas hết RAM ở 22M dòng, PySpark chạy được trong giới hạn 4 GB.
 
-Tiếp theo: Giai đoạn 9 (biểu đồ H1–H10 và báo cáo) — xem `docs/checklist-trien-khai.md`. Số liệu: `docs/ket-qua-thuc-nghiem.md`; khác biệt so với bài gốc: `docs/khac-biet-so-voi-bai-goc.md`.
+Giai đoạn 9 (biểu đồ H1–H10 và báo cáo LaTeX trong `report/`) đã xong ngày 2026-10-28 — xem `docs/checklist-trien-khai.md`. Số liệu: `docs/ket-qua-thuc-nghiem.md`; khác biệt so với bài gốc: `docs/khac-biet-so-voi-bai-goc.md`.
 
 ## Cấu trúc thư mục
 
