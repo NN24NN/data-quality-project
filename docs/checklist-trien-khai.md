@@ -16,7 +16,7 @@
 >
 > **Cập nhật 2026-10-28:** biểu đồ H1–H10 đã vẽ xong trên Colab (code `src/visualization/plots.py`, notebook `03_visualize_results.ipynb`, hình ở `results/figures/` trên Drive). **Bản nháp báo cáo LaTeX đã viết** ở `report/` (tiếng Việt, XeLaTeX, một cột kiểu ACL, hai file chính cho hai giảng viên, chi tiết ở `cach-trien-khai-chi-tiet-tung-giai-doan.md` Giai đoạn 9) — **đã build được bằng Tectonic ở máy local (Overleaf free bị timeout): thân bài 15 trang, không lỗi; PDF ở `report/build/`**.
 >
-> **Đã chốt bản báo cáo (2026-10-28, commit `e6dcf07`) — toàn bộ Giai đoạn 0–9 đã xong.** Còn tùy chọn (chưa làm, không bắt buộc): vẽ lại ảnh H9 trên Colab để tiêu đề trong ảnh đổi từ "theo ngữ cảnh" sang "theo tác vụ" (đã sửa trong `plots.py`); làm slide cuối kỳ từ `khac-biet-so-voi-bai-goc.md` mục 7 và `ket-qua-thuc-nghiem.md`.
+> **Đã chốt bản báo cáo (2026-10-28, commit `e6dcf07`) — toàn bộ Giai đoạn 0–9 đã xong.** Ảnh H9 đã vẽ lại ngày 2026-10-28 (tiêu đề "theo tác vụ") và báo cáo đã build lại với ảnh mới. Còn lại (chưa làm): slide cuối kỳ, làm từ `khac-biet-so-voi-bai-goc.md` mục 7 và `ket-qua-thuc-nghiem.md`.
 >
 > **Cách làm việc (máy local không có Python):** viết code → rà bằng tay → commit/push khi người dùng đồng ý → người dùng chạy cell trên Colab (mục 1, 2, 9.1 trước mỗi phiên mới; chọn runtime CPU) → gửi kết quả **dán dạng văn bản** → ghi số liệu vào `ket-qua-thuc-nghiem.md`, tick checklist, cập nhật các `.md` liên quan.
 
